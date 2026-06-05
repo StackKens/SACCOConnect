@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
@@ -33,31 +33,6 @@ export default function Contributions() {
   const { colors } = useTheme();
   const total = mockContributions.reduce((sum, c) => sum + c.amount, 0);
 
-  const renderItem = ({ item }) => (
-    <Card style={styles.card}>
-      <View style={styles.row}>
-        <View>
-          <Text style={[styles.amount, { color: colors.text }]}>
-            {formatCurrency(item.amount)}
-          </Text>
-          <Text style={[styles.date, { color: colors.textSecondary }]}>
-            {formatDate(item.date)}
-          </Text>
-          <Text style={[styles.method, { color: colors.textSecondary }]}>
-            {item.method}
-          </Text>
-        </View>
-        <View
-          style={[styles.status, { backgroundColor: colors.success + "20" }]}
-        >
-          <Text style={[styles.statusText, { color: colors.success }]}>
-            {item.status}
-          </Text>
-        </View>
-      </View>
-    </Card>
-  );
-
   return (
     <ScreenWrapper>
       <PageHeader title="Savings" subtitle="Your contribution history" />
@@ -69,12 +44,30 @@ export default function Contributions() {
           {formatCurrency(total)}
         </Text>
       </Card>
-      <FlatList
-        data={mockContributions}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-      />
+      <View style={styles.list}>
+        {mockContributions.map((item) => (
+          <Card key={item.id} style={styles.card}>
+            <View style={styles.row}>
+              <View>
+                <Text style={[styles.amount, { color: colors.text }]}>
+                  {formatCurrency(item.amount)}
+                </Text>
+                <Text style={[styles.date, { color: colors.textSecondary }]}>
+                  {formatDate(item.date)}
+                </Text>
+                <Text style={[styles.method, { color: colors.textSecondary }]}>
+                  {item.method}
+                </Text>
+              </View>
+              <View style={[styles.status, { backgroundColor: colors.success + "20" }]}>
+                <Text style={[styles.statusText, { color: colors.success }]}>
+                  {item.status}
+                </Text>
+              </View>
+            </View>
+          </Card>
+        ))}
+      </View>
     </ScreenWrapper>
   );
 }

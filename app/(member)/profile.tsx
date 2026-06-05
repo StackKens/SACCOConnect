@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Linking } from "react-native";
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Linking, Modal, ScrollView } from "react-native";
 import { useState, useEffect } from "react";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
@@ -9,7 +9,53 @@ import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
+import { ChevronRight, X } from "lucide-react-native";
+
+const PRIVACY_POLICY = `We take your privacy seriously. Here is what you need to know:
+
+1. What we collect
+We collect your name, email, phone number, and financial activity (savings, loans, repayments) so we can run your SACCO account.
+
+2. How we use it
+Your information is used only to manage your account, process transactions, and send you important updates about your savings and loans.
+
+3. Who can see it
+Only authorised SACCO staff and administrators can access your account details. We do not sell or share your data with third parties.
+
+4. How we protect it
+Your data is stored securely and only accessible through your password-protected account. We use encryption to keep your information safe.
+
+5. Your rights
+You can request to view, update, or delete your personal data at any time by contacting support.
+
+6. Changes
+If we update this policy, we will notify you through the app. Continued use of the app means you accept the updated policy.`;
+
+const TERMS_OF_SERVICE = `By using SACCOConnect, you agree to the following:
+
+1. Eligibility
+You must be a registered member of the SACCO to use this app. Membership is subject to approval by the SACCO administration.
+
+2. Your account
+You are responsible for keeping your login details safe. Do not share your password with anyone. Report any suspicious activity to support immediately.
+
+3. Contributions
+Contributions made through the app are final once confirmed. Errors must be reported within 48 hours.
+
+4. Loans
+Applying for a loan does not guarantee approval. The SACCO reserves the right to approve or reject any application based on your savings history and eligibility.
+
+5. Repayments
+Loan repayments are due on the agreed dates. Late payments may attract penalties as defined by the SACCO policy.
+
+6. Acceptable use
+Do not use this app for any fraudulent activity. Any misuse will result in immediate account suspension and may be reported to relevant authorities.
+
+7. Limitation of liability
+SACCOConnect is a management tool. The SACCO is responsible for all financial decisions. We are not liable for losses arising from your financial choices.
+
+8. Contact
+For any questions or disputes, contact us at support@saccoconnect.ug.`;
 
 const HOW_TO_USE = [
   { title: "Making a Contribution", desc: "Go to Savings and tap Make Contribution. Enter the amount, select your payment method, and confirm." },
@@ -25,6 +71,7 @@ export default function Profile() {
   const { colors, isDark } = useTheme();
   const [darkMode, setDarkMode] = useState(isDark);
   const [useSystem, setUseSystem] = useState(theme === "system");
+  const [legalModal, setLegalModal] = useState<"privacy" | "terms" | null>(null);
 
   useEffect(() => { setDarkMode(isDark); }, [isDark]);
 
@@ -104,6 +151,40 @@ export default function Profile() {
         </View>
       </Card>
 
+      <Card style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Legal</Text>
+        <TouchableOpacity style={styles.supportRow} onPress={() => setLegalModal("privacy")}>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>Privacy Policy</Text>
+          <ChevronRight size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <Divider style={styles.divider} />
+        <TouchableOpacity style={styles.supportRow} onPress={() => setLegalModal("terms")}>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>Terms of Service</Text>
+          <ChevronRight size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+      </Card>
+
+      <Modal visible={legalModal !== null} transparent animationType="slide" onRequestClose={() => setLegalModal(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalSheet, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {legalModal === "privacy" ? "Privacy Policy" : "Terms of Service"}
+              </Text>
+              <TouchableOpacity onPress={() => setLegalModal(null)}>
+                <X size={22} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <Divider />
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <Text style={[styles.legalText, { color: colors.textSecondary }]}>
+                {legalModal === "privacy" ? PRIVACY_POLICY : TERMS_OF_SERVICE}
+              </Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       <Button
         title="Logout"
         onPress={() => { logout(); router.replace("/(auth)/login"); }}
@@ -131,4 +212,10 @@ const styles = StyleSheet.create({
   helpDesc: { fontSize: 13, lineHeight: 18 },
   supportRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 4 },
   logout: { marginTop: 8, marginBottom: 24 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  modalSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: "80%" },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  modalTitle: { fontSize: 17, fontWeight: "700" },
+  modalBody: { marginTop: 12 },
+  legalText: { fontSize: 13, lineHeight: 22 },
 });
