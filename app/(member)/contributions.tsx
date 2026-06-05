@@ -1,5 +1,5 @@
 import { View, Text, FlatList, StyleSheet } from "react-native";
-import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
@@ -60,6 +60,7 @@ export default function Contributions() {
 
   return (
     <ScreenWrapper>
+      <PageHeader title="Savings" subtitle="Your contribution history" />
       <Card style={styles.totalCard}>
         <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>
           Total Saved

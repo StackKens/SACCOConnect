@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { useTheme } from "@/hooks/useTheme";
@@ -98,6 +98,7 @@ export default function Loans() {
 
   return (
     <ScreenWrapper>
+      <PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />
       <FlatList
         data={mockLoans}
         renderItem={renderItem}

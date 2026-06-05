@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Switch } from "react-native";
 import { useState, useEffect } from "react";
-import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
@@ -38,6 +38,7 @@ export default function Profile() {
 
   return (
     <ScreenWrapper>
+      <PageHeader title="Profile" subtitle="Manage your account & preferences" />
       <Card style={styles.profileCard}>
         <Avatar name={user?.name} size={80} style={styles.avatar} />
         <Text style={[styles.name, { color: colors.text }]}>{user?.name}</Text>
