@@ -3,28 +3,33 @@
     "name": "SACCOConnect",
     "slug": "saccoconnect",
     "version": "1.0.0",
-    "scheme": "saccoconnect",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#0A2540"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.saccoconnect.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets//logo.png",
-        "backgroundColor": "#FFFFFF"
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#0A2540"
       },
       "package": "com.saccoconnect.app"
     },
-    "plugins": ["expo-router", "expo-font"],
-    "experiments": {
-      "typedRoutes": true
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
-    "ios": {
-      "bundleIdentifier": "com.saccoconnect.app"
-    }
+    "plugins": ["expo-router"],
+    "router": {
+      "ignoredRouteFiles": ["**/src/**"]
+    },
+    "scheme": "saccoconnect"
   }
 }
