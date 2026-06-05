@@ -29,7 +29,7 @@ export default function Contribute() {
       <PageHeader title="Make Contribution" />
       <Card style={styles.card}>
         <Input
-          label="Amount (KES)"
+          label="Amount (UGX)"
           value={amount}
           onChangeText={setAmount}
           keyboardType="numeric"

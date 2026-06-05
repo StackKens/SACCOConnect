@@ -31,7 +31,7 @@ export default function ApplyLoan() {
 
       <Card style={styles.card}>
         <Input
-          label="Loan Amount (KES)"
+          label="Loan Amount (UGX)"
           value={amount}
           onChangeText={setAmount}
           keyboardType="numeric"
@@ -51,7 +51,7 @@ export default function ApplyLoan() {
           placeholder="e.g., 12"
         />
         <Input
-          label="Monthly Income (KES)"
+          label="Monthly Income (UGX)"
           value={income}
           onChangeText={setIncome}
           keyboardType="numeric"

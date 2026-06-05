@@ -49,9 +49,15 @@ export default function Login() {
         <Button title="Login" onPress={handleLogin} loading={loading} />
         <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
           <Text style={[styles.link, { color: colors.primary }]}>
-            Don't have an account? Sign up
+            Don't have an account? Register
           </Text>
         </TouchableOpacity>
+        <View style={[styles.adminHint, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.adminHintTitle, { color: colors.text }]}>Admin Access</Text>
+          <Text style={[styles.adminHintText, { color: colors.textSecondary }]}>
+            Email: admin@example.com{"\n"}Password: any
+          </Text>
+        </View>
       </View>
     </ScreenWrapper>
   );
@@ -62,4 +68,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "bold", marginBottom: 8 },
   subtitle: { fontSize: 16, marginBottom: 32 },
   link: { marginTop: 20, textAlign: "center", fontSize: 14 },
+  adminHint: { marginTop: 32, padding: 14, borderRadius: 10, borderWidth: 1 },
+  adminHintTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
+  adminHintText: { fontSize: 12, lineHeight: 18 },
 });

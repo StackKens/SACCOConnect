@@ -16,7 +16,7 @@ const mockNotifications = [
   {
     id: "1",
     title: "Loan Approved",
-    message: "Your loan of KES 50,000 has been approved",
+    message: "Your loan of UGX 50,000 has been approved",
     date: "2025-06-01",
     read: false,
     type: "success",

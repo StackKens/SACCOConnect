@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { router } from "expo-router";
-import { Wallet, AlertCircle, Flame } from "lucide-react-native";
+import { Wallet, AlertCircle, Flame, FileText } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 
 export default function MemberDashboard() {
@@ -77,6 +77,13 @@ export default function MemberDashboard() {
           style={styles.actionButton}
         />
       </View>
+
+      <Button
+        title="View Statement"
+        onPress={() => router.push("/(member)/statement")}
+        variant="outline"
+        style={{ marginTop: 18, marginBottom: 20 }}
+      />
     </ScreenWrapper>
   );
 }
