@@ -16,7 +16,7 @@ export default function Treasury() {
 
   return (
     <ScreenWrapper scroll>
-      <PageHeader title="Treasury" />
+      <PageHeader title="Treasury" subtitle="Financial summary and collections" />
 
       <View style={styles.statsGrid}>
         <StatCard
@@ -98,7 +98,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 20,
-    alignSelf: "center",
   },
   barContainer: {
     flexDirection: "row",

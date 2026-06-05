@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   TouchableOpacity,
   Modal,
@@ -52,32 +51,6 @@ export default function Members() {
     setInviteCode(null);
   };
 
-  const renderMember = ({ item }: { item: typeof mockMembers[0] }) => (
-    <TouchableOpacity onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>
-      <Card style={styles.card}>
-        <View style={styles.row}>
-          <Avatar name={item.name} size={48} />
-          <View style={styles.info}>
-            <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
-            <Text style={[styles.email, { color: colors.textSecondary }]}>{item.email}</Text>
-            <Text style={[styles.savings, { color: colors.success }]}>
-              {formatCurrency(item.savings)} saved
-            </Text>
-          </View>
-          <View style={styles.right}>
-            <Text style={[
-              styles.status,
-              { color: item.status === "active" ? colors.success : colors.textSecondary }
-            ]}>
-              {item.status}
-            </Text>
-            <ChevronRight size={18} color={colors.textSecondary} />
-          </View>
-        </View>
-      </Card>
-    </TouchableOpacity>
-  );
-
   return (
     <ScreenWrapper>
       <View style={styles.header}>
@@ -91,12 +64,30 @@ export default function Members() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={mockMembers}
-        renderItem={renderMember}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-      />
+      <View style={styles.list}>
+        {mockMembers.map((item) => (
+          <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>
+            <Card style={styles.card}>
+              <View style={styles.row}>
+                <Avatar name={item.name} size={48} />
+                <View style={styles.info}>
+                  <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
+                  <Text style={[styles.email, { color: colors.textSecondary }]}>{item.email}</Text>
+                  <Text style={[styles.savings, { color: colors.success }]}>
+                    {formatCurrency(item.savings)} saved
+                  </Text>
+                </View>
+                <View style={styles.right}>
+                  <Text style={[styles.status, { color: item.status === "active" ? colors.success : colors.textSecondary }]}>
+                    {item.status}
+                  </Text>
+                  <ChevronRight size={18} color={colors.textSecondary} />
+                </View>
+              </View>
+            </Card>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
         <View style={styles.overlay}>

@@ -18,7 +18,7 @@ export default function AdminDashboard() {
 
   return (
     <ScreenWrapper scroll>
-      <PageHeader title="Admin Dashboard" />
+      <PageHeader title="Admin Dashboard" subtitle="Overview of SACCO operations" />
 
       <View style={styles.statsGrid}>
         <StatCard
@@ -85,10 +85,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 8,
   },
   quickActions: { marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: 12 },
-  actionButtons: { gap: 12 },
-  actionBtn: { marginBottom: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 12 },
+  actionButtons: { gap: 10 },
+  actionBtn: {},
 });

@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
-import { BarChart2, Users, List, Building2, Settings } from "lucide-react-native";
+import { LayoutDashboard, Users, ClipboardList, Landmark, Settings } from "lucide-react-native";
 
 export default function AdminLayout() {
   const { colors } = useTheme();
@@ -9,7 +9,7 @@ export default function AdminLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: colors.secondary,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
           backgroundColor: colors.surface,
@@ -19,8 +19,11 @@ export default function AdminLayout() {
           paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: "600",
+        },
+        tabBarItemStyle: {
+          flex: 1,
         },
       }}
     >
@@ -28,35 +31,35 @@ export default function AdminLayout() {
         name="index"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ color }) => <BarChart2 size={24} color={color} />,
+          tabBarIcon: ({ color }) => <LayoutDashboard size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="members"
         options={{
           title: "Members",
-          tabBarIcon: ({ color }) => <Users size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Users size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="loan-queue"
         options={{
-          title: "Loan Queue",
-          tabBarIcon: ({ color }) => <List size={24} color={color} />,
+          title: "Loans",
+          tabBarIcon: ({ color }) => <ClipboardList size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="treasury"
         options={{
           title: "Treasury",
-          tabBarIcon: ({ color }) => <Building2 size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Landmark size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Settings size={22} color={color} />,
         }}
       />
       {/* Push screens — hidden from tab bar */}
