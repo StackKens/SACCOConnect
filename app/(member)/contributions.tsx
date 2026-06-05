@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
+import { router } from "expo-router";
 
 const mockContributions = [
   {
@@ -43,6 +45,12 @@ export default function Contributions() {
         <Text style={[styles.totalAmount, { color: colors.text }]}>
           {formatCurrency(total)}
         </Text>
+        <Button
+          title="Make Contribution"
+          onPress={() => router.push("/(member)/contribute")}
+          variant="secondary"
+          style={styles.contributeBtn}
+        />
       </Card>
       <View style={styles.list}>
         {mockContributions.map((item) => (
@@ -76,6 +84,7 @@ const styles = StyleSheet.create({
   totalCard: { marginBottom: 20, alignItems: "center" },
   totalLabel: { fontSize: 14 },
   totalAmount: { fontSize: 32, fontWeight: "bold", marginTop: 8 },
+  contributeBtn: { marginTop: 16, alignSelf: "stretch" },
   list: { paddingBottom: 20 },
   card: { marginBottom: 12 },
   row: {
