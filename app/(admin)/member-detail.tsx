@@ -40,6 +40,7 @@ export default function MemberDetail() {
           title={member.name}
           subtitle="Member profile"
           showBack
+          onBack={() => router.push("/(admin)/members")}
           rightComponent={
             <Badge
               label={member.status}

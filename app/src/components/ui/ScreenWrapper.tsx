@@ -49,14 +49,16 @@ export const PageHeader: React.FC<{
   style?: object;
   rightComponent?: React.ReactNode;
   showBack?: boolean;
-}> = ({ title, subtitle, rightComponent, showBack = false, style }) => {
+  onBack?: () => void;
+}> = ({ title, subtitle, rightComponent, showBack = false, onBack, style }) => {
   const { colors } = useTheme();
+  const handleBack = onBack ?? (() => router.back());
   return (
     <>
       <View style={[styles.pageHeaderWrapper, style]}>
         {showBack && (
           <Pressable
-            onPress={() => router.back()}
+            onPress={handleBack}
             hitSlop={8}
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.5 }]}
           >

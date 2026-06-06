@@ -23,7 +23,7 @@ export const Card: React.FC<CardProps> = ({
           backgroundColor: colors.card,
           borderColor: colors.border,
           shadowColor: colors.shadow,
-          shadowOpacity: isDark ? 0.12 : 0.05,
+          shadowOpacity: isDark ? 0.06 : 0.03,
         },
         elevated && styles.elevated,
         style,
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
   elevated: {
     shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
-    elevation: 1,
+    shadowRadius: 1,
+    elevation: 0,
   },
 });
