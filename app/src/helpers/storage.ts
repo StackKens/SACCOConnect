@@ -10,5 +10,5 @@ export const setItem = (key: string, value: any): void => {
   storage.set(key, JSON.stringify(value));
 };
 export const removeItem = (key: string): void => {
-  storage.delete(key);
+  storage.remove(key);
 };

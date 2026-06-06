@@ -6,7 +6,6 @@ import { Divider } from "@/components/ui/Divider";
 import { useUIStore } from "@/store/ui.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useTheme } from "@/hooks/useTheme";
-import { useLogout } from "@/hooks/useLogout";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
 import { ChevronRight, Settings2 } from "lucide-react-native";
@@ -21,7 +20,7 @@ const ADMIN_HOW_TO = [
 
 export default function AdminSettings() {
   const { theme, setTheme } = useUIStore();
-  const handleLogout = useLogout();
+  const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
   const { colors, isDark } = useTheme();
@@ -141,7 +140,7 @@ export default function AdminSettings() {
 
       <Button
         title="Logout"
-        onPress={handleLogout}
+        onPress={logout}
         variant="danger"
         style={styles.logout}
       />

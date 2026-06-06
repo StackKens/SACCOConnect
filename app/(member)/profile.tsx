@@ -8,7 +8,6 @@ import { Divider } from "@/components/ui/Divider";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 import { useTheme } from "@/hooks/useTheme";
-import { useLogout } from "@/hooks/useLogout";
 import { router } from "expo-router";
 import { ChevronRight, X, ShieldCheck } from "lucide-react-native";
 
@@ -66,7 +65,7 @@ const HOW_TO_USE = [
 ];
 
 export default function Profile() {
-  const handleLogout = useLogout();
+  const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
   const { theme, setTheme } = useUIStore();
@@ -210,7 +209,7 @@ export default function Profile() {
 
       <Button
         title="Logout"
-        onPress={handleLogout}
+        onPress={logout}
         variant="danger"
         style={styles.logout}
       />
