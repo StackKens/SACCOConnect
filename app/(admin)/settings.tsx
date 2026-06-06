@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
-import { ChevronRight } from "lucide-react-native";
+import { ChevronRight, Settings2 } from "lucide-react-native";
 
 const ADMIN_HOW_TO = [
   { title: "Approving a Loan", desc: "Go to Loan Queue, tap any pending application to open the review screen, then tap Approve or Reject." },
@@ -22,6 +22,7 @@ export default function AdminSettings() {
   const { theme, setTheme } = useUIStore();
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
+  const sacco = useAuthStore((state) => state.sacco);
   const { colors, isDark } = useTheme();
   const [darkMode, setDarkMode] = useState(isDark);
   const [useSystem, setUseSystem] = useState(theme === "system");
@@ -43,9 +44,53 @@ export default function AdminSettings() {
     <ScreenWrapper header={<PageHeader title="Settings" subtitle="Admin controls & preferences" />}>
 
       <Card style={styles.profileRow}>
+        {sacco && (
+          <View style={styles.saccoIdentity}>
+            <View style={[styles.saccoAvatar, { backgroundColor: sacco.logoColor ?? colors.primary }]}>
+              <Text style={styles.saccoAvatarText}>
+                {sacco.name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase()).join("")}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.saccoName, { color: colors.text }]}>{sacco.name}</Text>
+              <Text style={[styles.saccoMeta, { color: colors.textSecondary }]}>
+                UGX {sacco.contributionAmount?.toLocaleString()} / month  •  {sacco.interestRate}% p.a.
+              </Text>
+            </View>
+          </View>
+        )}
+        <Divider style={{ marginVertical: 12 }} />
         <Text style={[styles.adminName, { color: colors.text }]}>{user?.name}</Text>
-        <Text style={[styles.adminEmail, { color: colors.textSecondary }]}>{user?.email}</Text>
+        <Text style={[styles.adminPhone, { color: colors.textSecondary }]}>{user?.phone}</Text>
         <Text style={[styles.adminBadge, { color: colors.secondary }]}>ADMINISTRATOR</Text>
+      </Card>
+
+      {/* Group Settings */}
+      <Card style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Settings2 size={16} color={colors.primary} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Group Settings</Text>
+        </View>
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/create-sacco")}>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>Edit SACCO Rules & Info</Text>
+          <ChevronRight size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <Divider style={styles.divider} />
+        {sacco?.rules && sacco.rules.length > 0 && (
+          <View style={{ marginTop: 4 }}>
+            <Text style={[styles.rulesLabel, { color: colors.textSecondary }]}>
+              {sacco.rules.length} active rule{sacco.rules.length !== 1 ? "s" : ""}
+            </Text>
+            {sacco.rules.slice(0, 3).map((r, i) => (
+              <Text key={i} style={[styles.rulePreview, { color: colors.textSecondary }]} numberOfLines={1}>
+                {i + 1}. {r}
+              </Text>
+            ))}
+            {sacco.rules.length > 3 && (
+              <Text style={[styles.rulesLabel, { color: colors.primary }]}>+{sacco.rules.length - 3} more...</Text>
+            )}
+          </View>
+        )}
       </Card>
 
       <Card style={styles.section}>
@@ -105,9 +150,17 @@ export default function AdminSettings() {
 
 const styles = StyleSheet.create({
   profileRow: { marginBottom: 20 },
-  adminName: { fontSize: 18, fontWeight: "700", marginBottom: 2 },
-  adminEmail: { fontSize: 14, marginBottom: 4 },
+  saccoIdentity: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 4 },
+  saccoAvatar: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
+  saccoAvatarText: { color: "#fff", fontSize: 16, fontWeight: "800" },
+  saccoName: { fontSize: 15, fontWeight: "700" },
+  saccoMeta: { fontSize: 12, marginTop: 2 },
+  adminName: { fontSize: 16, fontWeight: "700", marginBottom: 2 },
+  adminPhone: { fontSize: 14, marginBottom: 4 },
   adminBadge: { fontSize: 11, fontWeight: "700", letterSpacing: 1 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 },
+  rulesLabel: { fontSize: 11, fontWeight: "600", marginBottom: 4 },
+  rulePreview: { fontSize: 12, lineHeight: 18, marginBottom: 2 },
   section: { marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 14 },
   settingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 4 },

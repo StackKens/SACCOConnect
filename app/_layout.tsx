@@ -16,7 +16,7 @@ function ThemeUpdater() {
 }
 
 export default function RootLayout() {
-  const { user, isLoading, checkAuth } = useAuthStore();
+  const { user, isLoading, checkAuth, rulesAccepted } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -27,12 +27,21 @@ export default function RootLayout() {
   useEffect(() => {
     if (isLoading) return;
     const inAuthGroup = segments[0] === "(auth)";
+    const inMember = segments[0] === "(member)";
     if (!user && !inAuthGroup) {
       router.replace("/(auth)/login");
     } else if (user && inAuthGroup) {
-      router.replace(user.role === "admin" ? "/(admin)" : "/(member)");
+      if (user.role === "admin") {
+        router.replace("/(admin)");
+      } else if (!rulesAccepted) {
+        router.replace("/(auth)/group-rules");
+      } else {
+        router.replace("/(member)");
+      }
+    } else if (user && user.role === "member" && !rulesAccepted && segments[0] !== "(auth)") {
+      router.replace("/(auth)/group-rules");
     }
-  }, [user, isLoading, segments]);
+  }, [user, isLoading, rulesAccepted, segments]);
 
   if (isLoading) return null;
 

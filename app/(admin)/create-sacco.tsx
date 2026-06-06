@@ -1,12 +1,37 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from "react-native";
 import { router } from "expo-router";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Divider } from "@/components/ui/Divider";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
+import { CheckSquare, Square } from "lucide-react-native";
+
+const PRESET_RULES = [
+  "Monthly contributions must be paid by the 5th of every month.",
+  "Late contributions attract a 5% penalty fee.",
+  "Loan limit is 3× your total savings.",
+  "Loans must be fully repaid before a new loan can be applied for.",
+  "Members must give 30 days notice before withdrawing from the group.",
+  "Defaulting on a loan for 3+ months leads to suspension.",
+  "All financial disputes are resolved by a majority vote of members.",
+];
+
+const LOGO_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#0EA5E9", "#14B8A6"];
+
+function GroupAvatar({ name, color, size = 56 }: { name: string; color: string; size?: number }) {
+  const initials = name.trim()
+    ? name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("")
+    : "SC";
+  return (
+    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color, alignItems: "center", justifyContent: "center" }}>
+      <Text style={{ color: "#fff", fontSize: size * 0.34, fontWeight: "800" }}>{initials}</Text>
+    </View>
+  );
+}
 
 export default function CreateSACCO() {
   const { colors } = useTheme();
@@ -15,8 +40,16 @@ export default function CreateSACCO() {
   const [name, setName] = useState("");
   const [contribution, setContribution] = useState("");
   const [interest, setInterest] = useState("");
-  const [rules, setRules] = useState("");
+  const [selectedRules, setSelectedRules] = useState<string[]>([]);
+  const [customRule, setCustomRule] = useState("");
+  const [logoColor, setLogoColor] = useState(LOGO_COLORS[0]);
   const [loading, setLoading] = useState(false);
+
+  const toggleRule = (rule: string) => {
+    setSelectedRules((prev) =>
+      prev.includes(rule) ? prev.filter((r) => r !== rule) : [...prev, rule],
+    );
+  };
 
   const handleCreate = async () => {
     if (!name.trim()) return Alert.alert("Required", "Enter a SACCO name.");
@@ -24,6 +57,8 @@ export default function CreateSACCO() {
       return Alert.alert("Required", "Enter a valid monthly contribution amount.");
     if (!interest || isNaN(Number(interest)))
       return Alert.alert("Required", "Enter a valid interest rate.");
+    if (selectedRules.length === 0 && !customRule.trim())
+      return Alert.alert("Required", "Select at least one rule for your group.");
 
     setLoading(true);
     try {
@@ -31,7 +66,9 @@ export default function CreateSACCO() {
         name: name.trim(),
         contributionAmount: Number(contribution),
         interestRate: Number(interest),
-        rules: rules.trim(),
+        rules: selectedRules,
+        customRule,
+        logoColor,
       });
       Alert.alert("SACCO Created ✅", `${name} is ready. You can now invite members.`, [
         { text: "Invite Members", onPress: () => router.replace("/(admin)/members") },
@@ -49,43 +86,87 @@ export default function CreateSACCO() {
       scroll
       header={<PageHeader title="Create SACCO" subtitle="Set up your group" showBack onBack={() => router.back()} />}
     >
-      <Card style={styles.card}>
-        <Input
-          label="SACCO Name"
-          value={name}
-          onChangeText={setName}
-          placeholder="e.g. UgandaSavings SACCO"
-          autoCapitalize="words"
-        />
-        <Input
-          label="Monthly Contribution (UGX)"
-          value={contribution}
-          onChangeText={setContribution}
-          keyboardType="numeric"
-          placeholder="e.g. 50000"
-        />
-        <Input
-          label="Interest Rate (% per annum)"
-          value={interest}
-          onChangeText={setInterest}
-          keyboardType="numeric"
-          placeholder="e.g. 12"
-        />
-        <Input
-          label="Rules & Notes (optional)"
-          value={rules}
-          onChangeText={setRules}
-          placeholder="e.g. Loan limit is 3x savings. Late fee: 5%."
-          multiline
-          numberOfLines={4}
-        />
-        <Button title="Create SACCO" onPress={handleCreate} loading={loading} style={styles.btn} />
+      {/* Group identity preview */}
+      <Card style={styles.previewCard}>
+        <View style={styles.previewRow}>
+          <GroupAvatar name={name} color={logoColor} size={56} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.previewName, { color: colors.text }]} numberOfLines={1}>
+              {name.trim() || "Group Name"}
+            </Text>
+            <Text style={[styles.previewSub, { color: colors.textSecondary }]}>
+              Preview of your group avatar
+            </Text>
+          </View>
+        </View>
       </Card>
+
+      {/* Basic info */}
+      <Card style={styles.card}>
+        <Input label="SACCO Name" value={name} onChangeText={setName} placeholder="e.g. UgandaSavings SACCO" autoCapitalize="words" />
+        <Input label="Monthly Contribution (UGX)" value={contribution} onChangeText={setContribution} keyboardType="numeric" placeholder="e.g. 50000" />
+        <Input label="Interest Rate (% per annum)" value={interest} onChangeText={setInterest} keyboardType="numeric" placeholder="e.g. 12" />
+      </Card>
+
+      {/* Logo color */}
+      <Card style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Group Avatar Color</Text>
+        <View style={styles.colorRow}>
+          {LOGO_COLORS.map((c) => (
+            <TouchableOpacity
+              key={c}
+              onPress={() => setLogoColor(c)}
+              style={[styles.colorSwatch, { backgroundColor: c }, logoColor === c && styles.colorSwatchSelected]}
+            />
+          ))}
+        </View>
+      </Card>
+
+      {/* Preset rules */}
+      <Card style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Group Rules</Text>
+        <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+          Select the rules that apply to your group. Members will read and accept these before joining.
+        </Text>
+        {PRESET_RULES.map((rule, i) => {
+          const checked = selectedRules.includes(rule);
+          return (
+            <TouchableOpacity key={i} style={styles.ruleRow} onPress={() => toggleRule(rule)} activeOpacity={0.7}>
+              {checked
+                ? <CheckSquare size={20} color={colors.primary} />
+                : <Square size={20} color={colors.textSecondary} />}
+              <Text style={[styles.ruleText, { color: colors.text }]}>{rule}</Text>
+            </TouchableOpacity>
+          );
+        })}
+        <Divider style={{ marginVertical: 14 }} />
+        <Input
+          label="Custom Rule (optional)"
+          value={customRule}
+          onChangeText={setCustomRule}
+          placeholder="Add your own rule..."
+          multiline
+          numberOfLines={2}
+        />
+      </Card>
+
+      <Button title="Create SACCO" onPress={handleCreate} loading={loading} style={styles.btn} />
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: 24 },
-  btn: { marginTop: 8 },
+  previewCard: { marginBottom: 16 },
+  previewRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  previewName: { fontSize: 16, fontWeight: "700" },
+  previewSub: { fontSize: 12, marginTop: 2 },
+  card: { marginBottom: 16 },
+  sectionTitle: { fontSize: 15, fontWeight: "700", marginBottom: 4 },
+  sectionSub: { fontSize: 12, lineHeight: 18, marginBottom: 14 },
+  colorRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 10 },
+  colorSwatch: { width: 34, height: 34, borderRadius: 17 },
+  colorSwatchSelected: { borderWidth: 3, borderColor: "#fff", shadowColor: "#000", shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
+  ruleRow: { flexDirection: "row", alignItems: "flex-start", gap: 10, paddingVertical: 8 },
+  ruleText: { flex: 1, fontSize: 13, lineHeight: 20 },
+  btn: { marginBottom: 24 },
 });

@@ -10,8 +10,16 @@ const DEMO_SACCO: SACCO = {
   name: "UgandaSavings SACCO",
   contributionAmount: 50000,
   interestRate: 12,
-  rules: "Monthly contributions required. Loan limit is 3x savings.",
+  rules: [
+    "Monthly contributions must be paid by the 5th of every month.",
+    "Late contributions attract a 5% penalty fee.",
+    "Loan limit is 3× your total savings.",
+    "Loans must be repaid within the agreed term. Defaulters are suspended.",
+    "Members must give 30 days notice before withdrawing from the group.",
+    "All financial disputes are resolved by a majority vote of members.",
+  ],
   adminId: "admin_1",
+  logoColor: "#3B82F6",
 };
 
 const DEMO_ADMIN: User = {
@@ -32,12 +40,10 @@ const DEMO_INVITES: Record<string, InviteCode> = {
 interface AuthState {
   user: User | null;
   sacco: SACCO | null;
+  rulesAccepted: boolean;
   isLoading: boolean;
-  // Returning user: phone + PIN
   login: (phone: string, pin: string) => Promise<void>;
-  // First time: invite code → returns SACCO name for confirmation
   lookupInviteCode: (code: string) => Promise<InviteCode>;
-  // Complete join after confirmation
   joinSACCO: (params: {
     code: string;
     name: string;
@@ -45,13 +51,15 @@ interface AuthState {
     phone: string;
     pin: string;
   }) => Promise<void>;
-  // Admin: create a new SACCO
   createSACCO: (params: {
     name: string;
     contributionAmount: number;
     interestRate: number;
-    rules: string;
+    rules: string[];
+    customRule: string;
+    logoColor: string;
   }) => Promise<void>;
+  acceptRules: () => void;
   logout: () => void;
   checkAuth: () => void;
 }
@@ -59,22 +67,22 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   sacco: null,
+  rulesAccepted: false,
   isLoading: true,
 
   login: async (phone, pin) => {
-    // Demo: admin shortcut
     if (phone === "0700000000" && pin === "0000") {
       storage.set("user", JSON.stringify(DEMO_ADMIN));
       storage.set("sacco", JSON.stringify(DEMO_SACCO));
-      set({ user: DEMO_ADMIN, sacco: DEMO_SACCO });
+      set({ user: DEMO_ADMIN, sacco: DEMO_SACCO, rulesAccepted: true });
       return;
     }
-    // Real: look up stored member by phone
     const stored = storage.getString(`member_${phone}`);
     if (!stored) throw new Error("Phone number not registered.");
     const { user, sacco, storedPin } = JSON.parse(stored);
     if (storedPin !== pin) throw new Error("Incorrect PIN.");
-    set({ user, sacco });
+    const accepted = storage.getBoolean(`rules_accepted_${user.id}`) ?? false;
+    set({ user, sacco, rulesAccepted: accepted });
   },
 
   lookupInviteCode: async (code) => {
@@ -111,40 +119,51 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     storage.set(`member_${phone}`, JSON.stringify({ user, sacco, storedPin: pin }));
     storage.set("user", JSON.stringify(user));
     storage.set("sacco", JSON.stringify(sacco));
-    set({ user, sacco });
+    set({ user, sacco, rulesAccepted: false });
   },
 
-  createSACCO: async ({ name, contributionAmount, interestRate, rules }) => {
+  createSACCO: async ({ name, contributionAmount, interestRate, rules, customRule, logoColor }) => {
     const { user } = get();
     if (!user) throw new Error("Not logged in.");
+    const allRules = customRule.trim() ? [...rules, customRule.trim()] : rules;
     const sacco: SACCO = {
       id: `sacco_${Date.now()}`,
       name,
       contributionAmount,
       interestRate,
-      rules,
+      rules: allRules,
       adminId: user.id,
+      logoColor,
     };
     storage.set(`sacco_${sacco.id}`, JSON.stringify(sacco));
     const updatedUser = { ...user, saccoId: sacco.id, saccoName: sacco.name };
     storage.set("user", JSON.stringify(updatedUser));
     storage.set("sacco", JSON.stringify(sacco));
-    set({ user: updatedUser, sacco });
+    set({ user: updatedUser, sacco, rulesAccepted: true });
+  },
+
+  acceptRules: () => {
+    const { user } = get();
+    if (user) storage.set(`rules_accepted_${user.id}`, true);
+    set({ rulesAccepted: true });
   },
 
   logout: () => {
     storage.delete("user");
     storage.delete("sacco");
-    set({ user: null, sacco: null });
+    set({ user: null, sacco: null, rulesAccepted: false });
   },
 
   checkAuth: () => {
     const storedUser = storage.getString("user");
     const storedSacco = storage.getString("sacco");
     if (storedUser) {
+      const user = JSON.parse(storedUser);
+      const accepted = storage.getBoolean(`rules_accepted_${user.id}`) ?? user.role === "admin";
       set({
-        user: JSON.parse(storedUser),
+        user,
         sacco: storedSacco ? JSON.parse(storedSacco) : null,
+        rulesAccepted: accepted,
         isLoading: false,
       });
     } else {

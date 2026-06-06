@@ -14,8 +14,10 @@ export interface SACCO {
   name: string;
   contributionAmount: number;
   interestRate: number;
-  rules?: string;
+  rules: string[];
+  customRule?: string;
   adminId: string;
+  logoColor: string;
 }
 
 export interface InviteCode {

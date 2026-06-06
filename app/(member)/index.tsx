@@ -12,15 +12,34 @@ import { formatCurrency } from "@/utils/currency";
 export default function MemberDashboard() {
   const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
+  const sacco = useAuthStore((state) => state.sacco);
 
-  // Mock data – replace with API
   const totalSavings = 12500;
   const activeLoanBalance = 8000;
   const nextContribution = "2025-06-10";
   const streakDays = 5;
 
+  const logoColor = sacco?.logoColor ?? colors.primary;
+  const saccoInitials = (sacco?.name ?? "SC")
+    .split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join("");
+
   return (
     <ScreenWrapper scroll header={<PageHeader title={`Welcome, ${user?.name?.split(" ")[0] || "Member"}`} />}>
+
+      {/* SACCO identity strip */}
+      {sacco && (
+        <View style={[styles.saccoStrip, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.saccoAvatar, { backgroundColor: logoColor }]}>
+            <Text style={styles.saccoAvatarText}>{saccoInitials}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.saccoName, { color: colors.text }]}>{sacco.name}</Text>
+            <Text style={[styles.saccoMeta, { color: colors.textSecondary }]}>
+              UGX {sacco.contributionAmount?.toLocaleString()} / month
+            </Text>
+          </View>
+        </View>
+      )}
 
       <View style={styles.statsRow}>
         <StatCard
@@ -88,6 +107,11 @@ export default function MemberDashboard() {
 }
 
 const styles = StyleSheet.create({
+  saccoStrip: { flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 20 },
+  saccoAvatar: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  saccoAvatarText: { color: "#fff", fontSize: 14, fontWeight: "800" },
+  saccoName: { fontSize: 14, fontWeight: "700" },
+  saccoMeta: { fontSize: 12, marginTop: 1 },
   header: { marginBottom: 24 },
   welcome: { fontSize: 24, fontWeight: "bold" },
   date: { fontSize: 14, marginTop: 4 },
