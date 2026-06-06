@@ -23,14 +23,6 @@ export default function AdminLayout() {
           height: 74,
           paddingBottom: 16,
           paddingTop: 6,
-          // Ensure the tab bar uses row layout and spreads items
-          flexDirection: "row",
-        },
-        // Important: each tab item takes equal width
-        tabBarItemStyle: {
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -76,20 +68,11 @@ export default function AdminLayout() {
         }}
       />
       {/* Hidden screens */}
-      <Tabs.Screen name="loan-review" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen
-        name="member-detail"
-        options={{ tabBarButton: () => null }}
-      />
-      <Tabs.Screen name="active-loans" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen
-        name="contributions"
-        options={{ tabBarButton: () => null }}
-      />
-      <Tabs.Screen
-        name="announcements"
-        options={{ tabBarButton: () => null }}
-      />
+      <Tabs.Screen name="loan-review" options={{ href: null }} />
+      <Tabs.Screen name="member-detail" options={{ href: null }} />
+      <Tabs.Screen name="active-loans" options={{ href: null }} />
+      <Tabs.Screen name="contributions" options={{ href: null }} />
+      <Tabs.Screen name="announcements" options={{ href: null }} />
     </Tabs>
   );
 }

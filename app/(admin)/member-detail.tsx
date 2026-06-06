@@ -29,67 +29,69 @@ export default function MemberDetail() {
   const { id: _id } = useLocalSearchParams();
   const { colors } = useTheme();
   const member = memberData;
-  <ScreenWrapper scroll>
-    <Card style={styles.profileCard}>
-      <Avatar name={member.name} size={80} style={styles.avatar} />
-      <Text style={[styles.name, { color: colors.text }]}>{member.name}</Text>
-      <Text style={[styles.email, { color: colors.textSecondary }]}>
-        {member.email}
-      </Text>
-      <Text style={[styles.phone, { color: colors.textSecondary }]}>
-        {member.phone}
-      </Text>
-      <Badge
-        label={member.status}
-        variant={member.status === "active" ? "success" : "error"}
-      />
-    </Card>
+  return (
+    <ScreenWrapper scroll>
+      <Card style={styles.profileCard}>
+        <Avatar name={member.name} size={80} style={styles.avatar} />
+        <Text style={[styles.name, { color: colors.text }]}>{member.name}</Text>
+        <Text style={[styles.email, { color: colors.textSecondary }]}>
+          {member.email}
+        </Text>
+        <Text style={[styles.phone, { color: colors.textSecondary }]}>
+          {member.phone}
+        </Text>
+        <Badge
+          label={member.status}
+          variant={member.status === "active" ? "success" : "error"}
+        />
+      </Card>
 
-    <Card style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        Financial Summary
-      </Text>
-      <View style={styles.financialRow}>
-        <View style={styles.financialItem}>
-          <Wallet size={24} color={colors.secondary} />
-          <Text
-            style={[styles.financialLabel, { color: colors.textSecondary }]}
-          >
-            Total Savings
-          </Text>
-          <Text style={[styles.financialValue, { color: colors.text }]}>
-            {formatCurrency(member.totalSavings)}
-          </Text>
+      <Card style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Financial Summary
+        </Text>
+        <View style={styles.financialRow}>
+          <View style={styles.financialItem}>
+            <Wallet size={24} color={colors.secondary} />
+            <Text
+              style={[styles.financialLabel, { color: colors.textSecondary }]}
+            >
+              Total Savings
+            </Text>
+            <Text style={[styles.financialValue, { color: colors.text }]}>
+              {formatCurrency(member.totalSavings)}
+            </Text>
+          </View>
+          <View style={styles.financialItem}>
+            <Banknote size={24} color={colors.warning} />
+            <Text
+              style={[styles.financialLabel, { color: colors.textSecondary }]}
+            >
+              Active Loan
+            </Text>
+            <Text style={[styles.financialValue, { color: colors.text }]}>
+              {formatCurrency(member.activeLoan)}
+            </Text>
+          </View>
         </View>
-        <View style={styles.financialItem}>
-          <Banknote size={24} color={colors.warning} />
-          <Text
-            style={[styles.financialLabel, { color: colors.textSecondary }]}
-          >
-            Active Loan
-          </Text>
-          <Text style={[styles.financialValue, { color: colors.text }]}>
-            {formatCurrency(member.activeLoan)}
-          </Text>
-        </View>
+      </Card>
+
+      <View style={styles.actions}>
+        <Button
+          title="View Transactions"
+          onPress={() => {}}
+          variant="outline"
+          style={styles.actionBtn}
+        />
+        <Button
+          title="Approve Loan"
+          onPress={() => {}}
+          variant="primary"
+          style={styles.actionBtn}
+        />
       </View>
-    </Card>
-
-    <View style={styles.actions}>
-      <Button
-        title="View Transactions"
-        onPress={() => {}}
-        variant="outline"
-        style={styles.actionBtn}
-      />
-      <Button
-        title="Approve Loan"
-        onPress={() => {}}
-        variant="primary"
-        style={styles.actionBtn}
-      />
-    </View>
-  </ScreenWrapper>;
+    </ScreenWrapper>
+  );
 }
 
 const styles = StyleSheet.create({

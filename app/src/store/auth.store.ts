@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { MMKV } from "react-native-mmkv";
+import { createMMKV } from "react-native-mmkv";
 import { User } from "../types";
 
-const storage = new MMKV({ id: "auth" });
+const storage = createMMKV({ id: "auth" });
 
 interface AuthState {
   user: User | null;
