@@ -67,6 +67,7 @@ const HOW_TO_USE = [
 export default function Profile() {
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
+  const sacco = useAuthStore((state) => state.sacco);
   const { theme, setTheme } = useUIStore();
   const { colors, isDark } = useTheme();
   const [darkMode, setDarkMode] = useState(isDark);
@@ -92,7 +93,13 @@ export default function Profile() {
       <Card style={styles.profileCard}>
         <Avatar name={user?.name} size={80} style={styles.avatar} />
         <Text style={[styles.name, { color: colors.text }]}>{user?.name}</Text>
-        <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
+        <Text style={[styles.phone, { color: colors.textSecondary }]}>{user?.phone}</Text>
+        {user?.nationalId && (
+          <Text style={[styles.phone, { color: colors.textSecondary }]}>ID: {user.nationalId}</Text>
+        )}
+        {sacco && (
+          <Text style={[styles.saccoTag, { color: colors.primary }]}>{sacco.name}</Text>
+        )}
         <Text style={[styles.role, { color: colors.secondary }]}>
           {user?.role?.toUpperCase()}
         </Text>
@@ -198,7 +205,8 @@ const styles = StyleSheet.create({
   profileCard: { alignItems: "center", marginBottom: 24 },
   avatar: { marginBottom: 16 },
   name: { fontSize: 22, fontWeight: "bold", marginBottom: 4 },
-  email: { fontSize: 14, marginBottom: 4 },
+  phone: { fontSize: 14, marginBottom: 2 },
+  saccoTag: { fontSize: 12, fontWeight: "600", marginBottom: 4, marginTop: 2 },
   role: { fontSize: 12, fontWeight: "700", letterSpacing: 1 },
   section: { marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 14 },
