@@ -7,18 +7,17 @@ import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
-import { Search } from "lucide-react-native";
-
-const loanApplications = [
-  { id: "LA1", memberName: "John Doe", amount: 100000, term: 12, purpose: "Business", date: "2025-06-01", status: "pending" },
-  { id: "LA2", memberName: "Jane Smith", amount: 50000, term: 6, purpose: "Education", date: "2025-05-28", status: "pending" },
-];
+import { Search, Inbox } from "lucide-react-native";
+import { useLoanStore } from "@/store/loan.store";
 
 export default function LoanQueue() {
   const { colors } = useTheme();
+  const { loans } = useLoanStore();
   const [query, setQuery] = useState("");
 
-  const filtered = loanApplications.filter(
+  const pending = loans.filter((l) => l.status === "pending");
+
+  const filtered = pending.filter(
     (l) =>
       l.memberName.toLowerCase().includes(query.toLowerCase()) ||
       l.purpose.toLowerCase().includes(query.toLowerCase()),
@@ -37,9 +36,15 @@ export default function LoanQueue() {
           autoCapitalize="none"
         />
       </View>
+
       <View style={styles.list}>
         {filtered.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No applications found</Text>
+          <View style={styles.empty}>
+            <Inbox size={32} color={colors.textSecondary} />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              {pending.length === 0 ? "No pending applications" : "No results found"}
+            </Text>
+          </View>
         ) : (
           filtered.map((item) => (
             <TouchableOpacity
@@ -70,7 +75,6 @@ export default function LoanQueue() {
 const styles = StyleSheet.create({
   searchBar: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14 },
   searchInput: { flex: 1, fontSize: 14 },
-  emptyText: { textAlign: "center", fontSize: 14, marginTop: 32 },
   list: { paddingBottom: 20 },
   card: { marginBottom: 12 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
@@ -78,4 +82,6 @@ const styles = StyleSheet.create({
   amount: { fontSize: 18, fontWeight: "bold", marginBottom: 4 },
   details: { fontSize: 14, marginBottom: 4 },
   date: { fontSize: 12 },
+  empty: { alignItems: "center", paddingTop: 48, gap: 10 },
+  emptyText: { fontSize: 14 },
 });

@@ -1,95 +1,113 @@
 import { create } from "zustand";
-interface Loan {
+import { createMMKV } from "react-native-mmkv";
+
+const storage = createMMKV({ id: "loans" });
+
+export type LoanStatus = "pending" | "approved" | "rejected";
+
+export interface LoanApplication {
   id: string;
+  memberName: string;
   amount: number;
-  repaid: number;
-  remaining: number;
-  status: "pending" | "active" | "repaid" | "rejected";
-  nextPayment?: string;
-  interestRate: number;
-  termMonths: number;
+  term: number;
   purpose: string;
-  applicationDate: string;
+  date: string;
+  status: LoanStatus;
+  memberSince: string;
+  totalSavings: number;
+  interestRate: number;
+  repaid: number;
+  dueDate?: string;
+  rejectNote?: string;
 }
 
-interface LoanState {
-  loans: Loan[];
-  pendingApplications: Loan[];
-  isLoading: boolean;
-  applyForLoan: (
-    loan: Omit<Loan, "id" | "status" | "applicationDate">,
-  ) => Promise<void>;
-  repayLoan: (loanId: string, amount: number) => Promise<void>;
-  fetchLoans: () => Promise<void>;
-}
-
-// Dummy data
-const dummyLoans: Loan[] = [
+const INITIAL_LOANS: LoanApplication[] = [
   {
-    id: "L1",
-    amount: 50000,
-    repaid: 25000,
-    remaining: 25000,
-    status: "active",
-    nextPayment: "2025-07-15",
-    interestRate: 12,
-    termMonths: 12,
+    id: "LA1",
+    memberName: "John Doe",
+    amount: 100000,
+    term: 12,
     purpose: "Business",
-    applicationDate: "2025-05-01",
+    date: "2025-06-01",
+    status: "pending",
+    memberSince: "2023-01-10",
+    totalSavings: 45000,
+    interestRate: 12,
+    repaid: 0,
   },
   {
-    id: "L2",
-    amount: 100000,
-    repaid: 100000,
-    remaining: 0,
-    status: "repaid",
-    interestRate: 10,
-    termMonths: 24,
+    id: "LA2",
+    memberName: "Jane Smith",
+    amount: 50000,
+    term: 6,
     purpose: "Education",
-    applicationDate: "2024-06-01",
+    date: "2025-05-28",
+    status: "pending",
+    memberSince: "2022-08-15",
+    totalSavings: 30000,
+    interestRate: 12,
+    repaid: 0,
+  },
+  {
+    id: "LA3",
+    memberName: "Alice Wanjiku",
+    amount: 50000,
+    term: 8,
+    purpose: "Medical",
+    date: "2025-04-10",
+    status: "approved",
+    memberSince: "2021-03-20",
+    totalSavings: 25000,
+    interestRate: 12,
+    repaid: 20000,
+    dueDate: "2025-07-15",
   },
 ];
 
-export const useLoanStore = create<LoanState>((set, get) => ({
-  loans: dummyLoans,
-  pendingApplications: [],
-  isLoading: false,
-  applyForLoan: async (loanData) => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const newLoan: Loan = {
-      id: Date.now().toString(),
-      ...loanData,
-      repaid: 0,
-      remaining: loanData.amount,
-      status: "pending",
-      applicationDate: new Date().toISOString(),
-    };
-    set((state) => ({
-      pendingApplications: [newLoan, ...state.pendingApplications],
-      isLoading: false,
-    }));
+function load(): LoanApplication[] {
+  const stored = storage.getString("loans");
+  return stored ? JSON.parse(stored) : INITIAL_LOANS;
+}
+
+function save(loans: LoanApplication[]) {
+  storage.set("loans", JSON.stringify(loans));
+}
+
+interface LoanStore {
+  loans: LoanApplication[];
+  approveLoan: (id: string) => void;
+  rejectLoan: (id: string, note?: string) => void;
+  getById: (id: string) => LoanApplication | undefined;
+}
+
+export const useLoanStore = create<LoanStore>((set, get) => ({
+  loans: load(),
+
+  approveLoan: (id) => {
+    const loans = get().loans.map((l) =>
+      l.id === id
+        ? {
+            ...l,
+            status: "approved" as LoanStatus,
+            dueDate: new Date(Date.now() + l.term * 30 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
+          }
+        : l,
+    );
+    save(loans);
+    set({ loans });
   },
-  repayLoan: async (loanId, amount) => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    set((state) => ({
-      loans: state.loans.map((loan) =>
-        loan.id === loanId
-          ? {
-              ...loan,
-              repaid: loan.repaid + amount,
-              remaining: loan.remaining - amount,
-              status: loan.remaining - amount <= 0 ? "repaid" : "active",
-            }
-          : loan,
-      ),
-      isLoading: false,
-    }));
+
+  rejectLoan: (id, note) => {
+    const loans = get().loans.map((l) =>
+      l.id === id
+        ? { ...l, status: "rejected" as LoanStatus, rejectNote: note ?? "" }
+        : l,
+    );
+    save(loans);
+    set({ loans });
   },
-  fetchLoans: async () => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    set({ loans: dummyLoans, isLoading: false });
-  },
+
+  getById: (id) => get().loans.find((l) => l.id === id),
 }));
