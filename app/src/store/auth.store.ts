@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createMMKV } from "react-native-mmkv";
 import { User, SACCO, InviteCode } from "../types";
 import { useMemberDataStore } from "./member.store";
+import { defaultContributionDueDate } from "../utils/date";
 
 const storage = createMMKV({ id: "auth" });
 
@@ -11,6 +12,7 @@ const DEMO_SACCO: SACCO = {
   name: "UgandaSavings SACCO",
   contributionAmount: 50000,
   interestRate: 12,
+  contributionDueDate: defaultContributionDueDate(5),
   rules: [
     "Monthly contributions must be paid by the 5th of every month.",
     "Late contributions attract a 5% penalty fee.",
@@ -46,11 +48,18 @@ const DEMO_INVITES: Record<string, InviteCode> = {
   "ABC123": { code: "ABC123", saccoId: "sacco_demo", saccoName: "UgandaSavings SACCO", phone: "" },
 };
 
+function normalizeSacco(raw: SACCO): SACCO {
+  return {
+    ...raw,
+    contributionDueDate: raw.contributionDueDate ?? defaultContributionDueDate(5),
+  };
+}
+
 function loadSaccoById(saccoId: string, fallback?: SACCO | null): SACCO | null {
   const stored = storage.getString(`sacco_${saccoId}`);
-  if (stored) return JSON.parse(stored);
+  if (stored) return normalizeSacco(JSON.parse(stored));
   if (saccoId === DEMO_SACCO.id) return DEMO_SACCO;
-  return fallback ?? null;
+  return fallback ? normalizeSacco(fallback) : null;
 }
 
 function persistSacco(sacco: SACCO) {
@@ -83,6 +92,8 @@ interface AuthState {
   }) => Promise<void>;
   acceptRules: () => void;
   updateSACCORules: (rules: string[]) => Promise<void>;
+  updateContributionDueDate: (date: string) => Promise<void>;
+  refreshSacco: () => void;
   logout: () => void;
   checkAuth: () => void;
 }
@@ -140,7 +151,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     })();
 
     const saccoStored = storage.getString(`sacco_${invite.saccoId}`);
-    const sacco: SACCO = saccoStored ? JSON.parse(saccoStored) : loadSaccoById(invite.saccoId, DEMO_SACCO)!;
+    const sacco: SACCO = saccoStored
+      ? normalizeSacco(JSON.parse(saccoStored))
+      : loadSaccoById(invite.saccoId, DEMO_SACCO)!;
 
     const user: User = {
       id: `member_${Date.now()}`,
@@ -168,6 +181,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       name,
       contributionAmount,
       interestRate,
+      contributionDueDate: defaultContributionDueDate(5),
       rules: allRules,
       adminId: user.id,
       logoColor,
@@ -184,6 +198,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const updated: SACCO = { ...sacco, rules };
     persistSacco(updated);
     set({ sacco: updated });
+  },
+
+  updateContributionDueDate: async (date) => {
+    const { sacco } = get();
+    if (!sacco) throw new Error("No SACCO found.");
+    const updated: SACCO = { ...sacco, contributionDueDate: date };
+    persistSacco(updated);
+    set({ sacco: updated });
+  },
+
+  refreshSacco: () => {
+    const { user, sacco } = get();
+    if (!user?.saccoId) return;
+    const fresh = loadSaccoById(user.saccoId, sacco);
+    if (fresh) set({ sacco: fresh });
   },
 
   acceptRules: () => {

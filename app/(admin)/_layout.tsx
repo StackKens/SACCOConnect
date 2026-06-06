@@ -75,6 +75,7 @@ export default function AdminLayout() {
       <Tabs.Screen name="announcements" options={{ href: null }} />
       <Tabs.Screen name="create-sacco" options={{ href: null }} />
       <Tabs.Screen name="edit-rules" options={{ href: null }} />
+      <Tabs.Screen name="contribution-schedule" options={{ href: null }} />
     </Tabs>
   );
 }

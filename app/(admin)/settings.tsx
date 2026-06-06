@@ -9,6 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
 import { ChevronRight, Settings2 } from "lucide-react-native";
+import { formatDate } from "@/utils/date";
 
 const ADMIN_HOW_TO = [
   { title: "Approving a Loan", desc: "Go to Loan Queue, tap any pending application to open the review screen, then tap Approve or Reject." },
@@ -75,6 +76,16 @@ export default function AdminSettings() {
           <Text style={[styles.settingLabel, { color: colors.text }]}>Edit Group Rules</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
+        <Divider style={styles.divider} />
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contribution-schedule")}>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>Contribution Due Date</Text>
+          <ChevronRight size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        {sacco?.contributionDueDate && (
+          <Text style={[styles.rulesLabel, { color: colors.textSecondary, marginTop: 8 }]}>
+            Current: {formatDate(sacco.contributionDueDate)}
+          </Text>
+        )}
         <Divider style={styles.divider} />
         {sacco?.rules && sacco.rules.length > 0 && (
           <View style={{ marginTop: 4 }}>

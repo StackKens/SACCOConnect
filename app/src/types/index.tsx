@@ -14,6 +14,7 @@ export interface SACCO {
   name: string;
   contributionAmount: number;
   interestRate: number;
+  contributionDueDate: string;
   rules: string[];
   customRule?: string;
   adminId: string;

@@ -9,6 +9,7 @@ import { router } from "expo-router";
 import { Wallet, AlertCircle, Flame, FileText } from "lucide-react-native";
 import { useMemberDataStore } from "@/store/member.store";
 import { formatCurrency } from "@/utils/currency";
+import { formatDate, dueDateLabel } from "@/utils/date";
 
 export default function MemberDashboard() {
   const { colors } = useTheme();
@@ -21,7 +22,9 @@ export default function MemberDashboard() {
   const activeLoanBalance = activeLoanData
     ? activeLoanData.amount - activeLoanData.repaid
     : 0;
-  const nextContribution = "2025-07-01";
+  const nextContribution = sacco?.contributionDueDate;
+  const dueLabel = nextContribution ? dueDateLabel(nextContribution) : null;
+  const isOverdue = dueLabel?.startsWith("Overdue");
   const streakDays = 5;
 
   const logoColor = sacco?.logoColor ?? colors.primary;
@@ -76,9 +79,14 @@ export default function MemberDashboard() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Next Contribution
         </Text>
-        <Text style={[styles.contributionDate, { color: colors.secondary }]}>
-          {nextContribution}
+        <Text style={[styles.contributionDate, { color: isOverdue ? colors.error : colors.secondary }]}>
+          {nextContribution ? formatDate(nextContribution) : "Not set yet"}
         </Text>
+        {dueLabel && (
+          <Text style={[styles.dueHint, { color: isOverdue ? colors.error : colors.textSecondary }]}>
+            {dueLabel} · UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"}
+          </Text>
+        )}
         <Button
           title="Make Contribution"
           onPress={() => router.push("/(member)/contribute")}
@@ -132,6 +140,7 @@ const styles = StyleSheet.create({
   nextContribution: { marginBottom: 24 },
   sectionTitle: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
   contributionDate: { fontSize: 20, fontWeight: "bold" },
+  dueHint: { fontSize: 13, marginTop: 6 },
   actions: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
   actionButton: { flex: 1 },
 });

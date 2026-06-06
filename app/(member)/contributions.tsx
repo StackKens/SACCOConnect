@@ -4,14 +4,19 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
-import { formatDate } from "@/utils/date";
+import { dueDateLabel, formatDate } from "@/utils/date";
 import { router } from "expo-router";
 import { useMemberDataStore } from "@/store/member.store";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function Contributions() {
   const { colors } = useTheme();
+  const sacco = useAuthStore((state) => state.sacco);
   const { contributions, totalSavings } = useMemberDataStore();
   const total = totalSavings();
+  const dueDate = sacco?.contributionDueDate;
+  const dueLabel = dueDate ? dueDateLabel(dueDate) : null;
+  const isOverdue = dueLabel?.startsWith("Overdue");
 
   return (
     <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" />}>
@@ -29,6 +34,19 @@ export default function Contributions() {
           style={styles.contributeBtn}
         />
       </Card>
+
+      {dueDate && (
+        <Card style={[styles.dueCard, isOverdue && { borderColor: colors.error + "55", borderWidth: 1 }]}>
+          <Text style={[styles.dueTitle, { color: colors.text }]}>Monthly due date</Text>
+          <Text style={[styles.dueDate, { color: isOverdue ? colors.error : colors.primary }]}>
+            {formatDate(dueDate)}
+          </Text>
+          <Text style={[styles.dueSub, { color: colors.textSecondary }]}>
+            {dueLabel} · Pay UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"} by this date
+          </Text>
+        </Card>
+      )}
+
       <View style={styles.list}>
         {contributions.map((item) => (
           <Card key={item.id} style={styles.card}>
@@ -62,6 +80,10 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 14 },
   totalAmount: { fontSize: 32, fontWeight: "bold", marginTop: 8 },
   contributeBtn: { marginTop: 16, alignSelf: "stretch" },
+  dueCard: { marginBottom: 16 },
+  dueTitle: { fontSize: 13, fontWeight: "600", marginBottom: 4 },
+  dueDate: { fontSize: 22, fontWeight: "800", marginBottom: 4 },
+  dueSub: { fontSize: 13, lineHeight: 18 },
   list: { paddingBottom: 20 },
   card: { marginBottom: 12 },
   row: {

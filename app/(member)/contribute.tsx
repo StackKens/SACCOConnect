@@ -8,6 +8,8 @@ import { Divider } from "@/components/ui/Divider";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
 import { useMemberDataStore } from "@/store/member.store";
+import { useAuthStore } from "@/store/auth.store";
+import { dueDateLabel, formatDate } from "@/utils/date";
 
 type PaymentMethod = "MTN" | "Airtel" | "Bank";
 
@@ -29,7 +31,9 @@ export default function Contribute() {
   const [phone, setPhone] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const { colors } = useTheme();
+  const sacco = useAuthStore((state) => state.sacco);
   const { addContribution } = useMemberDataStore();
+  const dueDate = sacco?.contributionDueDate;
 
   const isMobile = method === "MTN" || method === "Airtel";
 
@@ -66,6 +70,17 @@ export default function Contribute() {
 
   return (
     <ScreenWrapper header={<PageHeader title="Make Contribution" subtitle="Choose your payment method" />}>
+
+      {dueDate && (
+        <View style={[styles.dueBanner, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
+          <Text style={[styles.dueBannerText, { color: colors.text }]}>
+            Due by {formatDate(dueDate)} · {dueDateLabel(dueDate)}
+          </Text>
+          <Text style={[styles.dueBannerSub, { color: colors.textSecondary }]}>
+            Expected amount: UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"}
+          </Text>
+        </View>
+      )}
 
       <Card style={styles.card}>
         <Input
@@ -130,6 +145,9 @@ export default function Contribute() {
 }
 
 const styles = StyleSheet.create({
+  dueBanner: { borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 16 },
+  dueBannerText: { fontSize: 14, fontWeight: "600" },
+  dueBannerSub: { fontSize: 12, marginTop: 4 },
   card: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: "500", marginBottom: 10 },
   methodContainer: { gap: 10, marginBottom: 4 },
