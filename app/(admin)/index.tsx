@@ -17,8 +17,15 @@ export default function AdminDashboard() {
   const pendingApplications = 12;
 
   return (
-    <ScreenWrapper scroll header={<PageHeader title="Admin Dashboard" subtitle="Overview of SACCO operations" />}>
-
+    <ScreenWrapper
+      scroll
+      header={
+        <PageHeader
+          title="Admin Dashboard"
+          subtitle="Overview of SACCO operations"
+        />
+      }
+    >
       <View style={styles.statsGrid}>
         <StatCard
           title="Members"
@@ -36,7 +43,7 @@ export default function AdminDashboard() {
           icon={<Banknote size={24} color={colors.warning} />}
         />
         <StatCard
-          title="Pending Apps"
+          title="Pending Applications"
           value={pendingApplications.toString()}
           icon={<Clock size={24} color={colors.error} />}
         />

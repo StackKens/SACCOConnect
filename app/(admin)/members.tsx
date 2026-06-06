@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
+  TextInput,
 } from "react-native";
 import { useState } from "react";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
@@ -15,7 +16,7 @@ import { Input } from "@/components/ui/Input";
 import { Divider } from "@/components/ui/Divider";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
-import { ChevronRight, UserPlus } from "lucide-react-native";
+import { ChevronRight, UserPlus, Search } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 
 const mockMembers = [
@@ -34,6 +35,13 @@ export default function Members() {
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+
+  const filtered = mockMembers.filter(
+    (m) =>
+      m.name.toLowerCase().includes(query.toLowerCase()) ||
+      m.email.toLowerCase().includes(query.toLowerCase()),
+  );
 
   const handleInvite = () => {
     if (!inviteName.trim() || !inviteEmail.trim()) {
@@ -67,8 +75,23 @@ export default function Members() {
       />
     }>
 
+      <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Search size={16} color={colors.textSecondary} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder="Search members..."
+          placeholderTextColor={colors.textSecondary}
+          value={query}
+          onChangeText={setQuery}
+          autoCapitalize="none"
+        />
+      </View>
+
       <View style={styles.list}>
-        {mockMembers.map((item) => (
+        {filtered.length === 0 ? (
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No members found</Text>
+        ) : (
+          filtered.map((item) => (
           <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>
             <Card style={styles.card}>
               <View style={styles.row}>
@@ -89,7 +112,8 @@ export default function Members() {
               </View>
             </Card>
           </TouchableOpacity>
-        ))}
+          ))
+        )}
       </View>
 
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
@@ -133,6 +157,9 @@ export default function Members() {
 }
 
 const styles = StyleSheet.create({
+  searchBar: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14 },
+  searchInput: { flex: 1, fontSize: 14 },
+  emptyText: { textAlign: "center", fontSize: 14, marginTop: 32 },
   inviteBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   inviteBtnText: { color: "#fff", fontSize: 14, fontWeight: "600" },
   list: { paddingBottom: 20 },
