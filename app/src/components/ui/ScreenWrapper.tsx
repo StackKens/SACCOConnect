@@ -1,8 +1,10 @@
 import React from "react";
-import { ScrollView, StyleSheet, ViewStyle, View, Text } from "react-native";
+import { ScrollView, StyleSheet, ViewStyle, View, Text, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 import { StatusBar } from "expo-status-bar";
+import { router } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
@@ -46,11 +48,21 @@ export const PageHeader: React.FC<{
   subtitle?: string;
   style?: object;
   rightComponent?: React.ReactNode;
-}> = ({ title, subtitle, rightComponent, style }) => {
+  showBack?: boolean;
+}> = ({ title, subtitle, rightComponent, showBack = false, style }) => {
   const { colors } = useTheme();
   return (
     <>
       <View style={[styles.pageHeaderWrapper, style]}>
+        {showBack && (
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={8}
+            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.5 }]}
+          >
+            <ArrowLeft size={20} color={colors.text} strokeWidth={2} />
+          </Pressable>
+        )}
         <View style={styles.pageHeaderTitleContainer}>
           <Text style={[styles.pageHeader, { color: colors.text }]}>{title}</Text>
           {subtitle && (
@@ -88,4 +100,5 @@ const styles = StyleSheet.create({
   pageHeaderSubtitle: { fontSize: 12, marginTop: 2 },
   pageHeaderRight: { flexDirection: "row", alignItems: "center", gap: 8 },
   pageHeaderDivider: { height: 1, opacity: 0.4, marginBottom: 16 },
+  backBtn: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },
 });

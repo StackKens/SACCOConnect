@@ -1,13 +1,15 @@
 import { View, Text, StyleSheet } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useLocalSearchParams, router } from "expo-router";
+import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Divider } from "@/components/ui/Divider";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
-import { Wallet, Banknote } from "lucide-react-native";
+import { formatDate } from "@/utils/date";
+import { Wallet, Banknote, Phone, Mail, Calendar } from "lucide-react-native";
 
 const memberData = {
   id: "1",
@@ -29,46 +31,59 @@ export default function MemberDetail() {
   const { id: _id } = useLocalSearchParams();
   const { colors } = useTheme();
   const member = memberData;
+
   return (
-    <ScreenWrapper scroll>
-      <Card style={styles.profileCard}>
-        <Avatar name={member.name} size={80} style={styles.avatar} />
-        <Text style={[styles.name, { color: colors.text }]}>{member.name}</Text>
-        <Text style={[styles.email, { color: colors.textSecondary }]}>
-          {member.email}
-        </Text>
-        <Text style={[styles.phone, { color: colors.textSecondary }]}>
-          {member.phone}
-        </Text>
-        <Badge
-          label={member.status}
-          variant={member.status === "active" ? "success" : "error"}
+    <ScreenWrapper
+      scroll
+      header={
+        <PageHeader
+          title={member.name}
+          subtitle="Member profile"
+          showBack
+          rightComponent={
+            <Badge
+              label={member.status}
+              variant={member.status === "active" ? "success" : "error"}
+            />
+          }
         />
+      }
+    >
+      {/* Identity card */}
+      <Card style={styles.profileCard}>
+        <Avatar name={member.name} size={72} style={styles.avatar} />
+        <View style={styles.profileInfo}>
+          <View style={styles.infoRow}>
+            <Mail size={14} color={colors.textSecondary} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>{member.email}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Phone size={14} color={colors.textSecondary} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>{member.phone}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Calendar size={14} color={colors.textSecondary} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+              Joined {formatDate(member.joined)}
+            </Text>
+          </View>
+        </View>
       </Card>
 
+      {/* Financial summary */}
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Financial Summary
-        </Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Financial Summary</Text>
         <View style={styles.financialRow}>
-          <View style={styles.financialItem}>
-            <Wallet size={24} color={colors.secondary} />
-            <Text
-              style={[styles.financialLabel, { color: colors.textSecondary }]}
-            >
-              Total Savings
-            </Text>
+          <View style={[styles.financialItem, { backgroundColor: colors.success + "12", borderColor: colors.success + "30" }]}>
+            <Wallet size={20} color={colors.success} />
+            <Text style={[styles.financialLabel, { color: colors.textSecondary }]}>Total Savings</Text>
             <Text style={[styles.financialValue, { color: colors.text }]}>
               {formatCurrency(member.totalSavings)}
             </Text>
           </View>
-          <View style={styles.financialItem}>
-            <Banknote size={24} color={colors.warning} />
-            <Text
-              style={[styles.financialLabel, { color: colors.textSecondary }]}
-            >
-              Active Loan
-            </Text>
+          <View style={[styles.financialItem, { backgroundColor: colors.warning + "12", borderColor: colors.warning + "30" }]}>
+            <Banknote size={20} color={colors.warning} />
+            <Text style={[styles.financialLabel, { color: colors.textSecondary }]}>Active Loan</Text>
             <Text style={[styles.financialValue, { color: colors.text }]}>
               {formatCurrency(member.activeLoan)}
             </Text>
@@ -76,36 +91,70 @@ export default function MemberDetail() {
         </View>
       </Card>
 
+      {/* Recent contributions */}
+      <Card style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Contributions</Text>
+        {member.contributions.map((c, i) => (
+          <View key={i}>
+            {i > 0 && <Divider style={styles.divider} />}
+            <View style={styles.contribRow}>
+              <Text style={[styles.contribDate, { color: colors.textSecondary }]}>
+                {formatDate(c.date)}
+              </Text>
+              <Text style={[styles.contribAmount, { color: colors.success }]}>
+                +{formatCurrency(c.amount)}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </Card>
+
+      {/* Loan history */}
+      <Card style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Loan History</Text>
+        {member.loanHistory.map((loan) => (
+          <View key={loan.id} style={styles.loanRow}>
+            <View style={styles.loanInfo}>
+              <Text style={[styles.loanAmount, { color: colors.text }]}>
+                {formatCurrency(loan.amount)}
+              </Text>
+              <Text style={[styles.loanRepaid, { color: colors.textSecondary }]}>
+                {formatCurrency(loan.repaid)} repaid
+              </Text>
+            </View>
+            <Badge label={loan.status} variant={loan.status === "active" ? "warning" : "success"} />
+          </View>
+        ))}
+      </Card>
+
       <View style={styles.actions}>
-        <Button
-          title="View Transactions"
-          onPress={() => {}}
-          variant="outline"
-          style={styles.actionBtn}
-        />
-        <Button
-          title="Approve Loan"
-          onPress={() => {}}
-          variant="primary"
-          style={styles.actionBtn}
-        />
+        <Button title="View Transactions" onPress={() => {}} variant="outline" style={styles.actionBtn} />
+        <Button title="Approve Loan" onPress={() => {}} variant="primary" style={styles.actionBtn} />
       </View>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  profileCard: { alignItems: "center", marginBottom: 20 },
-  avatar: { marginBottom: 16 },
-  name: { fontSize: 22, fontWeight: "bold", marginBottom: 4 },
-  email: { fontSize: 14, marginBottom: 2 },
-  phone: { fontSize: 14, marginBottom: 12 },
-  section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: 16 },
-  financialRow: { flexDirection: "row", justifyContent: "space-around" },
-  financialItem: { alignItems: "center" },
-  financialLabel: { fontSize: 12, marginTop: 8 },
-  financialValue: { fontSize: 18, fontWeight: "bold", marginTop: 4 },
-  actions: { flexDirection: "row", gap: 12, marginBottom: 20 },
+  profileCard: { flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 16 },
+  avatar: {},
+  profileInfo: { flex: 1, gap: 6 },
+  infoRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  infoText: { fontSize: 13 },
+  section: { marginBottom: 16 },
+  sectionTitle: { fontSize: 15, fontWeight: "700", marginBottom: 14 },
+  financialRow: { flexDirection: "row", gap: 12 },
+  financialItem: { flex: 1, alignItems: "center", paddingVertical: 16, borderRadius: 10, borderWidth: 1, gap: 6 },
+  financialLabel: { fontSize: 11, fontWeight: "500" },
+  financialValue: { fontSize: 17, fontWeight: "700" },
+  divider: { marginVertical: 8 },
+  contribRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 2 },
+  contribDate: { fontSize: 13 },
+  contribAmount: { fontSize: 14, fontWeight: "600" },
+  loanRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  loanInfo: { gap: 2 },
+  loanAmount: { fontSize: 15, fontWeight: "600" },
+  loanRepaid: { fontSize: 12 },
+  actions: { flexDirection: "row", gap: 12, marginBottom: 24 },
   actionBtn: { flex: 1 },
 });
