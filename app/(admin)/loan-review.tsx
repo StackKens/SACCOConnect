@@ -11,13 +11,14 @@ import { formatCurrency } from "@/utils/currency";
 import { useLoanStore } from "@/store/loan.store";
 
 export default function LoanReview() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<{ id: string | string[] }>();
+  const loanId = Array.isArray(id) ? id[0] : id;
   const { colors } = useTheme();
   const { getById, approveLoan, rejectLoan } = useLoanStore();
   const [rejectNote, setRejectNote] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
 
-  const loan = getById(id);
+  const loan = loanId ? getById(loanId) : undefined;
 
   if (!loan) {
     return (

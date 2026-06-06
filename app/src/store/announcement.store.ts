@@ -41,6 +41,7 @@ interface AnnouncementStore {
   announcements: Announcement[];
   post: (title: string, content: string, authorName: string) => void;
   remove: (id: string) => void;
+  resetAnnouncements: () => void;
 }
 
 export const useAnnouncementStore = create<AnnouncementStore>((set, get) => ({
@@ -63,5 +64,10 @@ export const useAnnouncementStore = create<AnnouncementStore>((set, get) => ({
     const list = get().announcements.filter((a) => a.id !== id);
     save(list);
     set({ announcements: list });
+  },
+
+  resetAnnouncements: () => {
+    save(INITIAL);
+    set({ announcements: INITIAL });
   },
 }));

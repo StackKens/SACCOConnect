@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/Input";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
-import { Phone, Lock } from "lucide-react-native";
 
 export default function Login() {
   const [phone, setPhone] = useState("");
@@ -23,8 +22,14 @@ export default function Login() {
     setLoading(true);
     try {
       await login(phone.trim(), pin);
-      const role = useAuthStore.getState().user?.role;
-      router.replace(role === "admin" ? "/(admin)" : "/(member)");
+      const { user: loggedInUser, rulesAccepted } = useAuthStore.getState();
+      if (loggedInUser?.role === "admin") {
+        router.replace("/(admin)");
+      } else if (!rulesAccepted) {
+        router.replace("/(auth)/group-rules");
+      } else {
+        router.replace("/(member)");
+      }
     } catch (e: any) {
       Alert.alert("Login Failed", e?.message || "Invalid credentials.");
     } finally {
@@ -78,7 +83,20 @@ export default function Login() {
             onPress={() => { setPhone("0700000000"); setPin("0000"); }}
             style={[styles.demoFill, { borderColor: colors.border }]}
           >
-            <Text style={[styles.demoFillText, { color: colors.primary }]}>Fill credentials</Text>
+            <Text style={[styles.demoFillText, { color: colors.primary }]}>Fill admin credentials</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.demo, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.demoTitle, { color: colors.text }]}>Demo Member Login</Text>
+          <Text style={[styles.demoText, { color: colors.textSecondary }]}>
+            Phone: 0711111111{"\n"}PIN: 1111
+          </Text>
+          <TouchableOpacity
+            onPress={() => { setPhone("0711111111"); setPin("1111"); }}
+            style={[styles.demoFill, { borderColor: colors.border }]}
+          >
+            <Text style={[styles.demoFillText, { color: colors.primary }]}>Fill member credentials</Text>
           </TouchableOpacity>
         </View>
       </View>

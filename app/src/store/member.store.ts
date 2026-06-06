@@ -92,6 +92,10 @@ function loadUserData(userId: string) {
   };
 }
 
+export function getMemberData(userId: string) {
+  return loadUserData(userId);
+}
+
 function loadKey<T>(key: string, fallback: T): T {
   const s = storage.getString(key);
   return s ? JSON.parse(s) : fallback;

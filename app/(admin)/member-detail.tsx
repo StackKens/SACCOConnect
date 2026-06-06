@@ -7,30 +7,47 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Divider } from "@/components/ui/Divider";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuthStore } from "@/store/auth.store";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
-import { Wallet, Banknote, Phone, Mail, Calendar } from "lucide-react-native";
-
-const memberData = {
-  id: "1",
-  name: "Alice Wanjiku",
-  email: "alice@example.com",
-  phone: "+254712345678",
-  joined: "2024-01-15",
-  status: "active",
-  totalSavings: 25000,
-  activeLoan: 12000,
-  loanHistory: [{ id: "L1", amount: 50000, repaid: 38000, status: "active" }],
-  contributions: [
-    { date: "2025-05-01", amount: 5000 },
-    { date: "2025-04-01", amount: 5000 },
-  ],
-};
+import { Wallet, Banknote, Phone, Calendar } from "lucide-react-native";
+import { findMemberById } from "@/helpers/members";
+import { getMemberData } from "@/store/member.store";
+import { useLoanStore } from "@/store/loan.store";
 
 export default function MemberDetail() {
-  const { id: _id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string | string[] }>();
+  const memberId = Array.isArray(id) ? id[0] : id;
   const { colors } = useTheme();
-  const member = memberData;
+  const sacco = useAuthStore((state) => state.sacco);
+  const { loans } = useLoanStore();
+
+  const stored = memberId ? findMemberById(memberId) : null;
+  const member = stored?.user;
+  const data = memberId ? getMemberData(memberId) : null;
+
+  if (!member || !data) {
+    return (
+      <ScreenWrapper header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
+        <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>
+          Member not found.
+        </Text>
+      </ScreenWrapper>
+    );
+  }
+
+  const totalSavings = data.contributions
+    .filter((c) => c.status === "completed")
+    .reduce((sum, c) => sum + c.amount, 0);
+  const activeLoanRecord = data.loans.find((l) => l.status === "active");
+  const activeLoanBalance = activeLoanRecord
+    ? activeLoanRecord.amount - activeLoanRecord.repaid
+    : 0;
+  const pendingApplication = loans.find(
+    (l) => l.memberId === member.id && l.status === "pending",
+  );
+  const recentContributions = data.contributions.slice(0, 5);
+  const loanHistory = data.loans.filter((l) => l.status !== "pending");
 
   return (
     <ScreenWrapper
@@ -42,36 +59,32 @@ export default function MemberDetail() {
           showBack
           onBack={() => router.push("/(admin)/members")}
           rightComponent={
-            <Badge
-              label={member.status}
-              variant={member.status === "active" ? "success" : "error"}
-            />
+            <Badge label="active" variant="success" />
           }
         />
       }
     >
-      {/* Identity card */}
       <Card style={styles.profileCard}>
         <Avatar name={member.name} size={72} style={styles.avatar} />
         <View style={styles.profileInfo}>
           <View style={styles.infoRow}>
-            <Mail size={14} color={colors.textSecondary} />
-            <Text style={[styles.infoText, { color: colors.textSecondary }]}>{member.email}</Text>
-          </View>
-          <View style={styles.infoRow}>
             <Phone size={14} color={colors.textSecondary} />
             <Text style={[styles.infoText, { color: colors.textSecondary }]}>{member.phone}</Text>
           </View>
+          {member.nationalId && (
+            <View style={styles.infoRow}>
+              <Text style={[styles.infoText, { color: colors.textSecondary }]}>ID: {member.nationalId}</Text>
+            </View>
+          )}
           <View style={styles.infoRow}>
             <Calendar size={14} color={colors.textSecondary} />
             <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              Joined {formatDate(member.joined)}
+              {sacco?.name ?? member.saccoName ?? "SACCO member"}
             </Text>
           </View>
         </View>
       </Card>
 
-      {/* Financial summary */}
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Financial Summary</Text>
         <View style={styles.financialRow}>
@@ -79,58 +92,87 @@ export default function MemberDetail() {
             <Wallet size={20} color={colors.success} />
             <Text style={[styles.financialLabel, { color: colors.textSecondary }]}>Total Savings</Text>
             <Text style={[styles.financialValue, { color: colors.text }]}>
-              {formatCurrency(member.totalSavings)}
+              {formatCurrency(totalSavings)}
             </Text>
           </View>
           <View style={[styles.financialItem, { backgroundColor: colors.warning + "12", borderColor: colors.warning + "30" }]}>
             <Banknote size={20} color={colors.warning} />
             <Text style={[styles.financialLabel, { color: colors.textSecondary }]}>Active Loan</Text>
             <Text style={[styles.financialValue, { color: colors.text }]}>
-              {formatCurrency(member.activeLoan)}
+              {formatCurrency(activeLoanBalance)}
             </Text>
           </View>
         </View>
       </Card>
 
-      {/* Recent contributions */}
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Contributions</Text>
-        {member.contributions.map((c, i) => (
-          <View key={i}>
-            {i > 0 && <Divider style={styles.divider} />}
-            <View style={styles.contribRow}>
-              <Text style={[styles.contribDate, { color: colors.textSecondary }]}>
-                {formatDate(c.date)}
-              </Text>
-              <Text style={[styles.contribAmount, { color: colors.success }]}>
-                +{formatCurrency(c.amount)}
-              </Text>
+        {recentContributions.length === 0 ? (
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No contributions yet</Text>
+        ) : (
+          recentContributions.map((c, i) => (
+            <View key={c.id}>
+              {i > 0 && <Divider style={styles.divider} />}
+              <View style={styles.contribRow}>
+                <Text style={[styles.contribDate, { color: colors.textSecondary }]}>
+                  {formatDate(c.date)}
+                </Text>
+                <Text style={[styles.contribAmount, { color: colors.success }]}>
+                  +{formatCurrency(c.amount)}
+                </Text>
+              </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </Card>
 
-      {/* Loan history */}
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Loan History</Text>
-        {member.loanHistory.map((loan) => (
-          <View key={loan.id} style={styles.loanRow}>
-            <View style={styles.loanInfo}>
-              <Text style={[styles.loanAmount, { color: colors.text }]}>
-                {formatCurrency(loan.amount)}
-              </Text>
-              <Text style={[styles.loanRepaid, { color: colors.textSecondary }]}>
-                {formatCurrency(loan.repaid)} repaid
-              </Text>
+        {loanHistory.length === 0 ? (
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No loans yet</Text>
+        ) : (
+          loanHistory.map((loan) => (
+            <View key={loan.id} style={styles.loanRow}>
+              <View style={styles.loanInfo}>
+                <Text style={[styles.loanAmount, { color: colors.text }]}>
+                  {formatCurrency(loan.amount)}
+                </Text>
+                <Text style={[styles.loanRepaid, { color: colors.textSecondary }]}>
+                  {formatCurrency(loan.repaid)} repaid
+                </Text>
+              </View>
+              <Badge
+                label={loan.status}
+                variant={
+                  loan.status === "active"
+                    ? "warning"
+                    : loan.status === "repaid"
+                      ? "success"
+                      : "error"
+                }
+              />
             </View>
-            <Badge label={loan.status} variant={loan.status === "active" ? "warning" : "success"} />
-          </View>
-        ))}
+          ))
+        )}
       </Card>
 
       <View style={styles.actions}>
-        <Button title="View Transactions" onPress={() => {}} variant="outline" style={styles.actionBtn} />
-        <Button title="Approve Loan" onPress={() => {}} variant="primary" style={styles.actionBtn} />
+        <Button
+          title="View Contributions"
+          onPress={() => router.push("/(admin)/contributions")}
+          variant="outline"
+          style={styles.actionBtn}
+        />
+        <Button
+          title={pendingApplication ? "Review Loan" : "Loan Queue"}
+          onPress={() =>
+            pendingApplication
+              ? router.push(`/(admin)/loan-review?id=${pendingApplication.id}`)
+              : router.push("/(admin)/loan-queue")
+          }
+          variant="primary"
+          style={styles.actionBtn}
+        />
       </View>
     </ScreenWrapper>
   );
@@ -152,10 +194,11 @@ const styles = StyleSheet.create({
   contribRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 2 },
   contribDate: { fontSize: 13 },
   contribAmount: { fontSize: 14, fontWeight: "600" },
-  loanRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  loanRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   loanInfo: { gap: 2 },
   loanAmount: { fontSize: 15, fontWeight: "600" },
   loanRepaid: { fontSize: 12 },
+  emptyText: { fontSize: 13, fontStyle: "italic" },
   actions: { flexDirection: "row", gap: 12, marginBottom: 24 },
   actionBtn: { flex: 1 },
 });

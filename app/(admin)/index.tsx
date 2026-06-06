@@ -4,17 +4,46 @@ import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Users, Wallet, Banknote, Clock } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
+import { useAuthStore } from "@/store/auth.store";
+import { useLoanStore } from "@/store/loan.store";
+import { getMemberSummaries } from "@/helpers/members";
+import { useCallback, useState } from "react";
 
 export default function AdminDashboard() {
   const { colors } = useTheme();
+  const sacco = useAuthStore((state) => state.sacco);
+  const { loans } = useLoanStore();
+  const [stats, setStats] = useState({
+    totalMembers: 0,
+    totalSavings: 0,
+    activeLoans: 0,
+    pendingApplications: 0,
+  });
 
-  const totalMembers = 245;
-  const totalSavings = 1250000;
-  const activeLoans = 156000;
-  const pendingApplications = 12;
+  const refreshStats = useCallback(() => {
+    if (!sacco?.id) return;
+    const members = getMemberSummaries(sacco.id);
+    const saccoLoans = loans.filter((l) => l.saccoId === sacco.id);
+    const totalSavings = members.reduce((sum, m) => sum + m.savings, 0);
+    const activeLoans = members.reduce((sum, m) => sum + m.activeLoan, 0);
+    const pendingApplications = saccoLoans.filter((l) => l.status === "pending").length;
+
+    setStats({
+      totalMembers: members.length,
+      totalSavings,
+      activeLoans,
+      pendingApplications,
+    });
+  }, [loans, sacco?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshStats();
+    }, [refreshStats]),
+  );
 
   return (
     <ScreenWrapper
@@ -29,22 +58,22 @@ export default function AdminDashboard() {
       <View style={styles.statsGrid}>
         <StatCard
           title="Members"
-          value={totalMembers.toString()}
+          value={stats.totalMembers.toString()}
           icon={<Users size={24} color={colors.primary} />}
         />
         <StatCard
           title="Total Savings"
-          value={formatCurrency(totalSavings)}
+          value={formatCurrency(stats.totalSavings)}
           icon={<Wallet size={24} color={colors.secondary} />}
         />
         <StatCard
           title="Active Loans"
-          value={formatCurrency(activeLoans)}
+          value={formatCurrency(stats.activeLoans)}
           icon={<Banknote size={24} color={colors.warning} />}
         />
         <StatCard
           title="Pending Applications"
-          value={pendingApplications.toString()}
+          value={stats.pendingApplications.toString()}
           icon={<Clock size={24} color={colors.error} />}
         />
       </View>
@@ -61,14 +90,14 @@ export default function AdminDashboard() {
             style={styles.actionBtn}
           />
           <Button
-            title="Add Member"
+            title="Manage Members"
             onPress={() => router.push("/(admin)/members")}
             variant="secondary"
             style={styles.actionBtn}
           />
           <Button
-            title="Create SACCO"
-            onPress={() => router.push("/(admin)/create-sacco")}
+            title="View Treasury"
+            onPress={() => router.push("/(admin)/treasury")}
             variant="outline"
             style={styles.actionBtn}
           />
@@ -83,16 +112,28 @@ export default function AdminDashboard() {
 
       <Card>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Recent Activity
+          More
         </Text>
-        <Text style={{ color: colors.textSecondary }}>No recent activity</Text>
+        <View style={styles.actionButtons}>
+          <Button
+            title="All Contributions"
+            onPress={() => router.push("/(admin)/contributions")}
+            variant="outline"
+            style={styles.actionBtn}
+          />
+          <Button
+            title="Active Loans"
+            onPress={() => router.push("/(admin)/active-loans")}
+            variant="outline"
+            style={styles.actionBtn}
+          />
+        </View>
       </Card>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",

@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { createMMKV } from "react-native-mmkv";
 import { User, SACCO, InviteCode } from "../types";
 import { useMemberDataStore } from "./member.store";
+import { useLoanStore } from "./loan.store";
+import { useAnnouncementStore } from "./announcement.store";
 import { defaultContributionDueDate } from "../utils/date";
 
 const storage = createMMKV({ id: "auth" });
@@ -96,6 +98,7 @@ interface AuthState {
   refreshSacco: () => void;
   logout: () => void;
   checkAuth: () => void;
+  clearAppCache: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -251,5 +254,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       useMemberDataStore.getState().resetSession();
       set({ isLoading: false });
     }
+  },
+
+  clearAppCache: () => {
+    storage.clearAll();
+    createMMKV({ id: "member_data" }).clearAll();
+    createMMKV({ id: "loans" }).clearAll();
+    createMMKV({ id: "announcements" }).clearAll();
+    createMMKV({ id: "ui" }).clearAll();
+    useMemberDataStore.getState().resetSession();
+    useLoanStore.getState().resetLoans();
+    useAnnouncementStore.getState().resetAnnouncements();
+    set({ user: null, sacco: null, rulesAccepted: false });
   },
 }));

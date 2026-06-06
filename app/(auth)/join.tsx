@@ -53,7 +53,7 @@ export default function Join() {
     setLoading(true);
     try {
       await joinSACCO({ code, name, nationalId, phone, pin });
-      router.replace("/(member)");
+      router.replace("/(auth)/group-rules");
     } catch (e: any) {
       Alert.alert("Error", e?.message || "Could not join SACCO.");
     } finally {

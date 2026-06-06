@@ -18,6 +18,10 @@ export default function RepayLoan() {
   const outstanding = loan ? loan.amount - loan.repaid : 0;
 
   const handlePayment = () => {
+    if (!loan) {
+      Alert.alert("No Active Loan", "You don't have an active loan to repay.");
+      return;
+    }
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
       Alert.alert("Error", "Enter a valid amount");
@@ -27,7 +31,6 @@ export default function RepayLoan() {
       Alert.alert("Error", "Amount exceeds outstanding balance");
       return;
     }
-    if (!loan) return;
     addLoanRepayment(loan.id, numAmount);
     Alert.alert("Success", `Payment of ${formatCurrency(numAmount)} recorded`, [
       { text: "OK", onPress: () => router.back() },
@@ -44,6 +47,11 @@ export default function RepayLoan() {
         <Text style={[styles.amount, { color: colors.text }]}>
           {formatCurrency(outstanding)}
         </Text>
+        {!loan && (
+          <Text style={[styles.noLoan, { color: colors.textSecondary }]}>
+            You have no active loan right now.
+          </Text>
+        )}
         <Input
           label="Payment Amount"
           value={amount}
@@ -51,7 +59,7 @@ export default function RepayLoan() {
           keyboardType="numeric"
           placeholder="Enter amount"
         />
-        <Button title="Make Payment" onPress={handlePayment} />
+        <Button title="Make Payment" onPress={handlePayment} disabled={!loan} />
       </Card>
     </ScreenWrapper>
   );
@@ -62,4 +70,5 @@ const styles = StyleSheet.create({
   card: { marginBottom: 20 },
   label: { fontSize: 14, marginBottom: 4 },
   amount: { fontSize: 32, fontWeight: "bold", marginBottom: 20 },
+  noLoan: { fontSize: 14, marginBottom: 16 },
 });

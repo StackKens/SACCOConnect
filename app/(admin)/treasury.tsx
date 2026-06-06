@@ -4,39 +4,38 @@ import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
+import { getRelativeTime } from "@/utils/date";
 import { Wallet, Banknote, RefreshCw, AlertCircle, TrendingUp, TrendingDown } from "lucide-react-native";
-import Svg, { Polyline, Line, Text as SvgText, Defs, LinearGradient, Stop, Polygon } from "react-native-svg";
+import Svg, { Polyline, Line, Text as SvgText, Polygon } from "react-native-svg";
+import { useAuthStore } from "@/store/auth.store";
+import { useLoanStore } from "@/store/loan.store";
+import { getContributionsForSacco, getMemberSummaries, listMembersForSacco } from "@/helpers/members";
+import { getMemberData } from "@/store/member.store";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 
 const SCREEN_W = Dimensions.get("window").width;
 const CHART_W = SCREEN_W - 40 - 32; // screen padding + card padding
 const CHART_H = 140;
 const PADDING = { top: 12, bottom: 28, left: 40, right: 12 };
 
-const monthlyData = [
-  { month: "Jan", collections: 180000, disbursed: 120000 },
-  { month: "Feb", collections: 210000, disbursed: 95000 },
-  { month: "Mar", collections: 175000, disbursed: 140000 },
-  { month: "Apr", collections: 240000, disbursed: 110000 },
-  { month: "May", collections: 195000, disbursed: 160000 },
-  { month: "Jun", collections: 280000, disbursed: 130000 },
-];
+function LineChart({ colors, monthlyData }: { colors: any; monthlyData: { month: string; collections: number; disbursed: number }[] }) {
+  if (monthlyData.length === 0) {
+    return (
+      <Text style={{ color: colors.textSecondary, textAlign: "center", paddingVertical: 24 }}>
+        Not enough data for a chart yet.
+      </Text>
+    );
+  }
 
-const recentTransactions = [
-  { id: "1", member: "Alice Wanjiku", type: "Contribution", amount: 5000, date: "Today" },
-  { id: "2", member: "Bob Omondi", type: "Loan Repayment", amount: 8000, date: "Today" },
-  { id: "3", member: "Catherine Muthoni", type: "Loan Disbursed", amount: -50000, date: "Yesterday" },
-  { id: "4", member: "David Kamau", type: "Contribution", amount: 5000, date: "Yesterday" },
-];
-
-function LineChart({ colors }: { colors: any }) {
   const plotW = CHART_W - PADDING.left - PADDING.right;
   const plotH = CHART_H - PADDING.top - PADDING.bottom;
 
   const allValues = monthlyData.flatMap((d) => [d.collections, d.disbursed]);
-  const maxVal = Math.max(...allValues);
+  const maxVal = Math.max(...allValues, 1);
   const minVal = 0;
 
-  const toX = (i: number) => PADDING.left + (i / (monthlyData.length - 1)) * plotW;
+  const toX = (i: number) => PADDING.left + (i / Math.max(monthlyData.length - 1, 1)) * plotW;
   const toY = (v: number) => PADDING.top + plotH - ((v - minVal) / (maxVal - minVal)) * plotH;
 
   const collectionsPoints = monthlyData.map((d, i) => `${toX(i)},${toY(d.collections)}`).join(" ");
@@ -118,13 +117,110 @@ function LineChart({ colors }: { colors: any }) {
 
 export default function Treasury() {
   const { colors } = useTheme();
+  const sacco = useAuthStore((state) => state.sacco);
+  const { loans } = useLoanStore();
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const totalSavings = 1250000;
-  const totalLoansDisbursed = 890000;
-  const totalRepayments = 450000;
-  const outstandingLoans = 440000;
-  const collectionRate = Math.round((totalRepayments / totalLoansDisbursed) * 100);
-  const savingsGrowth = 8.4;
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey((k) => k + 1);
+    }, []),
+  );
+
+  const treasury = useMemo(() => {
+    if (!sacco?.id) {
+      return {
+        totalSavings: 0,
+        totalLoansDisbursed: 0,
+        totalRepayments: 0,
+        outstandingLoans: 0,
+        collectionRate: 0,
+        savingsGrowth: 0,
+        monthlyData: [] as { month: string; collections: number; disbursed: number }[],
+        recentTransactions: [] as { id: string; member: string; type: string; amount: number; date: string }[],
+      };
+    }
+
+    const members = getMemberSummaries(sacco.id);
+    const saccoLoans = loans.filter((l) => l.saccoId === sacco.id && l.status === "approved");
+    const contributions = getContributionsForSacco(sacco.id);
+
+    const totalSavings = members.reduce((sum, m) => sum + m.savings, 0);
+    const totalLoansDisbursed = saccoLoans.reduce((sum, l) => sum + l.amount, 0);
+
+    let totalRepayments = 0;
+    for (const user of listMembersForSacco(sacco.id)) {
+      const data = getMemberData(user.id);
+      totalRepayments += data.loans.reduce((sum, l) => sum + l.repaid, 0);
+    }
+
+    const outstandingLoans = Math.max(totalLoansDisbursed - totalRepayments, 0);
+    const collectionRate = totalLoansDisbursed
+      ? Math.round((totalRepayments / totalLoansDisbursed) * 100)
+      : 0;
+    const savingsGrowth = members.length
+      ? Math.min(Math.round((totalSavings / members.length) / 1000), 100) / 10
+      : 0;
+
+    const monthMap = new Map<string, { collections: number; disbursed: number }>();
+    for (const c of contributions) {
+      if (c.status !== "completed") continue;
+      const month = c.date.slice(0, 7);
+      const entry = monthMap.get(month) ?? { collections: 0, disbursed: 0 };
+      entry.collections += c.amount;
+      monthMap.set(month, entry);
+    }
+    for (const l of saccoLoans) {
+      const month = (l.date ?? new Date().toISOString()).slice(0, 7);
+      const entry = monthMap.get(month) ?? { collections: 0, disbursed: 0 };
+      entry.disbursed += l.amount;
+      monthMap.set(month, entry);
+    }
+
+    const monthlyData = [...monthMap.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([key, value]) => ({
+        month: new Date(`${key}-01`).toLocaleDateString("en-UG", { month: "short" }),
+        collections: value.collections,
+        disbursed: value.disbursed,
+      }));
+
+    const recentTransactions = listMembersForSacco(sacco.id)
+      .flatMap((user) => {
+        const data = getMemberData(user.id);
+        return data.transactions.slice(0, 3).map((tx) => ({
+          id: `${user.id}_${tx.id}`,
+          member: user.name,
+          type: tx.type.replace(/_/g, " "),
+          amount: tx.type === "loan_repayment" ? -Math.abs(tx.amount) : tx.amount,
+          date: getRelativeTime(tx.date),
+        }));
+      })
+      .slice(0, 6);
+
+    return {
+      totalSavings,
+      totalLoansDisbursed,
+      totalRepayments,
+      outstandingLoans,
+      collectionRate,
+      savingsGrowth,
+      monthlyData,
+      recentTransactions,
+    };
+  }, [loans, refreshKey, sacco?.id]);
+
+  const {
+    totalSavings,
+    totalLoansDisbursed,
+    totalRepayments,
+    outstandingLoans,
+    collectionRate,
+    savingsGrowth,
+    monthlyData,
+    recentTransactions,
+  } = treasury;
 
   return (
     <ScreenWrapper scroll header={<PageHeader title="Treasury" subtitle="Financial summary and collections" />}>
@@ -165,7 +261,7 @@ export default function Treasury() {
       {/* Line chart */}
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Monthly Overview</Text>
-        <LineChart colors={colors} />
+        <LineChart colors={colors} monthlyData={monthlyData} />
         <View style={styles.legend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
@@ -181,7 +277,10 @@ export default function Treasury() {
       {/* Recent transactions */}
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
-        {recentTransactions.map((tx, i) => (
+        {recentTransactions.length === 0 ? (
+          <Text style={{ color: colors.textSecondary }}>No transactions yet</Text>
+        ) : (
+          recentTransactions.map((tx, i) => (
           <View key={tx.id}>
             {i > 0 && <View style={[styles.txDivider, { backgroundColor: colors.border }]} />}
             <View style={styles.txRow}>
@@ -199,7 +298,8 @@ export default function Treasury() {
               </Text>
             </View>
           </View>
-        ))}
+          ))
+        )}
       </Card>
 
     </ScreenWrapper>

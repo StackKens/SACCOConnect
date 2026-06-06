@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +8,7 @@ import {
   Alert,
   TextInput,
 } from "react-native";
-import { useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
@@ -17,9 +18,10 @@ import { Divider } from "@/components/ui/Divider";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { router } from "expo-router";
-import { ChevronRight, UserPlus, Search, Copy } from "lucide-react-native";
+import { ChevronRight, UserPlus, Search } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 import { createMMKV } from "react-native-mmkv";
+import { getMemberSummaries, MemberSummary } from "@/helpers/members";
 
 const storage = createMMKV({ id: "auth" });
 
@@ -27,21 +29,30 @@ function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-const mockMembers = [
-  { id: "1", name: "Alice Wanjiku", phone: "0712345678", savings: 25000, loans: 12000, status: "active" },
-  { id: "2", name: "Bob Omondi", phone: "0756789012", savings: 18000, loans: 0, status: "active" },
-  { id: "3", name: "Catherine Muthoni", phone: "0789012345", savings: 32000, loans: 5000, status: "inactive" },
-];
-
 export default function Members() {
   const { colors } = useTheme();
-  const { sacco } = useAuthStore();
+  const sacco = useAuthStore((state) => state.sacco);
   const [showModal, setShowModal] = useState(false);
   const [invitePhone, setInvitePhone] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [members, setMembers] = useState<MemberSummary[]>([]);
 
-  const filtered = mockMembers.filter(
+  const refreshMembers = useCallback(() => {
+    if (!sacco?.id) {
+      setMembers([]);
+      return;
+    }
+    setMembers(getMemberSummaries(sacco.id));
+  }, [sacco?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshMembers();
+    }, [refreshMembers]),
+  );
+
+  const filtered = members.filter(
     (m) =>
       m.name.toLowerCase().includes(query.toLowerCase()) ||
       m.phone.includes(query),
@@ -99,7 +110,9 @@ export default function Members() {
 
       <View style={styles.list}>
         {filtered.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No members found</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            No members found. Invite someone to get started.
+          </Text>
         ) : (
           filtered.map((item) => (
             <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>

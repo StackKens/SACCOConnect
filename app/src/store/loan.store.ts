@@ -25,44 +25,9 @@ export interface LoanApplication {
   rejectNote?: string;
 }
 
-const INITIAL_LOANS: LoanApplication[] = [
-  {
-    id: "LA1",
-    memberLoanId: "ml_seed_1",
-    memberId: "member_seed_1",
-    memberName: "John Doe",
-    saccoId: "sacco_demo",
-    amount: 100000,
-    term: 12,
-    purpose: "Business",
-    date: "2025-06-01",
-    status: "pending",
-    memberSince: "2023-01-10",
-    totalSavings: 45000,
-    interestRate: 12,
-    repaid: 0,
-  },
-  {
-    id: "LA2",
-    memberLoanId: "ml_seed_2",
-    memberId: "member_seed_2",
-    memberName: "Jane Smith",
-    saccoId: "sacco_demo",
-    amount: 50000,
-    term: 6,
-    purpose: "Education",
-    date: "2025-05-28",
-    status: "pending",
-    memberSince: "2022-08-15",
-    totalSavings: 30000,
-    interestRate: 12,
-    repaid: 0,
-  },
-];
-
 function load(): LoanApplication[] {
   const stored = storage.getString("applications");
-  return stored ? JSON.parse(stored) : INITIAL_LOANS;
+  return stored ? JSON.parse(stored) : [];
 }
 
 function save(loans: LoanApplication[]) {
@@ -77,6 +42,7 @@ interface LoanStore {
   approveLoan: (id: string) => void;
   rejectLoan: (id: string, note?: string) => void;
   getById: (id: string) => LoanApplication | undefined;
+  resetLoans: () => void;
 }
 
 export const useLoanStore = create<LoanStore>((set, get) => ({
@@ -128,4 +94,9 @@ export const useLoanStore = create<LoanStore>((set, get) => ({
   },
 
   getById: (id) => get().loans.find((l) => l.id === id),
+
+  resetLoans: () => {
+    save([]);
+    set({ loans: [] });
+  },
 }));

@@ -5,22 +5,39 @@ import { Badge } from "@/components/ui/Badge";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
-
-const allContributions = [
-  { id: "C1", memberName: "Alice Wanjiku", amount: 5000, date: "2025-06-01", status: "completed", method: "MTN Mobile Money" },
-  { id: "C2", memberName: "Bob Omondi", amount: 5000, date: "2025-06-01", status: "completed", method: "Bank Transfer" },
-  { id: "C3", memberName: "Catherine Muthoni", amount: 5000, date: "2025-05-28", status: "pending", method: "Airtel Money" },
-];
+import { useAuthStore } from "@/store/auth.store";
+import { useFocusEffect, router } from "expo-router";
+import { useCallback, useState } from "react";
+import { getContributionsForSacco, AdminContribution } from "@/helpers/members";
 
 export default function AdminContributions() {
   const { colors } = useTheme();
+  const sacco = useAuthStore((state) => state.sacco);
+  const [contributions, setContributions] = useState<AdminContribution[]>([]);
 
-  const total = allContributions
+  const refresh = useCallback(() => {
+    if (!sacco?.id) {
+      setContributions([]);
+      return;
+    }
+    setContributions(getContributionsForSacco(sacco.id));
+  }, [sacco?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
+
+  const total = contributions
     .filter((c) => c.status === "completed")
     .reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <ScreenWrapper header={<PageHeader title="Contributions" subtitle="All member savings contributions" />}>
+    <ScreenWrapper
+      scroll
+      header={<PageHeader title="Contributions" subtitle="All member savings contributions" showBack onBack={() => router.back()} />}
+    >
 
       <Card style={styles.summaryCard}>
         <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Collected</Text>
@@ -28,22 +45,28 @@ export default function AdminContributions() {
       </Card>
 
       <View style={styles.list}>
-        {allContributions.map((item) => (
-          <Card key={item.id} style={styles.card}>
-            <View style={styles.row}>
-              <View style={styles.left}>
-                <Text style={[styles.memberName, { color: colors.text }]}>{item.memberName}</Text>
-                <Text style={[styles.detail, { color: colors.textSecondary }]}>
-                  {formatDate(item.date)} • {item.method}
-                </Text>
+        {contributions.length === 0 ? (
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            No contributions recorded yet.
+          </Text>
+        ) : (
+          contributions.map((item) => (
+            <Card key={item.id} style={styles.card}>
+              <View style={styles.row}>
+                <View style={styles.left}>
+                  <Text style={[styles.memberName, { color: colors.text }]}>{item.memberName}</Text>
+                  <Text style={[styles.detail, { color: colors.textSecondary }]}>
+                    {formatDate(item.date)} • {item.method}
+                  </Text>
+                </View>
+                <View style={styles.right}>
+                  <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(item.amount)}</Text>
+                  <Badge label={item.status} variant={item.status === "completed" ? "success" : "warning"} />
+                </View>
               </View>
-              <View style={styles.right}>
-                <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(item.amount)}</Text>
-                <Badge label={item.status} variant={item.status === "completed" ? "success" : "warning"} />
-              </View>
-            </View>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </View>
     </ScreenWrapper>
   );
@@ -54,6 +77,7 @@ const styles = StyleSheet.create({
   summaryLabel: { fontSize: 14 },
   summaryAmount: { fontSize: 32, fontWeight: "bold", marginTop: 4 },
   list: { paddingBottom: 20 },
+  emptyText: { textAlign: "center", fontSize: 14, marginTop: 24 },
   card: { marginBottom: 12 },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   left: { flex: 1 },

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Linking } from "react-native";
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Linking, Alert } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { useState, useEffect } from "react";
 import { ChevronRight, Settings2 } from "lucide-react-native";
 import { formatDate } from "@/utils/date";
+import { exportSaccoCsv } from "@/helpers/exportData";
 
 const ADMIN_HOW_TO = [
   { title: "Approving a Loan", desc: "Go to Loan Queue, tap any pending application to open the review screen, then tap Approve or Reject." },
@@ -22,6 +23,7 @@ const ADMIN_HOW_TO = [
 export default function AdminSettings() {
   const { theme, setTheme } = useUIStore();
   const logout = useAuthStore((state) => state.logout);
+  const clearAppCache = useAuthStore((state) => state.clearAppCache);
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
   const { colors, isDark } = useTheme();
@@ -81,6 +83,16 @@ export default function AdminSettings() {
           <Text style={[styles.settingLabel, { color: colors.text }]}>Contribution Due Date</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
+        <Divider style={styles.divider} />
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contributions")}>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>All Contributions</Text>
+          <ChevronRight size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <Divider style={styles.divider} />
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/active-loans")}>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>Active Loans</Text>
+          <ChevronRight size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
         {sacco?.contributionDueDate && (
           <Text style={[styles.rulesLabel, { color: colors.textSecondary, marginTop: 8 }]}>
             Current: {formatDate(sacco.contributionDueDate)}
@@ -132,8 +144,43 @@ export default function AdminSettings() {
 
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Data</Text>
-        <Button title="Export Data (CSV)" onPress={() => {}} variant="outline" style={styles.exportBtn} />
-        <Button title="Clear Cache" onPress={() => {}} variant="danger" />
+        <Button
+          title="Export Data (CSV)"
+          onPress={async () => {
+            if (!sacco?.id) {
+              Alert.alert("Unavailable", "No SACCO data to export.");
+              return;
+            }
+            try {
+              await exportSaccoCsv(sacco.id, sacco.name);
+            } catch {
+              Alert.alert("Export failed", "Could not share the export file.");
+            }
+          }}
+          variant="outline"
+          style={styles.exportBtn}
+        />
+        <Button
+          title="Clear Cache"
+          onPress={() => {
+            Alert.alert(
+              "Clear all local data?",
+              "This removes saved members, loans, and preferences from this device.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Clear",
+                  style: "destructive",
+                  onPress: () => {
+                    clearAppCache();
+                    router.replace("/(auth)/login");
+                  },
+                },
+              ],
+            );
+          }}
+          variant="danger"
+        />
       </Card>
 
       <Card style={styles.section}>
@@ -151,7 +198,10 @@ export default function AdminSettings() {
 
       <Button
         title="Logout"
-        onPress={logout}
+        onPress={() => {
+          logout();
+          router.replace("/(auth)/login");
+        }}
         variant="danger"
         style={styles.logout}
       />
