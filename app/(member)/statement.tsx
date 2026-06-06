@@ -1,27 +1,22 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { Download } from "lucide-react-native";
-
-const mockTransactions = [
-  { id: "1", type: "contribution", amount: 5000, date: "2025-06-01", reference: "CONT-001", status: "completed" },
-  { id: "2", type: "loan_repayment", amount: -2000, date: "2025-05-15", reference: "REPAY-001", status: "completed" },
-  { id: "3", type: "loan_disbursement", amount: 50000, date: "2025-05-01", reference: "LOAN-001", status: "completed" },
-  { id: "4", type: "contribution", amount: 5000, date: "2025-05-01", reference: "CONT-002", status: "completed" },
-];
+import { useMemberDataStore } from "@/store/member.store";
 
 export default function Statement() {
   const { colors } = useTheme();
+  const { transactions } = useMemberDataStore();
 
   return (
     <ScreenWrapper header={
       <PageHeader
         title="Statement"
         rightComponent={
-          <TouchableOpacity style={styles.exportBtn}>
+          <TouchableOpacity style={styles.exportBtn} onPress={() => Alert.alert("Coming Soon", "PDF export will be available after backend integration.")}>
             <Download size={20} color={colors.primary} />
             <Text style={{ color: colors.primary }}>Export PDF</Text>
           </TouchableOpacity>
@@ -29,7 +24,7 @@ export default function Statement() {
       />
     }>
       <View style={styles.list}>
-        {mockTransactions.map((item) => (
+        {transactions.map((item) => (
           <Card key={item.id} style={styles.card}>
             <View style={styles.row}>
               <View style={styles.left}>

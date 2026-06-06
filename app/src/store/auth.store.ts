@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createMMKV } from "react-native-mmkv";
 import { User, SACCO, InviteCode } from "../types";
+import { useMemberDataStore } from "./member.store";
 
 const storage = createMMKV({ id: "auth" });
 
@@ -27,6 +28,15 @@ const DEMO_ADMIN: User = {
   name: "Admin Demo",
   phone: "0700000000",
   role: "admin",
+  saccoId: "sacco_demo",
+  saccoName: "UgandaSavings SACCO",
+};
+
+const DEMO_MEMBER: User = {
+  id: "member_demo",
+  name: "John Mukasa",
+  phone: "0711111111",
+  role: "member",
   saccoId: "sacco_demo",
   saccoName: "UgandaSavings SACCO",
 };
@@ -74,7 +84,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (phone === "0700000000" && pin === "0000") {
       storage.set("user", JSON.stringify(DEMO_ADMIN));
       storage.set("sacco", JSON.stringify(DEMO_SACCO));
+      useMemberDataStore.getState().resetSession();
       set({ user: DEMO_ADMIN, sacco: DEMO_SACCO, rulesAccepted: true });
+      return;
+    }
+    if (phone === "0711111111" && pin === "1111") {
+      storage.set("user", JSON.stringify(DEMO_MEMBER));
+      storage.set("sacco", JSON.stringify(DEMO_SACCO));
+      const accepted = storage.getBoolean(`rules_accepted_${DEMO_MEMBER.id}`) ?? true;
+      useMemberDataStore.getState().initForUser(DEMO_MEMBER.id);
+      set({ user: DEMO_MEMBER, sacco: DEMO_SACCO, rulesAccepted: accepted });
       return;
     }
     const stored = storage.getString(`member_${phone}`);
@@ -82,6 +101,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user, sacco, storedPin } = JSON.parse(stored);
     if (storedPin !== pin) throw new Error("Incorrect PIN.");
     const accepted = storage.getBoolean(`rules_accepted_${user.id}`) ?? false;
+    storage.set("user", JSON.stringify(user));
+    storage.set("sacco", JSON.stringify(sacco));
+    useMemberDataStore.getState().initForUser(user.id);
     set({ user, sacco, rulesAccepted: accepted });
   },
 
@@ -119,6 +141,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     storage.set(`member_${phone}`, JSON.stringify({ user, sacco, storedPin: pin }));
     storage.set("user", JSON.stringify(user));
     storage.set("sacco", JSON.stringify(sacco));
+    useMemberDataStore.getState().initForUser(user.id);
     set({ user, sacco, rulesAccepted: false });
   },
 
@@ -151,6 +174,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => {
     storage.delete("user");
     storage.delete("sacco");
+    useMemberDataStore.getState().resetSession();
     set({ user: null, sacco: null, rulesAccepted: false });
   },
 
@@ -160,6 +184,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (storedUser) {
       const user = JSON.parse(storedUser);
       const accepted = storage.getBoolean(`rules_accepted_${user.id}`) ?? user.role === "admin";
+      if (user.role === "member") {
+        useMemberDataStore.getState().initForUser(user.id);
+      } else {
+        useMemberDataStore.getState().resetSession();
+      }
       set({
         user,
         sacco: storedSacco ? JSON.parse(storedSacco) : null,
@@ -167,6 +196,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
     } else {
+      useMemberDataStore.getState().resetSession();
       set({ isLoading: false });
     }
   },

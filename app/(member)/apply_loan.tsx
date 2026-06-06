@@ -7,20 +7,38 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 
+import { useMemberDataStore } from "@/store/member.store";
+import { useAuthStore } from "@/store/auth.store";
+
 export default function ApplyLoan() {
   const [amount, setAmount] = useState("");
   const [purpose, setPurpose] = useState("");
   const [term, setTerm] = useState("");
   const [income, setIncome] = useState("");
   const { colors } = useTheme();
+  const user = useAuthStore((s) => s.user);
+  const sacco = useAuthStore((s) => s.sacco);
+  const { addLoanApplication } = useMemberDataStore();
 
   const handleSubmit = () => {
     if (!amount || !purpose || !term || !income) {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
-    // API call to submit loan application
-    Alert.alert("Success", "Loan application submitted for review", [
+    if (!user || !sacco) {
+      Alert.alert("Error", "You must be logged in to apply for a loan.");
+      return;
+    }
+    addLoanApplication({
+      amount: parseFloat(amount),
+      purpose,
+      interestRate: sacco.interestRate ?? 12,
+      term: parseInt(term, 10),
+      memberId: user.id,
+      memberName: user.name,
+      saccoId: sacco.id,
+    });
+    Alert.alert("Application Submitted", "Your loan application has been submitted for review.", [
       { text: "OK", onPress: () => router.back() },
     ]);
   };

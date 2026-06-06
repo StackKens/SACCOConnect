@@ -1,7 +1,9 @@
-import { Stack, Redirect, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
+import { View, StyleSheet } from "react-native";
 import { useAuthStore } from "./src/store/auth.store";
 import { useUIStore } from "./src/store/ui.store";
+import { LoadingSpinner } from "./src/components/ui/LoadingSpinner";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -27,10 +29,25 @@ export default function RootLayout() {
   useEffect(() => {
     if (isLoading) return;
     const inAuthGroup = segments[0] === "(auth)";
+    const inAdmin = segments[0] === "(admin)";
     const inMember = segments[0] === "(member)";
+
     if (!user && !inAuthGroup) {
       router.replace("/(auth)/login");
-    } else if (user && inAuthGroup) {
+      return;
+    }
+
+    if (user?.role === "admin" && inMember) {
+      router.replace("/(admin)");
+      return;
+    }
+
+    if (user?.role === "member" && inAdmin) {
+      router.replace("/(member)");
+      return;
+    }
+
+    if (user && inAuthGroup) {
       if (user.role === "admin") {
         router.replace("/(admin)");
       } else if (!rulesAccepted) {
@@ -38,12 +55,25 @@ export default function RootLayout() {
       } else {
         router.replace("/(member)");
       }
-    } else if (user && user.role === "member" && !rulesAccepted && segments[0] !== "(auth)") {
+      return;
+    }
+
+    if (user && user.role === "member" && !rulesAccepted && !inAuthGroup) {
       router.replace("/(auth)/group-rules");
     }
   }, [user, isLoading, rulesAccepted, segments]);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <View style={styles.loading}>
+            <LoadingSpinner />
+          </View>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -59,3 +89,7 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+});

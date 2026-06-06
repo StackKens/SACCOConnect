@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
+import { router } from "expo-router";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Divider } from "@/components/ui/Divider";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
-import { router } from "expo-router";
+import { useMemberDataStore } from "@/store/member.store";
 
 type PaymentMethod = "MTN" | "Airtel" | "Bank";
 
@@ -16,12 +17,19 @@ const METHODS: { key: PaymentMethod; label: string }[] = [
   { key: "Bank", label: "Bank Transfer" },
 ];
 
+const METHOD_LABELS: Record<PaymentMethod, string> = {
+  MTN: "MTN Mobile Money",
+  Airtel: "Airtel Money",
+  Bank: "Bank Transfer",
+};
+
 export default function Contribute() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("MTN");
   const [phone, setPhone] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const { colors } = useTheme();
+  const { addContribution } = useMemberDataStore();
 
   const isMobile = method === "MTN" || method === "Airtel";
 
@@ -41,11 +49,13 @@ export default function Contribute() {
       return;
     }
 
+    addContribution(numAmount, METHOD_LABELS[method]);
+
     if (isMobile) {
       Alert.alert(
         "Payment Request Sent",
         `A payment prompt has been sent to ${phone}.\nApprove it on your phone to complete the contribution.`,
-        [{ text: "OK", onPress: () => router.back() }]
+        [{ text: "OK", onPress: () => router.back() }],
       );
     } else {
       Alert.alert("Contribution Recorded", "Your bank transfer has been submitted for processing.", [

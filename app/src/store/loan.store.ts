@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createMMKV } from "react-native-mmkv";
+import { useMemberDataStore } from "./member.store";
 
 const storage = createMMKV({ id: "loans" });
 
@@ -7,7 +8,10 @@ export type LoanStatus = "pending" | "approved" | "rejected";
 
 export interface LoanApplication {
   id: string;
+  memberLoanId: string;
+  memberId: string;
   memberName: string;
+  saccoId: string;
   amount: number;
   term: number;
   purpose: string;
@@ -24,7 +28,10 @@ export interface LoanApplication {
 const INITIAL_LOANS: LoanApplication[] = [
   {
     id: "LA1",
+    memberLoanId: "ml_seed_1",
+    memberId: "member_seed_1",
     memberName: "John Doe",
+    saccoId: "sacco_demo",
     amount: 100000,
     term: 12,
     purpose: "Business",
@@ -37,7 +44,10 @@ const INITIAL_LOANS: LoanApplication[] = [
   },
   {
     id: "LA2",
+    memberLoanId: "ml_seed_2",
+    memberId: "member_seed_2",
     memberName: "Jane Smith",
+    saccoId: "sacco_demo",
     amount: 50000,
     term: 6,
     purpose: "Education",
@@ -48,33 +58,22 @@ const INITIAL_LOANS: LoanApplication[] = [
     interestRate: 12,
     repaid: 0,
   },
-  {
-    id: "LA3",
-    memberName: "Alice Wanjiku",
-    amount: 50000,
-    term: 8,
-    purpose: "Medical",
-    date: "2025-04-10",
-    status: "approved",
-    memberSince: "2021-03-20",
-    totalSavings: 25000,
-    interestRate: 12,
-    repaid: 20000,
-    dueDate: "2025-07-15",
-  },
 ];
 
 function load(): LoanApplication[] {
-  const stored = storage.getString("loans");
+  const stored = storage.getString("applications");
   return stored ? JSON.parse(stored) : INITIAL_LOANS;
 }
 
 function save(loans: LoanApplication[]) {
-  storage.set("loans", JSON.stringify(loans));
+  storage.set("applications", JSON.stringify(loans));
 }
 
 interface LoanStore {
   loans: LoanApplication[];
+  addFromMemberApplication: (
+    app: Omit<LoanApplication, "status" | "memberSince" | "repaid">,
+  ) => void;
   approveLoan: (id: string) => void;
   rejectLoan: (id: string, note?: string) => void;
   getById: (id: string) => LoanApplication | undefined;
@@ -83,30 +82,49 @@ interface LoanStore {
 export const useLoanStore = create<LoanStore>((set, get) => ({
   loans: load(),
 
-  approveLoan: (id) => {
-    const loans = get().loans.map((l) =>
-      l.id === id
-        ? {
-            ...l,
-            status: "approved" as LoanStatus,
-            dueDate: new Date(Date.now() + l.term * 30 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .split("T")[0],
-          }
-        : l,
-    );
+  addFromMemberApplication: (app) => {
+    const loan: LoanApplication = {
+      ...app,
+      status: "pending",
+      memberSince: new Date().toISOString().split("T")[0],
+      repaid: 0,
+    };
+    const loans = [loan, ...get().loans];
     save(loans);
     set({ loans });
   },
 
-  rejectLoan: (id, note) => {
+  approveLoan: (id) => {
+    const loan = get().loans.find((l) => l.id === id);
+    if (!loan) return;
+
+    const dueDate = new Date(Date.now() + loan.term * 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0];
+    const nextPayment = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0];
+
     const loans = get().loans.map((l) =>
-      l.id === id
-        ? { ...l, status: "rejected" as LoanStatus, rejectNote: note ?? "" }
-        : l,
+      l.id === id ? { ...l, status: "approved" as LoanStatus, dueDate } : l,
     );
     save(loans);
     set({ loans });
+
+    useMemberDataStore.getState().activateLoan(loan.memberId, loan.memberLoanId, dueDate, nextPayment);
+  },
+
+  rejectLoan: (id, note) => {
+    const loan = get().loans.find((l) => l.id === id);
+    if (!loan) return;
+
+    const loans = get().loans.map((l) =>
+      l.id === id ? { ...l, status: "rejected" as LoanStatus, rejectNote: note ?? "" } : l,
+    );
+    save(loans);
+    set({ loans });
+
+    useMemberDataStore.getState().rejectLoan(loan.memberId, loan.memberLoanId, note);
   },
 
   getById: (id) => get().loans.find((l) => l.id === id),

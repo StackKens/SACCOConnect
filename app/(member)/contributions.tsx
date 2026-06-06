@@ -6,34 +6,12 @@ import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { router } from "expo-router";
-
-const mockContributions = [
-  {
-    id: "1",
-    amount: 5000,
-    date: "2025-06-01",
-    status: "completed",
-    method: "M-Pesa",
-  },
-  {
-    id: "2",
-    amount: 5000,
-    date: "2025-05-01",
-    status: "completed",
-    method: "Bank Transfer",
-  },
-  {
-    id: "3",
-    amount: 5000,
-    date: "2025-04-01",
-    status: "completed",
-    method: "M-Pesa",
-  },
-];
+import { useMemberDataStore } from "@/store/member.store";
 
 export default function Contributions() {
   const { colors } = useTheme();
-  const total = mockContributions.reduce((sum, c) => sum + c.amount, 0);
+  const { contributions, totalSavings } = useMemberDataStore();
+  const total = totalSavings();
 
   return (
     <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" />}>
@@ -52,7 +30,7 @@ export default function Contributions() {
         />
       </Card>
       <View style={styles.list}>
-        {mockContributions.map((item) => (
+        {contributions.map((item) => (
           <Card key={item.id} style={styles.card}>
             <View style={styles.row}>
               <View>

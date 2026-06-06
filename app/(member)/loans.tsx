@@ -5,20 +5,16 @@ import { Badge } from "@/components/ui/Badge";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { router } from "expo-router";
-
-const mockLoans = [
-  { id: "1", amount: 50000, repaid: 25000, remaining: 25000, status: "active", nextPayment: "2025-06-15", interestRate: 12 },
-  { id: "2", amount: 100000, repaid: 100000, remaining: 0, status: "repaid", nextPayment: null },
-  { id: "3", amount: 75000, repaid: 0, remaining: 75000, status: "pending", nextPayment: null },
-];
+import { useMemberDataStore } from "@/store/member.store";
 
 export default function Loans() {
   const { colors } = useTheme();
+  const { loans } = useMemberDataStore();
 
   return (
     <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />}>
       <View style={styles.list}>
-        {mockLoans.map((item) => (
+        {loans.map((item) => (
           <TouchableOpacity
             key={item.id}
             onPress={() => item.status === "active" && router.push("/(member)/repay_loan")}
@@ -30,7 +26,15 @@ export default function Loans() {
                 </Text>
                 <Badge
                   label={item.status}
-                  variant={item.status === "active" ? "warning" : item.status === "repaid" ? "success" : "info"}
+                  variant={
+                    item.status === "active"
+                      ? "warning"
+                      : item.status === "repaid"
+                        ? "success"
+                        : item.status === "rejected"
+                          ? "error"
+                          : "info"
+                  }
                 />
               </View>
               {item.status === "active" && (
@@ -40,7 +44,7 @@ export default function Loans() {
                       Repaid: {formatCurrency(item.repaid)}
                     </Text>
                     <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
-                      Remaining: {formatCurrency(item.remaining)}
+                      Remaining: {formatCurrency(item.amount - item.repaid)}
                     </Text>
                   </View>
                   <Text style={[styles.nextPayment, { color: colors.textSecondary }]}>
@@ -54,6 +58,11 @@ export default function Loans() {
               {item.status === "pending" && (
                 <Text style={[styles.pendingText, { color: colors.warning }]}>
                   Awaiting approval
+                </Text>
+              )}
+              {item.status === "rejected" && (
+                <Text style={[styles.pendingText, { color: colors.error }]}>
+                  Rejected{item.rejectNote ? `: ${item.rejectNote}` : ""}
                 </Text>
               )}
             </Card>

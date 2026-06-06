@@ -8,10 +8,14 @@ import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { router } from "expo-router";
 
+import { useMemberDataStore } from "@/store/member.store";
+
 export default function RepayLoan() {
   const [amount, setAmount] = useState("");
   const { colors } = useTheme();
-  const outstanding = 25000; // Mock – fetch from API
+  const { activeLoan, addLoanRepayment } = useMemberDataStore();
+  const loan = activeLoan();
+  const outstanding = loan ? loan.amount - loan.repaid : 0;
 
   const handlePayment = () => {
     const numAmount = parseFloat(amount);
@@ -23,8 +27,9 @@ export default function RepayLoan() {
       Alert.alert("Error", "Amount exceeds outstanding balance");
       return;
     }
-    // API call to process repayment
-    Alert.alert("Success", `Payment of ${formatCurrency(numAmount)} received`, [
+    if (!loan) return;
+    addLoanRepayment(loan.id, numAmount);
+    Alert.alert("Success", `Payment of ${formatCurrency(numAmount)} recorded`, [
       { text: "OK", onPress: () => router.back() },
     ]);
   };

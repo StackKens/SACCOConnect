@@ -7,16 +7,21 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { router } from "expo-router";
 import { Wallet, AlertCircle, Flame, FileText } from "lucide-react-native";
+import { useMemberDataStore } from "@/store/member.store";
 import { formatCurrency } from "@/utils/currency";
 
 export default function MemberDashboard() {
   const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
+  const { totalSavings, activeLoan } = useMemberDataStore();
 
-  const totalSavings = 12500;
-  const activeLoanBalance = 8000;
-  const nextContribution = "2025-06-10";
+  const totalSavingsAmt = totalSavings();
+  const activeLoanData = activeLoan();
+  const activeLoanBalance = activeLoanData
+    ? activeLoanData.amount - activeLoanData.repaid
+    : 0;
+  const nextContribution = "2025-07-01";
   const streakDays = 5;
 
   const logoColor = sacco?.logoColor ?? colors.primary;
@@ -44,7 +49,7 @@ export default function MemberDashboard() {
       <View style={styles.statsRow}>
         <StatCard
           title="Total Savings"
-          value={formatCurrency(totalSavings)}
+          value={formatCurrency(totalSavingsAmt)}
           icon={<Wallet size={24} color={colors.secondary} />}
         />
         <StatCard
