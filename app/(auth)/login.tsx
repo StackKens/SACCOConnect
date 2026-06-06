@@ -1,26 +1,32 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/Input";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
+import { Phone, Lock } from "lucide-react-native";
+
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, user } = useAuthStore();
+  const { login } = useAuthStore();
   const { colors } = useTheme();
 
   const handleLogin = async () => {
+    if (!phone.trim() || pin.length < 4) {
+      Alert.alert("Missing info", "Enter your phone number and 4-digit PIN.");
+      return;
+    }
     setLoading(true);
     try {
-      await login(email, password);
+      await login(phone.trim(), pin);
       const role = useAuthStore.getState().user?.role;
       router.replace(role === "admin" ? "/(admin)" : "/(member)");
-    } catch (error) {
-      console.error(error);
+    } catch (e: any) {
+      Alert.alert("Login Failed", e?.message || "Invalid credentials.");
     } finally {
       setLoading(false);
     }
@@ -29,34 +35,51 @@ export default function Login() {
   return (
     <ScreenWrapper>
       <View style={styles.container}>
-        <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Sign in to your account
-        </Text>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Sign in with your phone & PIN
+          </Text>
+        </View>
+
         <Input
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
+          label="Phone Number"
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+          placeholder="e.g. 0712345678"
           autoCapitalize="none"
-          keyboardType="email-address"
         />
         <Input
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
+          label="4-Digit PIN"
+          value={pin}
+          onChangeText={(v) => { if (v.length <= 4) setPin(v); }}
+          keyboardType="number-pad"
           secureTextEntry
+          placeholder="••••"
+          maxLength={4}
         />
-        <Button title="Login" onPress={handleLogin} loading={loading} />
-        <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
+
+        <Button title="Log In" onPress={handleLogin} loading={loading} style={styles.btn} />
+
+        <TouchableOpacity onPress={() => router.push("/(auth)/join")}>
           <Text style={[styles.link, { color: colors.primary }]}>
-            Don't have an account? Register
+            New member? Join with an invite code
           </Text>
         </TouchableOpacity>
-        <View style={[styles.adminHint, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.adminHintTitle, { color: colors.text }]}>Admin Access</Text>
-          <Text style={[styles.adminHintText, { color: colors.textSecondary }]}>
-            Email: admin@example.com{"\n"}Password: any
+
+        {/* Demo credentials */}
+        <View style={[styles.demo, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.demoTitle, { color: colors.text }]}>Demo Admin Login</Text>
+          <Text style={[styles.demoText, { color: colors.textSecondary }]}>
+            Phone: 0700000000{"\n"}PIN: 0000
           </Text>
+          <TouchableOpacity
+            onPress={() => { setPhone("0700000000"); setPin("0000"); }}
+            style={[styles.demoFill, { borderColor: colors.border }]}
+          >
+            <Text style={[styles.demoFillText, { color: colors.primary }]}>Fill credentials</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScreenWrapper>
@@ -65,10 +88,14 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center" },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 8 },
-  subtitle: { fontSize: 16, marginBottom: 32 },
-  link: { marginTop: 20, textAlign: "center", fontSize: 14 },
-  adminHint: { marginTop: 32, padding: 14, borderRadius: 10, borderWidth: 1 },
-  adminHintTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
-  adminHintText: { fontSize: 12, lineHeight: 18 },
+  header: { marginBottom: 32 },
+  title: { fontSize: 28, fontWeight: "800", marginBottom: 6, letterSpacing: -0.5 },
+  subtitle: { fontSize: 15 },
+  btn: { marginTop: 8, marginBottom: 20 },
+  link: { textAlign: "center", fontSize: 14 },
+  demo: { marginTop: 36, padding: 14, borderRadius: 10, borderWidth: 1 },
+  demoTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
+  demoText: { fontSize: 12, lineHeight: 20 },
+  demoFill: { marginTop: 10, borderWidth: 1, borderRadius: 8, paddingVertical: 8, alignItems: "center" },
+  demoFillText: { fontSize: 13, fontWeight: "600" },
 });

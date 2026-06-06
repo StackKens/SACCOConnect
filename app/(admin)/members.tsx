@@ -15,47 +15,57 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Divider } from "@/components/ui/Divider";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuthStore } from "@/store/auth.store";
 import { router } from "expo-router";
-import { ChevronRight, UserPlus, Search } from "lucide-react-native";
+import { ChevronRight, UserPlus, Search, Copy } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
+import { createMMKV } from "react-native-mmkv";
+
+const storage = createMMKV({ id: "auth" });
+
+function generateCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
 
 const mockMembers = [
-  { id: "1", name: "Alice Wanjiku", email: "alice@example.com", savings: 25000, loans: 12000, status: "active" },
-  { id: "2", name: "Bob Omondi", email: "bob@example.com", savings: 18000, loans: 0, status: "active" },
-  { id: "3", name: "Catherine Muthoni", email: "catherine@example.com", savings: 32000, loans: 5000, status: "inactive" },
+  { id: "1", name: "Alice Wanjiku", phone: "0712345678", savings: 25000, loans: 12000, status: "active" },
+  { id: "2", name: "Bob Omondi", phone: "0756789012", savings: 18000, loans: 0, status: "active" },
+  { id: "3", name: "Catherine Muthoni", phone: "0789012345", savings: 32000, loans: 5000, status: "inactive" },
 ];
-
-function generateInviteCode() {
-  return "SACCO-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-}
 
 export default function Members() {
   const { colors } = useTheme();
+  const { sacco } = useAuthStore();
   const [showModal, setShowModal] = useState(false);
-  const [inviteName, setInviteName] = useState("");
-  const [inviteEmail, setInviteEmail] = useState("");
+  const [invitePhone, setInvitePhone] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const filtered = mockMembers.filter(
     (m) =>
       m.name.toLowerCase().includes(query.toLowerCase()) ||
-      m.email.toLowerCase().includes(query.toLowerCase()),
+      m.phone.includes(query),
   );
 
   const handleInvite = () => {
-    if (!inviteName.trim() || !inviteEmail.trim()) {
-      Alert.alert("Required", "Please enter a name and email address.");
+    if (invitePhone.trim().length < 10) {
+      Alert.alert("Required", "Enter a valid phone number.");
       return;
     }
-    const code = generateInviteCode();
+    const code = generateCode();
+    const invite = {
+      code,
+      saccoId: sacco?.id ?? "sacco_demo",
+      saccoName: sacco?.name ?? "UgandaSavings SACCO",
+      phone: invitePhone.trim(),
+    };
+    storage.set(`invite_${code}`, JSON.stringify(invite));
     setInviteCode(code);
   };
 
   const closeModal = () => {
     setShowModal(false);
-    setInviteName("");
-    setInviteEmail("");
+    setInvitePhone("");
     setInviteCode(null);
   };
 
@@ -79,7 +89,7 @@ export default function Members() {
         <Search size={16} color={colors.textSecondary} />
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search members..."
+          placeholder="Search by name or phone..."
           placeholderTextColor={colors.textSecondary}
           value={query}
           onChangeText={setQuery}
@@ -92,26 +102,26 @@ export default function Members() {
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No members found</Text>
         ) : (
           filtered.map((item) => (
-          <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>
-            <Card style={styles.card}>
-              <View style={styles.row}>
-                <Avatar name={item.name} size={48} />
-                <View style={styles.info}>
-                  <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
-                  <Text style={[styles.email, { color: colors.textSecondary }]}>{item.email}</Text>
-                  <Text style={[styles.savings, { color: colors.success }]}>
-                    {formatCurrency(item.savings)} saved
-                  </Text>
+            <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>
+              <Card style={styles.card}>
+                <View style={styles.row}>
+                  <Avatar name={item.name} size={48} />
+                  <View style={styles.info}>
+                    <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
+                    <Text style={[styles.phone, { color: colors.textSecondary }]}>{item.phone}</Text>
+                    <Text style={[styles.savings, { color: colors.success }]}>
+                      {formatCurrency(item.savings)} saved
+                    </Text>
+                  </View>
+                  <View style={styles.right}>
+                    <Text style={[styles.status, { color: item.status === "active" ? colors.success : colors.textSecondary }]}>
+                      {item.status}
+                    </Text>
+                    <ChevronRight size={18} color={colors.textSecondary} />
+                  </View>
                 </View>
-                <View style={styles.right}>
-                  <Text style={[styles.status, { color: item.status === "active" ? colors.success : colors.textSecondary }]}>
-                    {item.status}
-                  </Text>
-                  <ChevronRight size={18} color={colors.textSecondary} />
-                </View>
-              </View>
-            </Card>
-          </TouchableOpacity>
+              </Card>
+            </TouchableOpacity>
           ))
         )}
       </View>
@@ -121,13 +131,18 @@ export default function Members() {
           <Card style={[styles.modalCard, { backgroundColor: colors.card }]}>
             {!inviteCode ? (
               <>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>Invite New Member</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Invite Member</Text>
                 <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-                  An invite code will be generated. Share it with the member so they can register.
+                  Enter their phone number. An invite code will be generated — share it with them via SMS or WhatsApp.
                 </Text>
                 <Divider style={{ marginVertical: 16 }} />
-                <Input label="Full Name" value={inviteName} onChangeText={setInviteName} placeholder="e.g. John Mukasa" />
-                <Input label="Email Address" value={inviteEmail} onChangeText={setInviteEmail} placeholder="e.g. john@example.com" keyboardType="email-address" autoCapitalize="none" />
+                <Input
+                  label="Phone Number"
+                  value={invitePhone}
+                  onChangeText={setInvitePhone}
+                  placeholder="e.g. 0712345678"
+                  keyboardType="phone-pad"
+                />
                 <View style={styles.modalActions}>
                   <Button title="Cancel" onPress={closeModal} variant="outline" style={styles.modalBtn} />
                   <Button title="Generate Code" onPress={handleInvite} style={styles.modalBtn} />
@@ -135,16 +150,17 @@ export default function Members() {
               </>
             ) : (
               <>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>Invite Code Generated</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Invite Code Ready</Text>
                 <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-                  Share this code with {inviteName}. They will use it during registration.
+                  Share this code with the member. They'll enter it in the app to join{" "}
+                  <Text style={{ fontWeight: "700" }}>{sacco?.name ?? "your SACCO"}</Text>.
                 </Text>
                 <Divider style={{ marginVertical: 16 }} />
                 <View style={[styles.codeBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <Text style={[styles.codeText, { color: colors.primary }]}>{inviteCode}</Text>
                 </View>
                 <Text style={[styles.codeNote, { color: colors.textSecondary }]}>
-                  Code expires in 48 hours. The member must register with the email: {inviteEmail}
+                  SMS: "Join {sacco?.name ?? "our SACCO"}. Code: {inviteCode}. Download SACCOConnect to get started."
                 </Text>
                 <Button title="Done" onPress={closeModal} style={{ marginTop: 16 }} />
               </>
@@ -168,7 +184,7 @@ const styles = StyleSheet.create({
   info: { flex: 1, marginLeft: 12 },
   right: { alignItems: "flex-end", gap: 4 },
   name: { fontSize: 15, fontWeight: "600" },
-  email: { fontSize: 13, marginTop: 2 },
+  phone: { fontSize: 13, marginTop: 2 },
   savings: { fontSize: 12, marginTop: 4 },
   status: { fontSize: 11, fontWeight: "600", textTransform: "capitalize" },
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 },
@@ -178,6 +194,6 @@ const styles = StyleSheet.create({
   modalActions: { flexDirection: "row", gap: 12, marginTop: 8 },
   modalBtn: { flex: 1 },
   codeBox: { borderWidth: 1, borderRadius: 10, padding: 20, alignItems: "center", marginVertical: 8 },
-  codeText: { fontSize: 28, fontWeight: "800", letterSpacing: 3 },
-  codeNote: { fontSize: 12, lineHeight: 17, marginTop: 8 },
+  codeText: { fontSize: 32, fontWeight: "800", letterSpacing: 4 },
+  codeNote: { fontSize: 12, lineHeight: 18, marginTop: 8 },
 });

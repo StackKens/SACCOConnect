@@ -73,6 +73,7 @@ export default function AdminLayout() {
       <Tabs.Screen name="active-loans" options={{ href: null }} />
       <Tabs.Screen name="contributions" options={{ href: null }} />
       <Tabs.Screen name="announcements" options={{ href: null }} />
+      <Tabs.Screen name="create-sacco" options={{ href: null }} />
     </Tabs>
   );
 }

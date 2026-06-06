@@ -67,6 +67,12 @@ export default function AdminDashboard() {
             style={styles.actionBtn}
           />
           <Button
+            title="Create SACCO"
+            onPress={() => router.push("/(admin)/create-sacco")}
+            variant="outline"
+            style={styles.actionBtn}
+          />
+          <Button
             title="Post Announcement"
             onPress={() => router.push("/(admin)/announcements")}
             variant="outline"
