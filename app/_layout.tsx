@@ -1,4 +1,4 @@
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Redirect, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { useAuthStore } from "./src/store/auth.store";
@@ -27,27 +27,21 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !user) return;
+
     const inAuthGroup = segments[0] === "(auth)";
-    const inAdmin = segments[0] === "(admin)";
-    const inMember = segments[0] === "(member)";
 
-    if (!user && !inAuthGroup) {
-      router.replace("/(auth)/login");
-      return;
-    }
-
-    if (user?.role === "admin" && inMember) {
+    if (user.role === "admin" && segments[0] === "(member)") {
       router.replace("/(admin)");
       return;
     }
 
-    if (user?.role === "member" && inAdmin) {
+    if (user.role === "member" && segments[0] === "(admin)") {
       router.replace("/(member)");
       return;
     }
 
-    if (user && inAuthGroup) {
+    if (inAuthGroup) {
       if (user.role === "admin") {
         router.replace("/(admin)");
       } else if (!rulesAccepted) {
@@ -58,7 +52,7 @@ export default function RootLayout() {
       return;
     }
 
-    if (user && user.role === "member" && !rulesAccepted && !inAuthGroup) {
+    if (user.role === "member" && !rulesAccepted && !inAuthGroup) {
       router.replace("/(auth)/group-rules");
     }
   }, [user, isLoading, rulesAccepted, segments]);
@@ -70,6 +64,21 @@ export default function RootLayout() {
           <View style={styles.loading}>
             <LoadingSpinner />
           </View>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
+  if (!user) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ThemeUpdater />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="index" redirect />
+          </Stack>
+          <Redirect href="/(auth)/login" />
         </SafeAreaProvider>
       </GestureHandlerRootView>
     );
