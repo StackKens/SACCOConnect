@@ -17,8 +17,7 @@ export default function AdminDashboard() {
   const pendingApplications = 12;
 
   return (
-    <ScreenWrapper scroll>
-      <PageHeader title="Admin Dashboard" subtitle="Overview of SACCO operations" />
+    <ScreenWrapper scroll header={<PageHeader title="Admin Dashboard" subtitle="Overview of SACCO operations" />}>
 
       <View style={styles.statsGrid}>
         <StatCard

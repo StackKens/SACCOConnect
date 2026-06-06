@@ -20,8 +20,7 @@ export default function AdminContributions() {
     .reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Contributions" subtitle="All member savings contributions" />
+    <ScreenWrapper header={<PageHeader title="Contributions" subtitle="All member savings contributions" />}>
 
       <Card style={styles.summaryCard}>
         <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Collected</Text>

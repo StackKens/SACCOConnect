@@ -15,8 +15,7 @@ export default function Treasury() {
   const outstandingLoans = 440000;
 
   return (
-    <ScreenWrapper scroll>
-      <PageHeader title="Treasury" subtitle="Financial summary and collections" />
+    <ScreenWrapper scroll header={<PageHeader title="Treasury" subtitle="Financial summary and collections" />}>
 
       <View style={styles.statsGrid}>
         <StatCard

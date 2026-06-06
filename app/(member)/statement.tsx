@@ -17,14 +17,17 @@ export default function Statement() {
   const { colors } = useTheme();
 
   return (
-    <ScreenWrapper>
-      <View style={styles.header}>
-        <PageHeader title="Statement" style={{ marginBottom: 0 }} />
-        <TouchableOpacity style={styles.exportBtn}>
-          <Download size={24} color={colors.primary} />
-          <Text style={{ color: colors.primary }}>Export PDF</Text>
-        </TouchableOpacity>
-      </View>
+    <ScreenWrapper header={
+      <PageHeader
+        title="Statement"
+        rightComponent={
+          <TouchableOpacity style={styles.exportBtn}>
+            <Download size={20} color={colors.primary} />
+            <Text style={{ color: colors.primary }}>Export PDF</Text>
+          </TouchableOpacity>
+        }
+      />
+    }>
       <View style={styles.list}>
         {mockTransactions.map((item) => (
           <Card key={item.id} style={styles.card}>
@@ -52,7 +55,6 @@ export default function Statement() {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   exportBtn: { flexDirection: "row", alignItems: "center", gap: 6 },
   list: { paddingBottom: 20 },
   card: { marginBottom: 12 },

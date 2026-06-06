@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  ViewStyle,
-  View,
-  Text,
-} from "react-native";
+import { ScrollView, StyleSheet, ViewStyle, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 import { StatusBar } from "expo-status-bar";
@@ -14,12 +8,14 @@ interface ScreenWrapperProps {
   children: React.ReactNode;
   scroll?: boolean;
   style?: ViewStyle;
+  header?: React.ReactNode;
 }
 
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,
   scroll = true,
   style,
+  header,
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -39,6 +35,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <StatusBar style={isDark ? "light" : "dark"} />
+      {header}
       {content}
     </SafeAreaView>
   );
@@ -48,22 +45,26 @@ export const PageHeader: React.FC<{
   title: string;
   subtitle?: string;
   style?: object;
-}> = ({ title, subtitle, style }) => {
+  rightComponent?: React.ReactNode;
+}> = ({ title, subtitle, rightComponent, style }) => {
   const { colors } = useTheme();
   return (
-    <View style={[styles.pageHeaderWrapper, style]}>
-      <Text style={[styles.pageHeader, { color: colors.text }]}>{title}</Text>
-      <View
-        style={[styles.pageHeaderAccent, { backgroundColor: colors.secondary }]}
-      />
-      {subtitle && (
-        <Text
-          style={[styles.pageHeaderSubtitle, { color: colors.textSecondary }]}
-        >
-          {subtitle}
-        </Text>
-      )}
-    </View>
+    <>
+      <View style={[styles.pageHeaderWrapper, style]}>
+        <View style={styles.pageHeaderTitleContainer}>
+          <Text style={[styles.pageHeader, { color: colors.text }]}>{title}</Text>
+          {subtitle && (
+            <Text style={[styles.pageHeaderSubtitle, { color: colors.textSecondary }]}>
+              {subtitle}
+            </Text>
+          )}
+        </View>
+        {rightComponent && (
+          <View style={styles.pageHeaderRight}>{rightComponent}</View>
+        )}
+      </View>
+      <View style={[styles.pageHeaderDivider, { backgroundColor: colors.border }]} />
+    </>
   );
 };
 
@@ -72,17 +73,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 56,
     paddingBottom: 24,
   },
-  pageHeaderWrapper: { marginBottom: 24, paddingTop: 8 },
-  pageHeader: { fontSize: 28, fontWeight: "800", letterSpacing: -0.5 },
-  pageHeaderAccent: {
-    width: 36,
-    height: 3,
-    borderRadius: 2,
-    marginTop: 6,
-    marginBottom: 4,
+  pageHeaderWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
+    gap: 8,
   },
-  pageHeaderSubtitle: { fontSize: 13, marginTop: 2 },
+  pageHeaderTitleContainer: { flex: 1 },
+  pageHeader: { fontSize: 20, fontWeight: "700", letterSpacing: -0.3 },
+  pageHeaderSubtitle: { fontSize: 12, marginTop: 2 },
+  pageHeaderRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  pageHeaderDivider: { height: 1, opacity: 0.4, marginBottom: 16 },
 });

@@ -20,8 +20,7 @@ export default function MemberDashboard() {
   const streakDays = 5;
 
   return (
-    <ScreenWrapper scroll>
-      <PageHeader title={`Welcome, ${user?.name?.split(" ")[0] || "Member"}`} />
+    <ScreenWrapper scroll header={<PageHeader title={`Welcome, ${user?.name?.split(" ")[0] || "Member"}`} />}>
 
       <View style={styles.statsRow}>
         <StatCard

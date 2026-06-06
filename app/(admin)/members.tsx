@@ -52,17 +52,20 @@ export default function Members() {
   };
 
   return (
-    <ScreenWrapper>
-      <View style={styles.header}>
-        <PageHeader title="Members" style={{ marginBottom: 0 }} />
-        <TouchableOpacity
-          style={[styles.inviteBtn, { backgroundColor: colors.secondary }]}
-          onPress={() => setShowModal(true)}
-        >
-          <UserPlus size={16} color="#fff" />
-          <Text style={styles.inviteBtnText}>Invite</Text>
-        </TouchableOpacity>
-      </View>
+    <ScreenWrapper header={
+      <PageHeader
+        title="Members"
+        rightComponent={
+          <TouchableOpacity
+            style={[styles.inviteBtn, { backgroundColor: colors.secondary }]}
+            onPress={() => setShowModal(true)}
+          >
+            <UserPlus size={16} color="#fff" />
+            <Text style={styles.inviteBtnText}>Invite</Text>
+          </TouchableOpacity>
+        }
+      />
+    }>
 
       <View style={styles.list}>
         {mockMembers.map((item) => (
@@ -130,7 +133,6 @@ export default function Members() {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   inviteBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   inviteBtnText: { color: "#fff", fontSize: 14, fontWeight: "600" },
   list: { paddingBottom: 20 },

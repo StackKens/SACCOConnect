@@ -15,8 +15,7 @@ export default function ActiveLoans() {
   const { colors } = useTheme();
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Active Loans" subtitle="Monitor all disbursed loans" />
+    <ScreenWrapper header={<PageHeader title="Active Loans" subtitle="Monitor all disbursed loans" />}>
       <View style={styles.list}>
         {activeLoansData.map((item) => {
           const progress = item.repaid / item.amount;

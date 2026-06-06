@@ -49,12 +49,12 @@ export default function Notifications() {
     );
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: (typeof mockNotifications)[0] }) => (
     <TouchableOpacity onPress={() => markAsRead(item.id)} activeOpacity={0.7}>
       <Card
         style={[
           styles.card,
-          !item.read && { backgroundColor: colors.primary + "08" },
+          !item.read ? { backgroundColor: colors.primary + "08" } : null,
         ]}
       >
         <View style={styles.row}>
@@ -87,14 +87,19 @@ export default function Notifications() {
   );
 
   return (
-    <ScreenWrapper scroll={false}>
-      <FlatList
-        ListHeaderComponent={<PageHeader title="Notifications" />}
-        data={notifications}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.list, { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 24 }]}
-      />
+    <ScreenWrapper scroll={false} header={<PageHeader title="Notifications" />}>
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ListHeaderComponent={null}
+          data={notifications}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[
+            styles.list,
+            { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
+          ]}
+        />
+      </View>
     </ScreenWrapper>
   );
 }

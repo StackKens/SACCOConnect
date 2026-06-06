@@ -26,8 +26,7 @@ export default function ApplyLoan() {
   };
 
   return (
-    <ScreenWrapper scroll>
-      <PageHeader title="Apply for a Loan" />
+    <ScreenWrapper scroll header={<PageHeader title="Apply for a Loan" />}>
 
       <Card style={styles.card}>
         <Input

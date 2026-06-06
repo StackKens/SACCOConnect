@@ -34,8 +34,7 @@ export default function LoanReview() {
   };
 
   return (
-    <ScreenWrapper scroll>
-      <PageHeader title="Loan Review" />
+    <ScreenWrapper scroll header={<PageHeader title="Loan Review" />}>
 
       <Card style={styles.card}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>

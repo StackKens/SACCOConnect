@@ -30,8 +30,7 @@ export default function RepayLoan() {
   };
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Repay Loan" />
+    <ScreenWrapper header={<PageHeader title="Repay Loan" />}>
 
       <Card style={styles.card}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>

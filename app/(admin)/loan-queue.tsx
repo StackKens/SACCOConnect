@@ -16,8 +16,7 @@ export default function LoanQueue() {
   const { colors } = useTheme();
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Loan Applications" subtitle="Review and action pending requests" />
+    <ScreenWrapper header={<PageHeader title="Loan Applications" subtitle="Review and action pending requests" />}>
       <View style={styles.list}>
         {loanApplications.map((item) => (
           <TouchableOpacity

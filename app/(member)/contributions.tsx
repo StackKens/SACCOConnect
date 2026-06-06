@@ -36,8 +36,7 @@ export default function Contributions() {
   const total = mockContributions.reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Savings" subtitle="Your contribution history" />
+    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" />}>
       <Card style={styles.totalCard}>
         <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>
           Total Saved

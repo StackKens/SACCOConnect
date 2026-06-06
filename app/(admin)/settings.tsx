@@ -40,8 +40,7 @@ export default function AdminSettings() {
   };
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Settings" subtitle="Admin controls & preferences" />
+    <ScreenWrapper header={<PageHeader title="Settings" subtitle="Admin controls & preferences" />}>
 
       <Card style={styles.profileRow}>
         <Text style={[styles.adminName, { color: colors.text }]}>{user?.name}</Text>

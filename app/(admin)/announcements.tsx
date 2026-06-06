@@ -29,8 +29,7 @@ export default function Announcements() {
   };
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Announcements" subtitle="Compose and manage member announcements" />
+    <ScreenWrapper header={<PageHeader title="Announcements" subtitle="Compose and manage member announcements" />}>
 
       <Card style={styles.formCard}>
         <Input label="Title" value={title} onChangeText={setTitle} placeholder="Announcement title" />

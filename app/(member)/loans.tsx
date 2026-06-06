@@ -16,8 +16,7 @@ export default function Loans() {
   const { colors } = useTheme();
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />
+    <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />}>
       <View style={styles.list}>
         {mockLoans.map((item) => (
           <TouchableOpacity

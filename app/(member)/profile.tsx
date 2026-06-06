@@ -87,8 +87,7 @@ export default function Profile() {
   };
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Profile" subtitle="Manage your account & preferences" />
+    <ScreenWrapper header={<PageHeader title="Profile" subtitle="Manage your account & preferences" />}>
 
       <Card style={styles.profileCard}>
         <Avatar name={user?.name} size={80} style={styles.avatar} />

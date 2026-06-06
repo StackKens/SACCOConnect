@@ -55,8 +55,7 @@ export default function Contribute() {
   };
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Make Contribution" subtitle="Choose your payment method" />
+    <ScreenWrapper header={<PageHeader title="Make Contribution" subtitle="Choose your payment method" />}>
 
       <Card style={styles.card}>
         <Input
