@@ -6,19 +6,11 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Divider";
+import { TextArea } from "@/components/ui/TextArea";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
+import { PRESET_RULES } from "@/constants/rules";
 import { CheckSquare, Square } from "lucide-react-native";
-
-const PRESET_RULES = [
-  "Monthly contributions must be paid by the 5th of every month.",
-  "Late contributions attract a 5% penalty fee.",
-  "Loan limit is 3× your total savings.",
-  "Loans must be fully repaid before a new loan can be applied for.",
-  "Members must give 30 days notice before withdrawing from the group.",
-  "Defaulting on a loan for 3+ months leads to suspension.",
-  "All financial disputes are resolved by a majority vote of members.",
-];
 
 const LOGO_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#0EA5E9", "#14B8A6"];
 
@@ -140,13 +132,11 @@ export default function CreateSACCO() {
           );
         })}
         <Divider style={{ marginVertical: 14 }} />
-        <Input
+        <TextArea
           label="Custom Rule (optional)"
           value={customRule}
           onChangeText={setCustomRule}
           placeholder="Add your own rule..."
-          multiline
-          numberOfLines={2}
         />
       </Card>
 

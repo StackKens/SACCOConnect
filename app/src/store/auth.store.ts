@@ -46,6 +46,18 @@ const DEMO_INVITES: Record<string, InviteCode> = {
   "ABC123": { code: "ABC123", saccoId: "sacco_demo", saccoName: "UgandaSavings SACCO", phone: "" },
 };
 
+function loadSaccoById(saccoId: string, fallback?: SACCO | null): SACCO | null {
+  const stored = storage.getString(`sacco_${saccoId}`);
+  if (stored) return JSON.parse(stored);
+  if (saccoId === DEMO_SACCO.id) return DEMO_SACCO;
+  return fallback ?? null;
+}
+
+function persistSacco(sacco: SACCO) {
+  storage.set(`sacco_${sacco.id}`, JSON.stringify(sacco));
+  storage.set("sacco", JSON.stringify(sacco));
+}
+
 // ── Store ────────────────────────────────────────────────────────
 interface AuthState {
   user: User | null;
@@ -70,6 +82,7 @@ interface AuthState {
     logoColor: string;
   }) => Promise<void>;
   acceptRules: () => void;
+  updateSACCORules: (rules: string[]) => Promise<void>;
   logout: () => void;
   checkAuth: () => void;
 }
@@ -82,27 +95,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (phone, pin) => {
     if (phone === "0700000000" && pin === "0000") {
+      const sacco = loadSaccoById(DEMO_SACCO.id, DEMO_SACCO)!;
       storage.set("user", JSON.stringify(DEMO_ADMIN));
-      storage.set("sacco", JSON.stringify(DEMO_SACCO));
       useMemberDataStore.getState().resetSession();
-      set({ user: DEMO_ADMIN, sacco: DEMO_SACCO, rulesAccepted: true });
+      set({ user: DEMO_ADMIN, sacco, rulesAccepted: true });
       return;
     }
     if (phone === "0711111111" && pin === "1111") {
+      const sacco = loadSaccoById(DEMO_SACCO.id, DEMO_SACCO)!;
       storage.set("user", JSON.stringify(DEMO_MEMBER));
-      storage.set("sacco", JSON.stringify(DEMO_SACCO));
       const accepted = storage.getBoolean(`rules_accepted_${DEMO_MEMBER.id}`) ?? true;
       useMemberDataStore.getState().initForUser(DEMO_MEMBER.id);
-      set({ user: DEMO_MEMBER, sacco: DEMO_SACCO, rulesAccepted: accepted });
+      set({ user: DEMO_MEMBER, sacco, rulesAccepted: accepted });
       return;
     }
     const stored = storage.getString(`member_${phone}`);
     if (!stored) throw new Error("Phone number not registered.");
-    const { user, sacco, storedPin } = JSON.parse(stored);
+    const { user, sacco: memberSacco, storedPin } = JSON.parse(stored);
     if (storedPin !== pin) throw new Error("Incorrect PIN.");
     const accepted = storage.getBoolean(`rules_accepted_${user.id}`) ?? false;
+    const sacco = user.saccoId ? loadSaccoById(user.saccoId, memberSacco) : memberSacco;
     storage.set("user", JSON.stringify(user));
-    storage.set("sacco", JSON.stringify(sacco));
+    if (sacco) persistSacco(sacco);
     useMemberDataStore.getState().initForUser(user.id);
     set({ user, sacco, rulesAccepted: accepted });
   },
@@ -126,7 +140,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     })();
 
     const saccoStored = storage.getString(`sacco_${invite.saccoId}`);
-    const sacco: SACCO = saccoStored ? JSON.parse(saccoStored) : DEMO_SACCO;
+    const sacco: SACCO = saccoStored ? JSON.parse(saccoStored) : loadSaccoById(invite.saccoId, DEMO_SACCO)!;
 
     const user: User = {
       id: `member_${Date.now()}`,
@@ -140,7 +154,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     storage.set(`member_${phone}`, JSON.stringify({ user, sacco, storedPin: pin }));
     storage.set("user", JSON.stringify(user));
-    storage.set("sacco", JSON.stringify(sacco));
+    persistSacco(sacco);
     useMemberDataStore.getState().initForUser(user.id);
     set({ user, sacco, rulesAccepted: false });
   },
@@ -158,11 +172,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       adminId: user.id,
       logoColor,
     };
-    storage.set(`sacco_${sacco.id}`, JSON.stringify(sacco));
+    persistSacco(sacco);
     const updatedUser = { ...user, saccoId: sacco.id, saccoName: sacco.name };
     storage.set("user", JSON.stringify(updatedUser));
-    storage.set("sacco", JSON.stringify(sacco));
     set({ user: updatedUser, sacco, rulesAccepted: true });
+  },
+
+  updateSACCORules: async (rules) => {
+    const { sacco } = get();
+    if (!sacco) throw new Error("No SACCO found.");
+    const updated: SACCO = { ...sacco, rules };
+    persistSacco(updated);
+    set({ sacco: updated });
   },
 
   acceptRules: () => {
@@ -180,10 +201,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   checkAuth: () => {
     const storedUser = storage.getString("user");
-    const storedSacco = storage.getString("sacco");
     if (storedUser) {
       const user = JSON.parse(storedUser);
       const accepted = storage.getBoolean(`rules_accepted_${user.id}`) ?? user.role === "admin";
+      const sessionSacco = storage.getString("sacco");
+      const fallbackSacco = sessionSacco ? JSON.parse(sessionSacco) : null;
+      const sacco = user.saccoId ? loadSaccoById(user.saccoId, fallbackSacco) : fallbackSacco;
       if (user.role === "member") {
         useMemberDataStore.getState().initForUser(user.id);
       } else {
@@ -191,7 +214,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       set({
         user,
-        sacco: storedSacco ? JSON.parse(storedSacco) : null,
+        sacco,
         rulesAccepted: accepted,
         isLoading: false,
       });

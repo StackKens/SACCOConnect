@@ -9,7 +9,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
-import { ChevronRight, X } from "lucide-react-native";
+import { ChevronRight, X, ShieldCheck } from "lucide-react-native";
 
 const PRIVACY_POLICY = `We take your privacy seriously. Here is what you need to know:
 
@@ -103,6 +103,22 @@ export default function Profile() {
         <Text style={[styles.role, { color: colors.secondary }]}>
           {user?.role?.toUpperCase()}
         </Text>
+      </Card>
+
+      <Card style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>My SACCO</Text>
+        <TouchableOpacity
+          style={styles.supportRow}
+          onPress={() => router.push("/(member)/group_rules")}
+        >
+          <View style={styles.helpText}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Group Rules</Text>
+            <Text style={[styles.helpDesc, { color: colors.textSecondary }]}>
+              Read the rules and terms for {sacco?.name ?? "your SACCO"}
+            </Text>
+          </View>
+          <ShieldCheck size={18} color={colors.primary} />
+        </TouchableOpacity>
       </Card>
 
       <Card style={styles.section}>

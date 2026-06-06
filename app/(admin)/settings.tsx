@@ -71,8 +71,8 @@ export default function AdminSettings() {
           <Settings2 size={16} color={colors.primary} />
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Group Settings</Text>
         </View>
-        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/create-sacco")}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Edit SACCO Rules & Info</Text>
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/edit-rules")}>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>Edit Group Rules</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />

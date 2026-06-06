@@ -64,6 +64,7 @@ export default function MemberLayout() {
       <Tabs.Screen name="repay_loan" options={{ href: null }} />
       <Tabs.Screen name="contribute" options={{ href: null }} />
       <Tabs.Screen name="statement" options={{ href: null }} />
+      <Tabs.Screen name="group_rules" options={{ href: null }} />
     </Tabs>
   );
 }
