@@ -1,6 +1,12 @@
 import { Tabs } from "expo-router";
-import { useTheme } from "@/hooks/useTheme";
-import { LayoutDashboard, Users, ClipboardList, Landmark, Settings } from "lucide-react-native";
+import { useTheme } from "@/hooks/useTheme"; // adjust path if needed
+import {
+  LayoutDashboard,
+  Users,
+  ClipboardList,
+  Landmark,
+  Settings,
+} from "lucide-react-native";
 
 export default function AdminLayout() {
   const { colors } = useTheme();
@@ -9,7 +15,7 @@ export default function AdminLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.secondary,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
           backgroundColor: colors.surface,
@@ -17,13 +23,18 @@ export default function AdminLayout() {
           height: 74,
           paddingBottom: 16,
           paddingTop: 6,
+          // Ensure the tab bar uses row layout and spreads items
+          flexDirection: "row",
         },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: "600",
-        },
+        // Important: each tab item takes equal width
         tabBarItemStyle: {
           flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "600",
         },
       }}
     >
@@ -31,7 +42,9 @@ export default function AdminLayout() {
         name="index"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ color }) => <LayoutDashboard size={22} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <LayoutDashboard size={22} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -62,12 +75,21 @@ export default function AdminLayout() {
           tabBarIcon: ({ color }) => <Settings size={22} color={color} />,
         }}
       />
-      {/* Push screens — hidden from tab bar */}
+      {/* Hidden screens */}
       <Tabs.Screen name="loan-review" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="member-detail" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen
+        name="member-detail"
+        options={{ tabBarButton: () => null }}
+      />
       <Tabs.Screen name="active-loans" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="contributions" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="announcements" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen
+        name="contributions"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="announcements"
+        options={{ tabBarButton: () => null }}
+      />
     </Tabs>
   );
 }

@@ -87,13 +87,13 @@ export default function Notifications() {
   );
 
   return (
-    <ScreenWrapper>
-      <PageHeader title="Notifications" />
+    <ScreenWrapper scroll={false}>
       <FlatList
+        ListHeaderComponent={<PageHeader title="Notifications" />}
         data={notifications}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 24 }]}
       />
     </ScreenWrapper>
   );

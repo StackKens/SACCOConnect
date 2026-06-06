@@ -26,10 +26,14 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router"],
-    "router": {
-      "ignoredRouteFiles": ["**/src/**"]
-    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "ignoredRouteFiles": ["**/src/**", "**/*.ts", "**/components/**", "**/hooks/**", "**/store/**", "**/utils/**", "**/helpers/**", "**/services/**", "**/theme/**", "**/types/**", "**/constants/**"]
+        }
+      ]
+    ],
     "scheme": "saccoconnect"
   }
 }
