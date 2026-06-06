@@ -1,5 +1,9 @@
 import { create } from "zustand";
-interface Announcement {
+import { createMMKV } from "react-native-mmkv";
+
+const storage = createMMKV({ id: "announcements" });
+
+export interface Announcement {
   id: string;
   title: string;
   content: string;
@@ -7,51 +11,57 @@ interface Announcement {
   author: string;
 }
 
-interface AnnouncementState {
-  announcements: Announcement[];
-  isLoading: boolean;
-  addAnnouncement: (
-    announcement: Omit<Announcement, "id" | "date">,
-  ) => Promise<void>;
-  fetchAnnouncements: () => Promise<void>;
-}
-
-const dummyAnnouncements: Announcement[] = [
-  {
-    id: "A1",
-    title: "AGM Notice",
-    content: "Annual General Meeting on June 30th at 10am.",
-    date: "2025-06-01",
-    author: "Admin",
-  },
-  {
-    id: "A2",
-    title: "Dividend Payout",
-    content: "Dividends will be credited by June 15th.",
-    date: "2025-05-28",
-    author: "Admin",
-  },
+const INITIAL: Announcement[] = [
+  { id: "1", title: "AGM Notice", content: "Annual General Meeting scheduled for June 30th. All members are required to attend.", date: "2025-06-01", author: "Admin" },
+  { id: "2", title: "Dividend Payout", content: "Dividends for the 2024/2025 financial year will be credited to all member accounts by June 15th.", date: "2025-05-28", author: "Admin" },
 ];
 
-export const useAnnouncementStore = create<AnnouncementState>((set) => ({
-  announcements: dummyAnnouncements,
-  isLoading: false,
-  addAnnouncement: async (announcementData) => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const newAnnouncement: Announcement = {
+function load(): Announcement[] {
+  const stored = storage.getString("list");
+  return stored ? JSON.parse(stored) : INITIAL;
+}
+
+function save(list: Announcement[]) {
+  storage.set("list", JSON.stringify(list));
+}
+
+// track which announcement ids a member has read — keyed by user id
+export function getReadIds(userId: string): Set<string> {
+  const stored = storage.getString(`read_${userId}`);
+  return stored ? new Set(JSON.parse(stored)) : new Set();
+}
+
+export function markReadInStorage(userId: string, id: string) {
+  const ids = getReadIds(userId);
+  ids.add(id);
+  storage.set(`read_${userId}`, JSON.stringify([...ids]));
+}
+
+interface AnnouncementStore {
+  announcements: Announcement[];
+  post: (title: string, content: string, authorName: string) => void;
+  remove: (id: string) => void;
+}
+
+export const useAnnouncementStore = create<AnnouncementStore>((set, get) => ({
+  announcements: load(),
+
+  post: (title, content, authorName) => {
+    const next: Announcement = {
       id: Date.now().toString(),
-      ...announcementData,
-      date: new Date().toISOString(),
+      title,
+      content,
+      date: new Date().toISOString().split("T")[0],
+      author: authorName,
     };
-    set((state) => ({
-      announcements: [newAnnouncement, ...state.announcements],
-      isLoading: false,
-    }));
+    const list = [next, ...get().announcements];
+    save(list);
+    set({ announcements: list });
   },
-  fetchAnnouncements: async () => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    set({ announcements: dummyAnnouncements, isLoading: false });
+
+  remove: (id) => {
+    const list = get().announcements.filter((a) => a.id !== id);
+    save(list);
+    set({ announcements: list });
   },
 }));
