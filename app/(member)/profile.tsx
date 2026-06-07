@@ -209,10 +209,7 @@ export default function Profile() {
 
       <Button
         title="Logout"
-        onPress={() => {
-          logout();
-          router.replace("/(auth)/login");
-        }}
+        onPress={logout}
         variant="danger"
         style={styles.logout}
       />

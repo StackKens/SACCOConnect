@@ -15,7 +15,7 @@ export function errorHandler(
   res: Response,
   next: NextFunction,
 ) {
-  console.error("Error:", err.message);
+  console.error("Error:", err.message.replace(/[\r\n]/g, " "));
 
   if (err.name === "AppError") {
     const appErr = err as AppError;

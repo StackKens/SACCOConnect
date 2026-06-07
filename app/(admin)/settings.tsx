@@ -6,7 +6,6 @@ import { Divider } from "@/components/ui/Divider";
 import { useUIStore } from "@/store/ui.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useTheme } from "@/hooks/useTheme";
-import { router } from "expo-router";
 import { useState, useEffect } from "react";
 import { ChevronRight, Settings2 } from "lucide-react-native";
 import { formatDate } from "@/utils/date";
@@ -176,10 +175,7 @@ export default function AdminSettings() {
                 {
                   text: "Clear",
                   style: "destructive",
-                  onPress: () => {
-                    clearAppCache();
-                    router.replace("/(auth)/login");
-                  },
+                  onPress: clearAppCache,
                 },
               ],
             );
@@ -203,10 +199,7 @@ export default function AdminSettings() {
 
       <Button
         title="Logout"
-        onPress={() => {
-          logout();
-          router.replace("/(auth)/login");
-        }}
+        onPress={logout}
         variant="danger"
         style={styles.logout}
       />

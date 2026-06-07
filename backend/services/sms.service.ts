@@ -15,17 +15,21 @@ export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+function sanitizeLog(input: string): string {
+  return input.replace(/[\r\n]/g, " ");
+}
+
 export async function sendOTP(phoneNumber: string, otp: string): Promise<void> {
   const isDev = process.env.NODE_ENV !== "production";
 
   if (isDev) {
-    console.log(`\n[DEV OTP] Phone: ${phoneNumber} | Code: ${otp}\n`);
+    console.log(`[DEV OTP] Phone: ${sanitizeLog(phoneNumber)} | Code: ${sanitizeLog(otp)}`);
     return;
   }
 
   const client = getTwilioClient();
   if (!client) {
-    console.log(`\n[OTP - no Twilio configured] Phone: ${phoneNumber} | Code: ${otp}\n`);
+    console.log(`[OTP - no Twilio configured] Phone: ${sanitizeLog(phoneNumber)} | Code: ${sanitizeLog(otp)}`);
     return;
   }
 
@@ -40,13 +44,13 @@ export async function sendSMS(phoneNumber: string, message: string): Promise<voi
   const isDev = process.env.NODE_ENV !== "production";
 
   if (isDev) {
-    console.log(`\n[DEV SMS] Phone: ${phoneNumber} | Message: ${message}\n`);
+    console.log(`[DEV SMS] Phone: ${sanitizeLog(phoneNumber)} | Message: ${sanitizeLog(message)}`);
     return;
   }
 
   const client = getTwilioClient();
   if (!client) {
-    console.log(`\n[SMS - no Twilio configured] Phone: ${phoneNumber} | Message: ${message}\n`);
+    console.log(`[SMS - no Twilio configured] Phone: ${sanitizeLog(phoneNumber)} | Message: ${sanitizeLog(message)}`);
     return;
   }
 
