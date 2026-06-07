@@ -7,7 +7,7 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log(" Seeding database...");
+  console.log("Seeding database...");
 
   // Clean existing data
   await prisma.loanRepayment.deleteMany();
@@ -23,7 +23,7 @@ async function main() {
 
   const pin = await bcrypt.hash("1234", 12);
 
-  //  SACCO
+  // SACCO
   const sacco = await prisma.sacco.create({
     data: {
       name: "Kampala Unity SACCO",
@@ -39,7 +39,7 @@ async function main() {
     },
   });
 
-  //  ADMIN USER
+  // ADMIN USER
   const adminUser = await prisma.user.create({
     data: {
       phoneNumber: "+256700000001",
@@ -68,7 +68,7 @@ async function main() {
     },
   });
 
-  //  MEMBER 1
+  // MEMBER 1
   const user1 = await prisma.user.create({
     data: {
       phoneNumber: "+256700000002",
@@ -97,7 +97,7 @@ async function main() {
     },
   });
 
-  //  MEMBER 2
+  // MEMBER 2
   const user2 = await prisma.user.create({
     data: {
       phoneNumber: "+256700000003",
@@ -126,7 +126,7 @@ async function main() {
     },
   });
 
-  //  MEMBER 3
+  // MEMBER 3
   const user3 = await prisma.user.create({
     data: {
       phoneNumber: "+256700000004",
@@ -155,7 +155,7 @@ async function main() {
     },
   });
 
-  //  MEMBER 4 (inactive)
+  // MEMBER 4 (inactive)
   const user4 = await prisma.user.create({
     data: {
       phoneNumber: "+256700000005",
@@ -184,7 +184,7 @@ async function main() {
     },
   });
 
-  //  CONTRIBUTIONS
+  // CONTRIBUTIONS
   const months = [1, 2, 3, 4, 5, 6];
   for (const m of months) {
     for (const member of [member1, member2, member3, adminMember]) {
@@ -211,7 +211,7 @@ async function main() {
     },
   });
 
-  //  ACTIVE LOAN — Alice
+  // ACTIVE LOAN - Alice
   const loan1 = await prisma.loan.create({
     data: {
       memberId: member1.id,
@@ -265,7 +265,7 @@ async function main() {
     ],
   });
 
-  //  REPAID LOAN — Catherine
+  // REPAID LOAN - Catherine
   const loan2 = await prisma.loan.create({
     data: {
       memberId: member3.id,
@@ -324,7 +324,7 @@ async function main() {
     ],
   });
 
-  //  PENDING LOAN — Bob ─
+  // PENDING LOAN - Bob
   const loan3 = await prisma.loan.create({
     data: {
       memberId: member2.id,
@@ -354,7 +354,8 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error(e);
+    const msg = e instanceof Error ? e.message.replace(/[\r\n]/g, " ") : String(e);
+    console.error(msg);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());
