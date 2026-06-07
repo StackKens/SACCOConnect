@@ -20,14 +20,8 @@ import { useAuthStore } from "@/store/auth.store";
 import { router } from "expo-router";
 import { ChevronRight, UserPlus, Search } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
-import { createMMKV } from "react-native-mmkv";
 import { getMemberSummaries, MemberSummary } from "@/helpers/members";
-
-const storage = createMMKV({ id: "auth" });
-
-function generateCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
+import { api } from "@/services/api";
 
 export default function Members() {
   const { colors } = useTheme();
@@ -35,6 +29,7 @@ export default function Members() {
   const [showModal, setShowModal] = useState(false);
   const [invitePhone, setInvitePhone] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [members, setMembers] = useState<MemberSummary[]>([]);
 
@@ -58,20 +53,20 @@ export default function Members() {
       m.phone.includes(query),
   );
 
-  const handleInvite = () => {
+  const handleInvite = async () => {
     if (invitePhone.trim().length < 10) {
       Alert.alert("Required", "Enter a valid phone number.");
       return;
     }
-    const code = generateCode();
-    const invite = {
-      code,
-      saccoId: sacco?.id ?? "sacco_demo",
-      saccoName: sacco?.name ?? "UgandaSavings SACCO",
-      phone: invitePhone.trim(),
-    };
-    storage.set(`invite_${code}`, JSON.stringify(invite));
-    setInviteCode(code);
+    setInviteLoading(true);
+    try {
+      const res = await api.post("/api/members/invite/send", { phoneNumber: invitePhone.trim() });
+      setInviteCode(res.data.data.inviteCode);
+    } catch (e: any) {
+      Alert.alert("Error", e?.response?.data?.message || "Could not send invite SMS.");
+    } finally {
+      setInviteLoading(false);
+    }
   };
 
   const closeModal = () => {
@@ -158,7 +153,7 @@ export default function Members() {
                 />
                 <View style={styles.modalActions}>
                   <Button title="Cancel" onPress={closeModal} variant="outline" style={styles.modalBtn} />
-                  <Button title="Generate Code" onPress={handleInvite} style={styles.modalBtn} />
+                  <Button title="Send Invite" onPress={handleInvite} loading={inviteLoading} style={styles.modalBtn} />
                 </View>
               </>
             ) : (

@@ -4,6 +4,7 @@ import { AuthRequest } from "../middleware/auth.middleware";
 import { AppError } from "../middleware/error.middleware";
 import { calculateEligibility } from "../services/eligibility.service";
 import { paramString } from "../utils/helpers";
+import { sendSMS } from "../services/sms.service";
 
 export async function getMyProfile(req: AuthRequest, res: Response) {
   const member = await prisma.member.findUnique({
@@ -95,6 +96,33 @@ export async function generateInviteLink(req: AuthRequest, res: Response) {
       inviteCode: sacco.inviteCode,
       saccoName: sacco.name,
       message: `Join ${sacco.name} SACCO on SACCOConnect. Use invite code: ${sacco.inviteCode}`,
+    },
+  });
+}
+
+export async function sendInviteSms(req: AuthRequest, res: Response) {
+  const saccoId = req.user!.saccoId;
+  if (!saccoId) throw new AppError("No SACCO assigned", 400);
+
+  const { phoneNumber } = req.body;
+  if (!phoneNumber) throw new AppError("Phone number is required", 400);
+
+  const sacco = await prisma.sacco.findUnique({
+    where: { id: saccoId },
+    select: { inviteCode: true, name: true },
+  });
+  if (!sacco) throw new AppError("SACCO not found", 404);
+
+  await sendSMS(
+    phoneNumber,
+    `You have been invited to join ${sacco.name} on SACCOConnect. Use invite code: ${sacco.inviteCode} to register in the app.`,
+  );
+
+  return res.json({
+    success: true,
+    data: {
+      inviteCode: sacco.inviteCode,
+      saccoName: sacco.name,
     },
   });
 }

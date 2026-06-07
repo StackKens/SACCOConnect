@@ -8,6 +8,7 @@ import {
   getMemberById,
   updateMemberStatus,
   generateInviteLink,
+  sendInviteSms,
 } from "../controllers/member.contoller";
 
 const router = Router();
@@ -20,6 +21,7 @@ router.get("/me/eligibility", authenticate, requireMember, getMyEligibility);
 // Admin routes
 router.get("/", authenticate, requireAdmin, getAllMembers);
 router.get("/invite", authenticate, requireAdmin, generateInviteLink);
+router.post("/invite/send", authenticate, requireAdmin, sendInviteSms);
 router.get("/:id", authenticate, requireAdmin, getMemberById);
 router.patch("/:id/status", authenticate, requireAdmin, updateMemberStatus);
 
