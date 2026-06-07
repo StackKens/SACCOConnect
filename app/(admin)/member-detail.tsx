@@ -12,6 +12,7 @@ import { formatDate } from "@/utils/date";
 import { Wallet, Banknote, Phone, Calendar } from "lucide-react-native";
 import { api } from "@/services/api";
 import { useState, useCallback } from "react";
+import { SkeletonMemberDetail } from "@/components/ui/Skeleton";
 
 interface MemberDetailData {
   id: string;
@@ -45,8 +46,8 @@ export default function MemberDetail() {
 
   if (loading) {
     return (
-      <ScreenWrapper header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
-        <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>Loading...</Text>
+      <ScreenWrapper scroll header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
+        <SkeletonMemberDetail />
       </ScreenWrapper>
     );
   }

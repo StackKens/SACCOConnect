@@ -21,6 +21,7 @@ import { ChevronRight, UserPlus, Search } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 import { api } from "@/services/api";
 import { useAuthStore } from "@/store/auth.store";
+import { SkeletonMemberList } from "@/components/ui/Skeleton";
 
 interface MemberRow {
   id: string;
@@ -39,13 +40,15 @@ export default function Members() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      setLoading(true);
       api.get("/api/members").then((res) => {
         if (active) setMembers(res.data.data);
-      }).catch(() => {});
+      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
       return () => { active = false; };
     }, []),
   );
@@ -107,7 +110,9 @@ export default function Members() {
       </View>
 
       <View style={styles.list}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <SkeletonMemberList />
+        ) : filtered.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             No members found. Invite someone to get started.
           </Text>

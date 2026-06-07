@@ -10,6 +10,7 @@ import Svg, { Polyline, Line, Text as SvgText, Polygon } from "react-native-svg"
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { api } from "@/services/api";
+import { SkeletonTreasury } from "@/components/ui/Skeleton";
 
 const SCREEN_W = Dimensions.get("window").width;
 const CHART_W = SCREEN_W - 40 - 32; // screen padding + card padding
@@ -158,6 +159,8 @@ export default function Treasury() {
   return (
     <ScreenWrapper scroll header={<PageHeader title="Treasury" subtitle="Financial summary and collections" />}>
 
+      {loading ? <SkeletonTreasury /> : (
+        <>
       <View style={styles.statsGrid}>
         <StatCard title="Total Savings" value={formatCurrency(totalSavings)} icon={<Wallet size={22} color={colors.secondary} />} />
         <StatCard title="Disbursed" value={formatCurrency(totalDisbursed)} icon={<Banknote size={22} color={colors.warning} />} />
@@ -178,7 +181,7 @@ export default function Treasury() {
           <View style={[styles.healthDivider, { backgroundColor: colors.border }]} />
           <View style={styles.healthItem}>
             <View style={styles.healthValueRow}>
-              <Text style={[styles.healthValue, { color: colors.primary }]}>{loading ? "--" : data.monthlyData.length}</Text>
+              <Text style={[styles.healthValue, { color: colors.primary }]}>{data.monthlyData.length}</Text>
               <TrendingUp size={16} color={colors.success} />
             </View>
             <Text style={[styles.healthLabel, { color: colors.textSecondary }]}>Active Months</Text>
@@ -207,7 +210,7 @@ export default function Treasury() {
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
         {recentTransactions.length === 0 ? (
-          <Text style={{ color: colors.textSecondary }}>{loading ? "Loading..." : "No transactions yet"}</Text>
+          <Text style={{ color: colors.textSecondary }}>No transactions yet</Text>
         ) : (
           recentTransactions.map((tx, i) => (
           <View key={tx.id}>
@@ -230,6 +233,8 @@ export default function Treasury() {
           ))
         )}
       </Card>
+        </>
+      )}
 
     </ScreenWrapper>
   );

@@ -9,6 +9,7 @@ import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { Search, Inbox } from "lucide-react-native";
 import { api } from "@/services/api";
+import { SkeletonLoanQueue } from "@/components/ui/Skeleton";
 
 interface LoanQueueItem {
   id: string;
@@ -23,14 +24,16 @@ interface LoanQueueItem {
 export default function LoanQueue() {
   const { colors } = useTheme();
   const [loans, setLoans] = useState<LoanQueueItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      setLoading(true);
       api.get("/api/loans/queue").then((res) => {
         if (active) setLoans(res.data.data);
-      }).catch(() => {});
+      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
       return () => { active = false; };
     }, []),
   );
@@ -56,7 +59,9 @@ export default function LoanQueue() {
       </View>
 
       <View style={styles.list}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <SkeletonLoanQueue />
+        ) : filtered.length === 0 ? (
           <View style={styles.empty}>
             <Inbox size={32} color={colors.textSecondary} />
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>

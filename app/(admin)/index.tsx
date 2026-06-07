@@ -9,6 +9,7 @@ import { Users, Wallet, Banknote, Clock } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 import { useCallback, useState } from "react";
 import { api } from "@/services/api";
+import { SkeletonDashboard } from "@/components/ui/Skeleton";
 
 export default function AdminDashboard() {
   const { colors } = useTheme();
@@ -18,10 +19,12 @@ export default function AdminDashboard() {
     activeLoans: 0,
     pendingApplications: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      setLoading(true);
       Promise.all([
         api.get("/api/members"),
         api.get("/api/contributions/treasury"),
@@ -34,7 +37,7 @@ export default function AdminDashboard() {
           activeLoans: treasuryRes.data.data.outstanding,
           pendingApplications: queueRes.data.data.length,
         });
-      }).catch(() => {});
+      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
       return () => { active = false; };
     }, []),
   );
@@ -50,26 +53,16 @@ export default function AdminDashboard() {
       }
     >
       <View style={styles.statsGrid}>
-        <StatCard
-          title="Members"
-          value={stats.totalMembers.toString()}
-          icon={<Users size={24} color={colors.primary} />}
-        />
-        <StatCard
-          title="Total Savings"
-          value={formatCurrency(stats.totalSavings)}
-          icon={<Wallet size={24} color={colors.secondary} />}
-        />
-        <StatCard
-          title="Active Loans"
-          value={formatCurrency(stats.activeLoans)}
-          icon={<Banknote size={24} color={colors.warning} />}
-        />
-        <StatCard
-          title="Pending Applications"
-          value={stats.pendingApplications.toString()}
-          icon={<Clock size={24} color={colors.error} />}
-        />
+        {loading ? (
+          <SkeletonDashboard />
+        ) : (
+          <>
+            <StatCard title="Members" value={stats.totalMembers.toString()} icon={<Users size={24} color={colors.primary} />} />
+            <StatCard title="Total Savings" value={formatCurrency(stats.totalSavings)} icon={<Wallet size={24} color={colors.secondary} />} />
+            <StatCard title="Active Loans" value={formatCurrency(stats.activeLoans)} icon={<Banknote size={24} color={colors.warning} />} />
+            <StatCard title="Pending Applications" value={stats.pendingApplications.toString()} icon={<Clock size={24} color={colors.error} />} />
+          </>
+        )}
       </View>
 
       <Card style={styles.quickActions}>
