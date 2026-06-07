@@ -7,15 +7,11 @@ import { useTheme } from "@/hooks/useTheme";
 import { router, useFocusEffect } from "expo-router";
 import { Users, Wallet, Banknote, Clock } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
-import { useAuthStore } from "@/store/auth.store";
-import { useLoanStore } from "@/store/loan.store";
-import { getMemberSummaries } from "@/helpers/members";
 import { useCallback, useState } from "react";
+import { api } from "@/services/api";
 
 export default function AdminDashboard() {
   const { colors } = useTheme();
-  const sacco = useAuthStore((state) => state.sacco);
-  const { loans } = useLoanStore();
   const [stats, setStats] = useState({
     totalMembers: 0,
     totalSavings: 0,
@@ -23,26 +19,24 @@ export default function AdminDashboard() {
     pendingApplications: 0,
   });
 
-  const refreshStats = useCallback(() => {
-    if (!sacco?.id) return;
-    const members = getMemberSummaries(sacco.id);
-    const saccoLoans = loans.filter((l) => l.saccoId === sacco.id);
-    const totalSavings = members.reduce((sum, m) => sum + m.savings, 0);
-    const activeLoans = members.reduce((sum, m) => sum + m.activeLoan, 0);
-    const pendingApplications = saccoLoans.filter((l) => l.status === "pending").length;
-
-    setStats({
-      totalMembers: members.length,
-      totalSavings,
-      activeLoans,
-      pendingApplications,
-    });
-  }, [loans, sacco?.id]);
-
   useFocusEffect(
     useCallback(() => {
-      refreshStats();
-    }, [refreshStats]),
+      let active = true;
+      Promise.all([
+        api.get("/api/members"),
+        api.get("/api/contributions/treasury"),
+        api.get("/api/loans/queue"),
+      ]).then(([membersRes, treasuryRes, queueRes]) => {
+        if (!active) return;
+        setStats({
+          totalMembers: membersRes.data.data.length,
+          totalSavings: treasuryRes.data.data.totalSavings,
+          activeLoans: treasuryRes.data.data.outstanding,
+          pendingApplications: queueRes.data.data.length,
+        });
+      }).catch(() => {});
+      return () => { active = false; };
+    }, []),
   );
 
   return (

@@ -1,25 +1,43 @@
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { useTheme } from "@/hooks/useTheme";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { Search, Inbox } from "lucide-react-native";
-import { useLoanStore } from "@/store/loan.store";
+import { api } from "@/services/api";
+
+interface LoanQueueItem {
+  id: string;
+  amountRequested: number;
+  purpose: string;
+  status: string;
+  repaymentMonths: number;
+  createdAt: string;
+  member: { fullName: string };
+}
 
 export default function LoanQueue() {
   const { colors } = useTheme();
-  const { loans } = useLoanStore();
+  const [loans, setLoans] = useState<LoanQueueItem[]>([]);
   const [query, setQuery] = useState("");
 
-  const pending = loans.filter((l) => l.status === "pending");
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      api.get("/api/loans/queue").then((res) => {
+        if (active) setLoans(res.data.data);
+      }).catch(() => {});
+      return () => { active = false; };
+    }, []),
+  );
 
-  const filtered = pending.filter(
+  const filtered = loans.filter(
     (l) =>
-      l.memberName.toLowerCase().includes(query.toLowerCase()) ||
+      l.member.fullName.toLowerCase().includes(query.toLowerCase()) ||
       l.purpose.toLowerCase().includes(query.toLowerCase()),
   );
 
@@ -53,15 +71,15 @@ export default function LoanQueue() {
             >
               <Card style={styles.card}>
                 <View style={styles.header}>
-                  <Text style={[styles.memberName, { color: colors.text }]}>{item.memberName}</Text>
-                  <Badge label={item.status} variant="warning" />
+                  <Text style={[styles.memberName, { color: colors.text }]}>{item.member.fullName}</Text>
+                  <Badge label={item.status.replace(/_/g, " ").toLowerCase()} variant="warning" />
                 </View>
-                <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(item.amount)}</Text>
+                <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(item.amountRequested)}</Text>
                 <Text style={[styles.details, { color: colors.textSecondary }]}>
-                  Term: {item.term} months • {item.purpose}
+                  Term: {item.repaymentMonths} months • {item.purpose}
                 </Text>
                 <Text style={[styles.date, { color: colors.textSecondary }]}>
-                  Applied: {formatDate(item.date)}
+                  Applied: {formatDate(item.createdAt)}
                 </Text>
               </Card>
             </TouchableOpacity>

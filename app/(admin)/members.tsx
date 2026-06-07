@@ -16,12 +16,19 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Divider } from "@/components/ui/Divider";
 import { useTheme } from "@/hooks/useTheme";
-import { useAuthStore } from "@/store/auth.store";
 import { router } from "expo-router";
 import { ChevronRight, UserPlus, Search } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
-import { getMemberSummaries, MemberSummary } from "@/helpers/members";
 import { api } from "@/services/api";
+import { useAuthStore } from "@/store/auth.store";
+
+interface MemberRow {
+  id: string;
+  fullName: string;
+  currentBalance: number;
+  status: string;
+  user: { phoneNumber: string };
+}
 
 export default function Members() {
   const { colors } = useTheme();
@@ -31,26 +38,22 @@ export default function Members() {
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [query, setQuery] = useState("");
-  const [members, setMembers] = useState<MemberSummary[]>([]);
-
-  const refreshMembers = useCallback(() => {
-    if (!sacco?.id) {
-      setMembers([]);
-      return;
-    }
-    setMembers(getMemberSummaries(sacco.id));
-  }, [sacco?.id]);
+  const [members, setMembers] = useState<MemberRow[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      refreshMembers();
-    }, [refreshMembers]),
+      let active = true;
+      api.get("/api/members").then((res) => {
+        if (active) setMembers(res.data.data);
+      }).catch(() => {});
+      return () => { active = false; };
+    }, []),
   );
 
   const filtered = members.filter(
     (m) =>
-      m.name.toLowerCase().includes(query.toLowerCase()) ||
-      m.phone.includes(query),
+      m.fullName.toLowerCase().includes(query.toLowerCase()) ||
+      m.user.phoneNumber.includes(query),
   );
 
   const handleInvite = async () => {
@@ -113,17 +116,17 @@ export default function Members() {
             <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>
               <Card style={styles.card}>
                 <View style={styles.row}>
-                  <Avatar name={item.name} size={48} />
+                  <Avatar name={item.fullName} size={48} />
                   <View style={styles.info}>
-                    <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
-                    <Text style={[styles.phone, { color: colors.textSecondary }]}>{item.phone}</Text>
+                    <Text style={[styles.name, { color: colors.text }]}>{item.fullName}</Text>
+                    <Text style={[styles.phone, { color: colors.textSecondary }]}>{item.user.phoneNumber}</Text>
                     <Text style={[styles.savings, { color: colors.success }]}>
-                      {formatCurrency(item.savings)} saved
+                      {formatCurrency(item.currentBalance)} saved
                     </Text>
                   </View>
                   <View style={styles.right}>
-                    <Text style={[styles.status, { color: item.status === "active" ? colors.success : colors.textSecondary }]}>
-                      {item.status}
+                    <Text style={[styles.status, { color: item.status === "ACTIVE" ? colors.success : colors.textSecondary }]}>
+                      {item.status.toLowerCase()}
                     </Text>
                     <ChevronRight size={18} color={colors.textSecondary} />
                   </View>
