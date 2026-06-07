@@ -7,12 +7,9 @@ import { formatCurrency } from "@/utils/currency";
 import { getRelativeTime } from "@/utils/date";
 import { Wallet, Banknote, RefreshCw, AlertCircle, TrendingUp, TrendingDown } from "lucide-react-native";
 import Svg, { Polyline, Line, Text as SvgText, Polygon } from "react-native-svg";
-import { useAuthStore } from "@/store/auth.store";
-import { useLoanStore } from "@/store/loan.store";
-import { getContributionsForSacco, getMemberSummaries, listMembersForSacco } from "@/helpers/members";
-import { getMemberData } from "@/store/member.store";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
+import { api } from "@/services/api";
 
 const SCREEN_W = Dimensions.get("window").width;
 const CHART_W = SCREEN_W - 40 - 32; // screen padding + card padding
@@ -115,125 +112,59 @@ function LineChart({ colors, monthlyData }: { colors: any; monthlyData: { month:
   );
 }
 
+interface TreasuryData {
+  totalSavings: number;
+  totalDisbursed: number;
+  totalRepaid: number;
+  outstanding: number;
+  collectionRate: number;
+  monthlyData: { month: string; collections: number; disbursed: number }[];
+  recentTransactions: { id: string; member: string; type: string; amount: number; date: string }[];
+}
+
+const EMPTY: TreasuryData = {
+  totalSavings: 0,
+  totalDisbursed: 0,
+  totalRepaid: 0,
+  outstanding: 0,
+  collectionRate: 0,
+  monthlyData: [],
+  recentTransactions: [],
+};
+
 export default function Treasury() {
   const { colors } = useTheme();
-  const sacco = useAuthStore((state) => state.sacco);
-  const { loans } = useLoanStore();
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [data, setData] = useState<TreasuryData>(EMPTY);
+  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
-      setRefreshKey((k) => k + 1);
+      let active = true;
+      api.get("/api/contributions/treasury").then((res) => {
+        if (active) setData(res.data.data);
+      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
+      return () => { active = false; };
     }, []),
   );
 
-  const treasury = useMemo(() => {
-    if (!sacco?.id) {
-      return {
-        totalSavings: 0,
-        totalLoansDisbursed: 0,
-        totalRepayments: 0,
-        outstandingLoans: 0,
-        collectionRate: 0,
-        savingsGrowth: 0,
-        monthlyData: [] as { month: string; collections: number; disbursed: number }[],
-        recentTransactions: [] as { id: string; member: string; type: string; amount: number; date: string }[],
-      };
-    }
+  const { totalSavings, totalDisbursed, totalRepaid, outstanding, collectionRate, monthlyData, recentTransactions } = data;
 
-    const members = getMemberSummaries(sacco.id);
-    const saccoLoans = loans.filter((l) => l.saccoId === sacco.id && l.status === "approved");
-    const contributions = getContributionsForSacco(sacco.id);
-
-    const totalSavings = members.reduce((sum, m) => sum + m.savings, 0);
-    const totalLoansDisbursed = saccoLoans.reduce((sum, l) => sum + l.amount, 0);
-
-    let totalRepayments = 0;
-    for (const user of listMembersForSacco(sacco.id)) {
-      const data = getMemberData(user.id);
-      totalRepayments += data.loans.reduce((sum, l) => sum + l.repaid, 0);
-    }
-
-    const outstandingLoans = Math.max(totalLoansDisbursed - totalRepayments, 0);
-    const collectionRate = totalLoansDisbursed
-      ? Math.round((totalRepayments / totalLoansDisbursed) * 100)
-      : 0;
-    const savingsGrowth = members.length
-      ? Math.min(Math.round((totalSavings / members.length) / 1000), 100) / 10
-      : 0;
-
-    const monthMap = new Map<string, { collections: number; disbursed: number }>();
-    for (const c of contributions) {
-      if (c.status !== "completed") continue;
-      const month = c.date.slice(0, 7);
-      const entry = monthMap.get(month) ?? { collections: 0, disbursed: 0 };
-      entry.collections += c.amount;
-      monthMap.set(month, entry);
-    }
-    for (const l of saccoLoans) {
-      const month = (l.date ?? new Date().toISOString()).slice(0, 7);
-      const entry = monthMap.get(month) ?? { collections: 0, disbursed: 0 };
-      entry.disbursed += l.amount;
-      monthMap.set(month, entry);
-    }
-
-    const monthlyData = [...monthMap.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-6)
-      .map(([key, value]) => ({
-        month: new Date(`${key}-01`).toLocaleDateString("en-UG", { month: "short" }),
-        collections: value.collections,
-        disbursed: value.disbursed,
-      }));
-
-    const recentTransactions = listMembersForSacco(sacco.id)
-      .flatMap((user) => {
-        const data = getMemberData(user.id);
-        return data.transactions.slice(0, 3).map((tx) => ({
-          id: `${user.id}_${tx.id}`,
-          member: user.name,
-          type: tx.type.replace(/_/g, " "),
-          amount: tx.type === "loan_repayment" ? -Math.abs(tx.amount) : tx.amount,
-          date: getRelativeTime(tx.date),
-        }));
-      })
-      .slice(0, 6);
-
-    return {
-      totalSavings,
-      totalLoansDisbursed,
-      totalRepayments,
-      outstandingLoans,
-      collectionRate,
-      savingsGrowth,
-      monthlyData,
-      recentTransactions,
-    };
-  }, [loans, refreshKey, sacco?.id]);
-
-  const {
-    totalSavings,
-    totalLoansDisbursed,
-    totalRepayments,
-    outstandingLoans,
-    collectionRate,
-    savingsGrowth,
-    monthlyData,
-    recentTransactions,
-  } = treasury;
+  const chartMonthlyData = monthlyData.map((d) => ({
+    month: new Date(`${d.month}-01`).toLocaleDateString("en-UG", { month: "short" }),
+    collections: d.collections,
+    disbursed: d.disbursed,
+  }));
 
   return (
     <ScreenWrapper scroll header={<PageHeader title="Treasury" subtitle="Financial summary and collections" />}>
 
-      {/* Stat cards */}
       <View style={styles.statsGrid}>
         <StatCard title="Total Savings" value={formatCurrency(totalSavings)} icon={<Wallet size={22} color={colors.secondary} />} />
-        <StatCard title="Disbursed" value={formatCurrency(totalLoansDisbursed)} icon={<Banknote size={22} color={colors.warning} />} />
-        <StatCard title="Repayments" value={formatCurrency(totalRepayments)} icon={<RefreshCw size={22} color={colors.success} />} />
-        <StatCard title="Outstanding" value={formatCurrency(outstandingLoans)} icon={<AlertCircle size={22} color={colors.error} />} />
+        <StatCard title="Disbursed" value={formatCurrency(totalDisbursed)} icon={<Banknote size={22} color={colors.warning} />} />
+        <StatCard title="Repayments" value={formatCurrency(totalRepaid)} icon={<RefreshCw size={22} color={colors.success} />} />
+        <StatCard title="Outstanding" value={formatCurrency(outstanding)} icon={<AlertCircle size={22} color={colors.error} />} />
       </View>
 
-      {/* Health metrics */}
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Portfolio Health</Text>
         <View style={styles.healthRow}>
@@ -247,21 +178,20 @@ export default function Treasury() {
           <View style={[styles.healthDivider, { backgroundColor: colors.border }]} />
           <View style={styles.healthItem}>
             <View style={styles.healthValueRow}>
-              <Text style={[styles.healthValue, { color: colors.primary }]}>{savingsGrowth}%</Text>
+              <Text style={[styles.healthValue, { color: colors.primary }]}>{loading ? "--" : data.monthlyData.length}</Text>
               <TrendingUp size={16} color={colors.success} />
             </View>
-            <Text style={[styles.healthLabel, { color: colors.textSecondary }]}>Savings Growth</Text>
+            <Text style={[styles.healthLabel, { color: colors.textSecondary }]}>Active Months</Text>
             <View style={[styles.healthBar, { backgroundColor: colors.border }]}>
-              <View style={[styles.healthFill, { width: `${Math.min(savingsGrowth * 5, 100)}%` as any, backgroundColor: colors.primary }]} />
+              <View style={[styles.healthFill, { width: `${Math.min(data.monthlyData.length * 16, 100)}%` as any, backgroundColor: colors.primary }]} />
             </View>
           </View>
         </View>
       </Card>
 
-      {/* Line chart */}
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Monthly Overview</Text>
-        <LineChart colors={colors} monthlyData={monthlyData} />
+        <LineChart colors={colors} monthlyData={chartMonthlyData} />
         <View style={styles.legend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
@@ -274,11 +204,10 @@ export default function Treasury() {
         </View>
       </Card>
 
-      {/* Recent transactions */}
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
         {recentTransactions.length === 0 ? (
-          <Text style={{ color: colors.textSecondary }}>No transactions yet</Text>
+          <Text style={{ color: colors.textSecondary }}>{loading ? "Loading..." : "No transactions yet"}</Text>
         ) : (
           recentTransactions.map((tx, i) => (
           <View key={tx.id}>
@@ -291,7 +220,7 @@ export default function Treasury() {
               </View>
               <View style={styles.txInfo}>
                 <Text style={[styles.txMember, { color: colors.text }]}>{tx.member}</Text>
-                <Text style={[styles.txType, { color: colors.textSecondary }]}>{tx.type} · {tx.date}</Text>
+                <Text style={[styles.txType, { color: colors.textSecondary }]}>{tx.type} · {getRelativeTime(tx.date)}</Text>
               </View>
               <Text style={[styles.txAmount, { color: tx.amount > 0 ? colors.success : colors.error }]}>
                 {tx.amount > 0 ? "+" : ""}{formatCurrency(Math.abs(tx.amount))}

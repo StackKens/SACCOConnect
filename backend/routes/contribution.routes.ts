@@ -4,6 +4,7 @@ import {
   submitContribution,
   getMyContributions,
   getAllContributions,
+  getTreasuryStats,
   recordCashPayment,
   confirmContribution,
 } from "../controllers/contribution.controller";
@@ -15,6 +16,7 @@ router.post("/", authenticate, requireMember, submitContribution);
 router.get("/my", authenticate, requireMember, getMyContributions);
 
 // Admin routes
+router.get("/treasury", authenticate, requireAdmin, getTreasuryStats);
 router.get("/", authenticate, requireAdmin, getAllContributions);
 router.post("/cash", authenticate, requireAdmin, recordCashPayment);
 router.post("/:id/confirm", authenticate, requireAdmin, confirmContribution);

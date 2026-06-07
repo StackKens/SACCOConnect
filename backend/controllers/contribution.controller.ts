@@ -57,6 +57,88 @@ export async function getMyContributions(req: AuthRequest, res: Response) {
   return res.json({ success: true, data: contributions });
 }
 
+export async function getTreasuryStats(req: AuthRequest, res: Response) {
+  const saccoId = req.user!.saccoId;
+  if (!saccoId) throw new AppError("No SACCO assigned", 400);
+
+  const [members, contributions, loans, repayments] = await Promise.all([
+    prisma.member.findMany({ where: { saccoId } }),
+    prisma.contribution.findMany({
+      where: { member: { saccoId }, status: "CONFIRMED" },
+      include: { member: { select: { fullName: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.loan.findMany({
+      where: { member: { saccoId } },
+    }),
+    prisma.loanRepayment.findMany({
+      where: { loan: { member: { saccoId } } },
+      include: { loan: { include: { member: { select: { fullName: true } } } } },
+      orderBy: { paymentDate: "desc" },
+    }),
+  ]);
+
+  const totalSavings = members.reduce((sum, m) => sum + m.currentBalance, 0);
+
+  const activeLoans = loans.filter((l) => l.status === "ACTIVE");
+  const totalDisbursed = activeLoans.reduce((sum, l) => sum + (l.amountApproved ?? 0), 0);
+  const totalRepaid = activeLoans.reduce((sum, l) => sum + l.amountRepaid, 0);
+  const outstanding = Math.max(totalDisbursed - totalRepaid, 0);
+  const collectionRate = totalDisbursed ? Math.round((totalRepaid / totalDisbursed) * 100) : 0;
+
+  // monthly chart data — last 6 months
+  const monthMap = new Map<string, { collections: number; disbursed: number }>();
+  for (const c of contributions) {
+    const month = c.createdAt.toISOString().slice(0, 7);
+    const entry = monthMap.get(month) ?? { collections: 0, disbursed: 0 };
+    entry.collections += c.amount;
+    monthMap.set(month, entry);
+  }
+  for (const l of activeLoans) {
+    if (!l.disbursementDate) continue;
+    const month = l.disbursementDate.toISOString().slice(0, 7);
+    const entry = monthMap.get(month) ?? { collections: 0, disbursed: 0 };
+    entry.disbursed += l.amountApproved ?? 0;
+    monthMap.set(month, entry);
+  }
+  const monthlyData = [...monthMap.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-6)
+    .map(([key, val]) => ({ month: key, ...val }));
+
+  // recent transactions — latest 6 across contributions + repayments
+  const recentContributions = contributions.slice(0, 6).map((c) => ({
+    id: c.id,
+    member: c.member.fullName,
+    type: "contribution",
+    amount: c.amount,
+    date: c.createdAt.toISOString(),
+  }));
+  const recentRepayments = repayments.slice(0, 6).map((r) => ({
+    id: r.id,
+    member: r.loan.member.fullName,
+    type: "loan repayment",
+    amount: -r.amountPaid,
+    date: r.paymentDate.toISOString(),
+  }));
+  const recentTransactions = [...recentContributions, ...recentRepayments]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 6);
+
+  return res.json({
+    success: true,
+    data: {
+      totalSavings,
+      totalDisbursed,
+      totalRepaid,
+      outstanding,
+      collectionRate,
+      monthlyData,
+      recentTransactions,
+    },
+  });
+}
+
 export async function getAllContributions(req: AuthRequest, res: Response) {
   const saccoId = req.user!.saccoId;
   if (!saccoId) throw new AppError("No SACCO assigned", 400);
