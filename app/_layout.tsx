@@ -78,7 +78,7 @@ export default function RootLayout() {
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="index" redirect />
           </Stack>
-          <Redirect href="/(auth)/login" />
+          <Redirect href="/(auth)/onboarding" />
         </SafeAreaProvider>
       </GestureHandlerRootView>
     );

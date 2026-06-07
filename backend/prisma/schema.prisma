@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  LOAN_OFFICER
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum ContributionStatus {
+  PENDING
+  CONFIRMED
+}
+
+enum PaymentMethod {
+  MOBILE_MONEY
+  CASH
+  BANK_TRANSFER
+}
+
+enum LoanStatus {
+  PENDING
+  AWAITING_GUARANTORS
+  UNDER_REVIEW
+  ACTIVE
+  REPAID
+  REJECTED
+}
+
+enum GuarantorStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model User {
+  id           String         @id @default(cuid())
+  phoneNumber  String         @unique
+  pinHash      String
+  role         UserRole
+  saccoId      String?
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sacco        Sacco?         @relation(fields: [saccoId], references: [id])
+  member       Member?
+  refreshTokens RefreshToken[]
+}
+
+model Sacco {
+  id                 String   @id @default(cuid())
+  name               String
+  registrationNo     String?
+  contributionAmount Float
+  maxLoanMultiplier  Float    @default(3)
+  interestRate       Float
+  loanTermMonths     Int      @default(12)
+  meetingDay         String?
+  rulesText          String?
+  inviteCode         String   @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  users              User[]
+  members            Member[]
+}
+
+model Member {
+  id              String         @id @default(cuid())
+  userId          String         @unique
+  saccoId         String
+  fullName        String
+  nationalId      String?
+  photoUrl        String?
+  status          MemberStatus   @default(ACTIVE)
+  currentBalance  Float          @default(0)
+  joinDate        DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sacco           Sacco          @relation(fields: [saccoId], references: [id], onDelete: Cascade)
+  streak          Streak?
+  contributions   Contribution[]
+  loans           Loan[]
+  guarantorFor    Guarantor[]    @relation("GuarantorMember")
+}
+
+model OtpCode {
+  id          String   @id @default(cuid())
+  phoneNumber String
+  code        String
+  expiresAt   DateTime
+  used        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([phoneNumber])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Streak {
+  id                   String   @id @default(cuid())
+  memberId             String   @unique
+  currentStreak        Int      @default(0)
+  longestStreak        Int      @default(0)
+  lastContributionDate DateTime?
+  monthlyRecord        String   @default("{}")
+  member               Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+model Contribution {
+  id             String             @id @default(cuid())
+  memberId       String
+  amount         Float
+  method         PaymentMethod
+  transactionRef String?
+  recordedBy     String?
+  notes          String?
+  status         ContributionStatus @default(PENDING)
+  createdAt      DateTime           @default(now())
+  member         Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+model Loan {
+  id                 String        @id @default(cuid())
+  memberId           String
+  amountRequested    Float
+  amountApproved     Float?
+  purpose            String
+  status             LoanStatus    @default(PENDING)
+  interestRate       Float
+  repaymentMonths    Int
+  totalRepayable     Float?
+  amountRepaid       Float         @default(0)
+  disbursementDate   DateTime?
+  expectedCompletion DateTime?
+  rejectionReason    String?
+  reviewedBy         String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  member             Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  guarantors         Guarantor[]
+  repayments         LoanRepayment[]
+}
+
+model Guarantor {
+  id                String          @id @default(cuid())
+  loanId            String
+  guarantorMemberId String
+  status            GuarantorStatus @default(PENDING)
+  responseDate      DateTime?
+  loan              Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  guarantor         Member          @relation("GuarantorMember", fields: [guarantorMemberId], references: [id], onDelete: Cascade)
+}
+
+model LoanRepayment {
+  id             String        @id @default(cuid())
+  loanId         String
+  amountPaid     Float
+  method         PaymentMethod
+  transactionRef String?
+  paymentDate    DateTime      @default(now())
+  loan           Loan          @relation(fields: [loanId], references: [id], onDelete: Cascade)
+}

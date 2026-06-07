@@ -93,10 +93,15 @@ export default function AdminSettings() {
           <Text style={[styles.settingLabel, { color: colors.text }]}>Active Loans</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
-        {sacco?.contributionDueDate && (
-          <Text style={[styles.rulesLabel, { color: colors.textSecondary, marginTop: 8 }]}>
-            Current: {formatDate(sacco.contributionDueDate)}
-          </Text>
+        {sacco?.inviteCode && (
+          <>
+            <Divider style={styles.divider} />
+            <Text style={[styles.rulesLabel, { color: colors.textSecondary }]}>Member invite code</Text>
+            <Text style={[styles.inviteCode, { color: colors.primary }]}>{sacco.inviteCode}</Text>
+            <Text style={[styles.rulePreview, { color: colors.textSecondary }]}>
+              Share this code so new members can join in the app.
+            </Text>
+          </>
         )}
         <Divider style={styles.divider} />
         {sacco?.rules && sacco.rules.length > 0 && (
@@ -219,6 +224,7 @@ const styles = StyleSheet.create({
   adminName: { fontSize: 16, fontWeight: "700", marginBottom: 2 },
   adminPhone: { fontSize: 14, marginBottom: 4 },
   adminBadge: { fontSize: 11, fontWeight: "700", letterSpacing: 1 },
+  inviteCode: { fontSize: 28, fontWeight: "800", letterSpacing: 4, marginVertical: 6 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 },
   rulesLabel: { fontSize: 11, fontWeight: "600", marginBottom: 4 },
   rulePreview: { fontSize: 12, lineHeight: 18, marginBottom: 2 },

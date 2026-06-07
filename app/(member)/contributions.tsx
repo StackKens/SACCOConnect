@@ -19,7 +19,11 @@ export default function Contributions() {
   const isOverdue = dueLabel?.startsWith("Overdue");
 
   return (
-    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" />}>
+    <ScreenWrapper
+      header={
+        <PageHeader title="Savings" subtitle="Your contribution history" />
+      }
+    >
       <Card style={styles.totalCard}>
         <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>
           Total Saved
@@ -36,13 +40,26 @@ export default function Contributions() {
       </Card>
 
       {dueDate && (
-        <Card style={[styles.dueCard, isOverdue && { borderColor: colors.error + "55", borderWidth: 1 }]}>
-          <Text style={[styles.dueTitle, { color: colors.text }]}>Monthly due date</Text>
-          <Text style={[styles.dueDate, { color: isOverdue ? colors.error : colors.primary }]}>
+        <Card
+          style={[
+            styles.dueCard,
+            isOverdue && { borderColor: colors.error + "55", borderWidth: 1 },
+          ]}
+        >
+          <Text style={[styles.dueTitle, { color: colors.text }]}>
+            Monthly due date
+          </Text>
+          <Text
+            style={[
+              styles.dueDate,
+              { color: isOverdue ? colors.error : colors.primary },
+            ]}
+          >
             {formatDate(dueDate)}
           </Text>
           <Text style={[styles.dueSub, { color: colors.textSecondary }]}>
-            {dueLabel} · Pay UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"} by this date
+            {dueLabel} · Pay UGX{" "}
+            {sacco?.contributionAmount?.toLocaleString() ?? "—"} by this date
           </Text>
         </Card>
       )}
@@ -62,7 +79,12 @@ export default function Contributions() {
                   {item.method}
                 </Text>
               </View>
-              <View style={[styles.status, { backgroundColor: colors.success + "20" }]}>
+              <View
+                style={[
+                  styles.status,
+                  { backgroundColor: colors.success + "20" },
+                ]}
+              >
                 <Text style={[styles.statusText, { color: colors.success }]}>
                   {item.status}
                 </Text>

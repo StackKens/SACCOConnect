@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { OtpVerification } from "@/components/features/OtpVerification";
 import { useAuthStore } from "@/store/auth.store";
 import { InviteCode } from "@/types";
-import { CheckCircle, Building2 } from "lucide-react-native";
+import { Building2 } from "lucide-react-native";
 
-type Step = "code" | "confirm" | "details" | "pin";
+type Step = "code" | "confirm" | "otp" | "details" | "pin" | "welcome";
 
 export default function Join() {
   const { colors } = useTheme();
@@ -40,20 +41,13 @@ export default function Join() {
     }
   };
 
-  const handleDetailsNext = () => {
-    if (!name.trim()) return Alert.alert("Required", "Enter your full name.");
-    if (!nationalId.trim()) return Alert.alert("Required", "Enter your National ID.");
-    if (phone.trim().length < 10) return Alert.alert("Required", "Enter a valid phone number.");
-    setStep("pin");
-  };
-
   const handleJoin = async () => {
     if (pin.length < 4) return Alert.alert("PIN too short", "PIN must be 4 digits.");
     if (pin !== confirmPin) return Alert.alert("PIN mismatch", "PINs do not match.");
     setLoading(true);
     try {
       await joinSACCO({ code, name, nationalId, phone, pin });
-      router.replace("/(auth)/group-rules");
+      setStep("welcome");
     } catch (e: any) {
       Alert.alert("Error", e?.message || "Could not join SACCO.");
     } finally {
@@ -61,15 +55,28 @@ export default function Join() {
     }
   };
 
+  if (step === "welcome" && invite) {
+    return (
+      <ScreenWrapper>
+        <View style={styles.welcome}>
+          <Text style={[styles.welcomeTitle, { color: colors.text }]}>Welcome!</Text>
+          <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>
+            You have joined {invite.saccoName}. Tap below to open your dashboard.
+          </Text>
+          <Button title="Go to Dashboard" onPress={() => router.replace("/(member)")} />
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
   return (
     <ScreenWrapper header={<PageHeader title="Join a SACCO" showBack onBack={() => router.push("/(auth)/onboarding")} />}>
 
-      {/* Step 1 — Enter invite code */}
       {step === "code" && (
         <View style={styles.stepContainer}>
           <Text style={[styles.stepTitle, { color: colors.text }]}>Enter your invite code</Text>
           <Text style={[styles.stepSub, { color: colors.textSecondary }]}>
-            Your SACCO admin sent this code via SMS when they invited you.
+            Your SACCO admin sent this 6-character code when they invited you.
           </Text>
           <Input
             label="Invite Code"
@@ -83,10 +90,9 @@ export default function Join() {
         </View>
       )}
 
-      {/* Step 2 — Confirm SACCO */}
       {step === "confirm" && invite && (
         <View style={styles.stepContainer}>
-          <Text style={[styles.stepTitle, { color: colors.text }]}>You've been invited to join</Text>
+          <Text style={[styles.stepTitle, { color: colors.text }]}>You're joining</Text>
           <Card style={[styles.saccoCard, { borderColor: colors.primary + "40" }]}>
             <View style={styles.saccoRow}>
               <View style={[styles.saccoIcon, { backgroundColor: colors.primary + "15" }]}>
@@ -95,44 +101,51 @@ export default function Join() {
               <View style={{ flex: 1 }}>
                 <Text style={[styles.saccoName, { color: colors.text }]}>{invite.saccoName}</Text>
                 <Text style={[styles.saccoSub, { color: colors.textSecondary }]}>
-                  Invite code: {invite.code}
+                  Monthly: UGX {invite.contributionAmount?.toLocaleString() ?? "—"}
+                </Text>
+                <Text style={[styles.saccoSub, { color: colors.textSecondary }]}>
+                  Admin: {invite.adminName ?? "SACCO Admin"}
                 </Text>
               </View>
             </View>
           </Card>
-          <Button title="Yes, Join This SACCO" onPress={() => setStep("details")} style={{ marginTop: 8 }} />
+          <Button title="Looks good, continue" onPress={() => setStep("otp")} />
           <Button title="Wrong SACCO? Go Back" onPress={() => setStep("code")} variant="outline" style={{ marginTop: 12 }} />
         </View>
       )}
 
-      {/* Step 3 — Personal details */}
-      {step === "details" && (
+      {step === "otp" && (
         <View style={styles.stepContainer}>
-          <Text style={[styles.stepTitle, { color: colors.text }]}>Your details</Text>
-          <Text style={[styles.stepSub, { color: colors.textSecondary }]}>
-            This information will be visible to your SACCO admin.
-          </Text>
-          <Input label="Full Name" value={name} onChangeText={setName} placeholder="e.g. John Mukasa" autoCapitalize="words" />
-          <Input label="National ID" value={nationalId} onChangeText={setNationalId} placeholder="e.g. CM90012345KBIU" autoCapitalize="characters" />
-          <Input label="Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="e.g. 0712345678" />
-          <Button title="Continue" onPress={handleDetailsNext} style={{ marginTop: 8 }} />
+          <Text style={[styles.stepTitle, { color: colors.text }]}>Verify your phone</Text>
+          <OtpVerification
+            phone={phone}
+            onPhoneChange={setPhone}
+            onVerified={() => setStep("details")}
+          />
         </View>
       )}
 
-      {/* Step 4 — Create PIN */}
+      {step === "details" && (
+        <View style={styles.stepContainer}>
+          <Text style={[styles.stepTitle, { color: colors.text }]}>Your details</Text>
+          <Input label="Full Name" value={name} onChangeText={setName} autoCapitalize="words" />
+          <Input label="National ID" value={nationalId} onChangeText={setNationalId} autoCapitalize="characters" />
+          <Button title="Continue" onPress={() => {
+            if (!name.trim()) return Alert.alert("Required", "Enter your full name.");
+            setStep("pin");
+          }} style={{ marginTop: 8 }} />
+        </View>
+      )}
+
       {step === "pin" && (
         <View style={styles.stepContainer}>
           <Text style={[styles.stepTitle, { color: colors.text }]}>Create your PIN</Text>
-          <Text style={[styles.stepSub, { color: colors.textSecondary }]}>
-            You'll use this 4-digit PIN every time you log in.
-          </Text>
           <Input
             label="4-Digit PIN"
             value={pin}
             onChangeText={(v) => { if (v.length <= 4) setPin(v); }}
             keyboardType="number-pad"
             secureTextEntry
-            placeholder="••••"
             maxLength={4}
           />
           <Input
@@ -141,13 +154,11 @@ export default function Join() {
             onChangeText={(v) => { if (v.length <= 4) setConfirmPin(v); }}
             keyboardType="number-pad"
             secureTextEntry
-            placeholder="••••"
             maxLength={4}
           />
           <Button title="Join SACCO" onPress={handleJoin} loading={loading} style={{ marginTop: 8 }} />
         </View>
       )}
-
     </ScreenWrapper>
   );
 }
@@ -162,4 +173,7 @@ const styles = StyleSheet.create({
   saccoIcon: { width: 52, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   saccoName: { fontSize: 17, fontWeight: "700" },
   saccoSub: { fontSize: 12, marginTop: 2 },
+  welcome: { flex: 1, justifyContent: "center", paddingHorizontal: 8 },
+  welcomeTitle: { fontSize: 28, fontWeight: "800", marginBottom: 12, textAlign: "center" },
+  welcomeSub: { fontSize: 15, lineHeight: 22, marginBottom: 24, textAlign: "center" },
 });

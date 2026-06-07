@@ -27,8 +27,8 @@ export default function Onboarding() {
 
         <View style={styles.buttons}>
           <Button
-            title="Log In"
-            onPress={() => router.push("/(auth)/login")}
+            title="Create a SACCO"
+            onPress={() => router.push("/(auth)/register-admin")}
           />
           <Button
             title="Join a SACCO"
@@ -36,8 +36,14 @@ export default function Onboarding() {
             variant="outline"
             style={{ marginTop: 12 }}
           />
+          <Button
+            title="Log In"
+            onPress={() => router.push("/(auth)/login")}
+            variant="outline"
+            style={{ marginTop: 12 }}
+          />
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            New member? You need an invite code from your SACCO admin.
+            Returning user? Log in with your phone and PIN.
           </Text>
         </View>
       </View>

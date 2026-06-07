@@ -22,11 +22,9 @@ export default function Login() {
     setLoading(true);
     try {
       await login(phone.trim(), pin);
-      const { user: loggedInUser, rulesAccepted } = useAuthStore.getState();
+      const { user: loggedInUser } = useAuthStore.getState();
       if (loggedInUser?.role === "admin") {
         router.replace("/(admin)");
-      } else if (!rulesAccepted) {
-        router.replace("/(auth)/group-rules");
       } else {
         router.replace("/(member)");
       }
@@ -67,38 +65,11 @@ export default function Login() {
 
         <Button title="Log In" onPress={handleLogin} loading={loading} style={styles.btn} />
 
-        <TouchableOpacity onPress={() => router.push("/(auth)/join")}>
+        <TouchableOpacity onPress={() => router.push("/(auth)/onboarding")}>
           <Text style={[styles.link, { color: colors.primary }]}>
-            New member? Join with an invite code
+            Back to welcome
           </Text>
         </TouchableOpacity>
-
-        {/* Demo credentials */}
-        <View style={[styles.demo, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.demoTitle, { color: colors.text }]}>Demo Admin Login</Text>
-          <Text style={[styles.demoText, { color: colors.textSecondary }]}>
-            Phone: 0700000000{"\n"}PIN: 0000
-          </Text>
-          <TouchableOpacity
-            onPress={() => { setPhone("0700000000"); setPin("0000"); }}
-            style={[styles.demoFill, { borderColor: colors.border }]}
-          >
-            <Text style={[styles.demoFillText, { color: colors.primary }]}>Fill admin credentials</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.demo, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.demoTitle, { color: colors.text }]}>Demo Member Login</Text>
-          <Text style={[styles.demoText, { color: colors.textSecondary }]}>
-            Phone: 0711111111{"\n"}PIN: 1111
-          </Text>
-          <TouchableOpacity
-            onPress={() => { setPhone("0711111111"); setPin("1111"); }}
-            style={[styles.demoFill, { borderColor: colors.border }]}
-          >
-            <Text style={[styles.demoFillText, { color: colors.primary }]}>Fill member credentials</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </ScreenWrapper>
   );
@@ -110,10 +81,5 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "800", marginBottom: 6, letterSpacing: -0.5 },
   subtitle: { fontSize: 15 },
   btn: { marginTop: 8, marginBottom: 20 },
-  link: { textAlign: "center", fontSize: 14 },
-  demo: { marginTop: 36, padding: 14, borderRadius: 10, borderWidth: 1 },
-  demoTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
-  demoText: { fontSize: 12, lineHeight: 20 },
-  demoFill: { marginTop: 10, borderWidth: 1, borderRadius: 8, paddingVertical: 8, alignItems: "center" },
-  demoFillText: { fontSize: 13, fontWeight: "600" },
+  link: { textAlign: "center", fontSize: 14, marginTop: 8 },
 });

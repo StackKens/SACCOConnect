@@ -19,6 +19,7 @@ export interface SACCO {
   customRule?: string;
   adminId: string;
   logoColor: string;
+  inviteCode?: string;
 }
 
 export interface InviteCode {
@@ -26,6 +27,11 @@ export interface InviteCode {
   saccoId: string;
   saccoName: string;
   phone: string;
+  adminName?: string;
+  contributionAmount?: number;
+  interestRate?: number;
+  meetingDay?: string;
+  memberCount?: number;
 }
 
 export interface Contribution {
