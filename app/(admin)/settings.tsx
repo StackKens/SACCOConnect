@@ -7,6 +7,7 @@ import { useUIStore } from "@/store/ui.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useTheme } from "@/hooks/useTheme";
 import { useState, useEffect } from "react";
+import { router } from "expo-router";
 import { ChevronRight, Settings2 } from "lucide-react-native";
 import { formatDate } from "@/utils/date";
 import { exportSaccoCsv } from "@/helpers/exportData";
