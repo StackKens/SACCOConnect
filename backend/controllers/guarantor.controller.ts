@@ -2,6 +2,7 @@ import { Response } from "express";
 import { prisma } from "../config/database";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { AppError } from "../middleware/error.middleware";
+import { paramString } from "../utils/helpers";
 
 export async function getMyGuarantorRequests(req: AuthRequest, res: Response) {
   const member = await prisma.member.findUnique({
@@ -22,7 +23,7 @@ export async function respondToGuarantorRequest(
   req: AuthRequest,
   res: Response,
 ) {
-  const { id } = req.params;
+  const id = paramString(req.params, "id");
   const { action } = req.body;
 
   if (!["ACCEPTED", "DECLINED"].includes(action)) {

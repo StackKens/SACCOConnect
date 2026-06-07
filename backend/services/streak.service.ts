@@ -23,7 +23,9 @@ export async function updateStreak(memberId: string): Promise<void> {
     return;
   }
 
-  const monthlyRecord = JSON.parse(streak.monthlyRecord || "{}") as Record<string, boolean>;
+  const monthlyRecord = JSON.parse(
+    String(streak.monthlyRecord || "{}"),
+  ) as Record<string, boolean>;
   monthlyRecord[currentMonth] = true;
 
   let current = 0;

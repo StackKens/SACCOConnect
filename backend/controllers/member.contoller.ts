@@ -3,6 +3,7 @@ import { prisma } from "../config/database";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { AppError } from "../middleware/error.middleware";
 import { calculateEligibility } from "../services/eligibility.service";
+import { paramString } from "../utils/helpers";
 
 export async function getMyProfile(req: AuthRequest, res: Response) {
   const member = await prisma.member.findUnique({
@@ -53,7 +54,7 @@ export async function getAllMembers(req: AuthRequest, res: Response) {
 }
 
 export async function getMemberById(req: AuthRequest, res: Response) {
-  const { id } = req.params;
+  const id = paramString(req.params, "id");
   const member = await prisma.member.findUnique({
     where: { id },
     include: {
@@ -68,7 +69,7 @@ export async function getMemberById(req: AuthRequest, res: Response) {
 }
 
 export async function updateMemberStatus(req: AuthRequest, res: Response) {
-  const { id } = req.params;
+  const id = paramString(req.params, "id");
   const { status } = req.body;
 
   const member = await prisma.member.update({

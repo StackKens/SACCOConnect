@@ -5,6 +5,7 @@ import { AppError } from "../middleware/error.middleware";
 import { contributionSchema } from "../utils/validators";
 import { updateStreak } from "../services/streak.service";
 import { notifyContributionConfirmed } from "../services/notification.service";
+import { paramString } from "../utils/helpers";
 
 export async function submitContribution(req: AuthRequest, res: Response) {
   const data = contributionSchema.parse(req.body);
@@ -101,7 +102,7 @@ export async function recordCashPayment(req: AuthRequest, res: Response) {
 }
 
 export async function confirmContribution(req: AuthRequest, res: Response) {
-  const { id } = req.params;
+  const id = paramString(req.params, "id");
 
   const contribution = await prisma.contribution.findUnique({ where: { id } });
   if (!contribution) throw new AppError("Contribution not found", 404);

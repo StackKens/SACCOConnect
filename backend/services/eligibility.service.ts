@@ -18,7 +18,7 @@ export async function calculateEligibility(
       loans: {
         where: {
           status: {
-            in: ["ACTIVE", "APPROVED", "AWAITING_GUARANTORS", "UNDER_REVIEW"],
+            in: ["ACTIVE", "AWAITING_GUARANTORS", "UNDER_REVIEW", "PENDING"],
           },
         },
       },

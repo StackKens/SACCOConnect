@@ -17,6 +17,7 @@ import {
   notifyLoanApproved,
   notifyLoanRejected,
 } from "../services/notification.service";
+import { paramString } from "../utils/helpers";
 
 export async function applyForLoan(req: AuthRequest, res: Response) {
   const data = loanApplicationSchema.parse(req.body);
@@ -142,7 +143,7 @@ export async function getLoanQueue(req: AuthRequest, res: Response) {
 }
 
 export async function getLoanById(req: AuthRequest, res: Response) {
-  const { id } = req.params;
+  const id = paramString(req.params, "id");
   const loan = await prisma.loan.findUnique({
     where: { id },
     include: {
@@ -156,7 +157,7 @@ export async function getLoanById(req: AuthRequest, res: Response) {
 }
 
 export async function approveLoan(req: AuthRequest, res: Response) {
-  const { id } = req.params;
+  const id = paramString(req.params, "id");
   const data = loanApprovalSchema.parse(req.body);
 
   const loan = await prisma.loan.findUnique({
@@ -205,7 +206,7 @@ export async function approveLoan(req: AuthRequest, res: Response) {
 }
 
 export async function rejectLoan(req: AuthRequest, res: Response) {
-  const { id } = req.params;
+  const id = paramString(req.params, "id");
   const data = loanRejectionSchema.parse(req.body);
 
   const loan = await prisma.loan.findUnique({
@@ -229,7 +230,7 @@ export async function rejectLoan(req: AuthRequest, res: Response) {
 }
 
 export async function makeRepayment(req: AuthRequest, res: Response) {
-  const { id } = req.params;
+  const id = paramString(req.params, "id");
   const data = repaymentSchema.parse(req.body);
 
   const loan = await prisma.loan.findUnique({

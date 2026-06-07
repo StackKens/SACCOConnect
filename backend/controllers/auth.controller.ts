@@ -8,7 +8,7 @@ import {
 } from "../config/jwt";
 import { generateOTP, sendOTP } from "../services/sms.service";
 import { AppError } from "../middleware/error.middleware";
-import { generateInviteCode } from "../utils/helpers";
+import { generateInviteCode, paramString } from "../utils/helpers";
 import {
   sendOTPSchema,
   verifyOTPSchema,
@@ -291,7 +291,7 @@ export async function refreshToken(req: Request, res: Response) {
 }
 
 export async function validateInviteCode(req: Request, res: Response) {
-  const { code } = req.params;
+  const code = paramString(req.params, "code");
 
   const sacco = await prisma.sacco.findUnique({
     where: { inviteCode: code.toUpperCase() },
