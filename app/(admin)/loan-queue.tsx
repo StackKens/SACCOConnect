@@ -60,7 +60,7 @@ export default function LoanQueue() {
           <View style={styles.empty}>
             <Inbox size={32} color={colors.textSecondary} />
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              {pending.length === 0 ? "No pending applications" : "No results found"}
+              {loans.length === 0 ? "No pending applications" : "No results found"}
             </Text>
           </View>
         ) : (

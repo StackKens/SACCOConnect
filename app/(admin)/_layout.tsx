@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { useTheme } from "@/hooks/useTheme"; // adjust path if needed
+import { useTheme } from "@/hooks/useTheme";
 import {
   LayoutDashboard,
   Users,
@@ -26,7 +26,7 @@ export default function AdminLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: "600",
+          fontWeight: "600" as const,
         },
       }}
     >
