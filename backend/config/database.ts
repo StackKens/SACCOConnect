@@ -1,12 +1,8 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import path from "path";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const dbFile =
-  process.env.DATABASE_URL?.replace(/^file:/, "") ??
-  path.join(__dirname, "../prisma/dev.db");
-
-const adapter = new PrismaBetterSqlite3({ url: dbFile });
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 

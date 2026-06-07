@@ -4,6 +4,10 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth.routes";
+import loanRoutes from "./routes/loan.routes";
+import contributionRoutes from "./routes/contribution.routes";
+import memberRoutes from "./routes/member.routes";
+import guarantorRoutes from "./routes/guarantor.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
@@ -27,6 +31,10 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/loans", loanRoutes);
+app.use("/api/contributions", contributionRoutes);
+app.use("/api/members", memberRoutes);
+app.use("/api/guarantors", guarantorRoutes);
 
 app.use(errorHandler);
 

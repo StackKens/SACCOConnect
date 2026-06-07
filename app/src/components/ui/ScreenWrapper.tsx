@@ -29,7 +29,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       {children}
     </ScrollView>
   ) : (
-    <>{children}</>
+    <View style={[styles.staticContent, style]}>{children}</View>
   );
 
   return (
@@ -84,6 +84,11 @@ export const PageHeader: React.FC<{
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  staticContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,

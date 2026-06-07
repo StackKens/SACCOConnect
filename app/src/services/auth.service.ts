@@ -44,7 +44,7 @@ export function getAccessToken() {
 }
 
 export function clearAccessToken() {
-  storage.remove("token");
+  storage.delete("token");
 }
 
 export function getApiErrorMessage(error: unknown): string {

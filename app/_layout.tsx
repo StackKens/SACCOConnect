@@ -1,4 +1,4 @@
-import { Redirect, Stack, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { useAuthStore } from "./src/store/auth.store";
@@ -27,16 +27,24 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (isLoading || !user) return;
+    if (isLoading) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
+    const group = segments[0];
+    const inAuthGroup = group === "(auth)";
 
-    if (user.role === "admin" && segments[0] === "(member)") {
+    if (!user) {
+      if (group && !inAuthGroup) {
+        router.replace("/(auth)/onboarding");
+      }
+      return;
+    }
+
+    if (user.role === "admin" && group === "(member)") {
       router.replace("/(admin)");
       return;
     }
 
-    if (user.role === "member" && segments[0] === "(admin)") {
+    if (user.role === "member" && group === "(admin)") {
       router.replace("/(member)");
       return;
     }
@@ -69,30 +77,15 @@ export default function RootLayout() {
     );
   }
 
-  if (!user) {
-    return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <ThemeUpdater />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="index" redirect />
-          </Stack>
-          <Redirect href="/(auth)/onboarding" />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    );
-  }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeUpdater />
         <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(member)" />
           <Stack.Screen name="(admin)" />
-          <Stack.Screen name="index" redirect />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

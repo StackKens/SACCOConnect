@@ -243,8 +243,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: () => {
     clearAccessToken();
-    storage.remove("user");
-    storage.remove("sacco");
+    storage.delete("user");
+    storage.delete("sacco");
     useMemberDataStore.getState().resetSession();
     set({ user: null, sacco: null, rulesAccepted: false });
   },
