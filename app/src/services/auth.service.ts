@@ -51,8 +51,8 @@ export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const message = error.response?.data?.message;
     if (typeof message === "string") return message;
-    if (error.message === "Network Error") {
-      return "Cannot reach the server. Start the backend with: cd backend && npm run dev";
+    if (!error.response) {
+      return "Cannot reach the server. Make sure the backend is running.";
     }
     return error.message;
   }

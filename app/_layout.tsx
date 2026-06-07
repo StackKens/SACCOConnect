@@ -33,7 +33,7 @@ export default function RootLayout() {
     const inAuthGroup = group === "(auth)";
 
     if (!user) {
-      if (group && !inAuthGroup) {
+      if (!inAuthGroup) {
         router.replace("/(auth)/onboarding");
       }
       return;

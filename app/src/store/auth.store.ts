@@ -246,7 +246,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     storage.delete("user");
     storage.delete("sacco");
     useMemberDataStore.getState().resetSession();
-    set({ user: null, sacco: null, rulesAccepted: false });
+    set({ user: null, sacco: null, rulesAccepted: false, isLoading: false });
   },
 
   checkAuth: () => {
