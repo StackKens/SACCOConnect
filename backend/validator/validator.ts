@@ -29,7 +29,7 @@ export const registerMemberSchema = z.object({
   fullName: z.string().min(2).max(100),
   nationalId: z.string().optional(),
   pin: z.string().length(4),
-  inviteCode: z.string().length(6),
+  inviteCode: z.string().min(6).max(12),
 });
 
 export const loginSchema = z.object({

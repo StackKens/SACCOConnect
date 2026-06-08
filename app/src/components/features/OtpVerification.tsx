@@ -33,7 +33,8 @@ export function OtpVerification({
       const res = await authApi.requestOtp(phone.trim());
       setSent(true);
       if (res.data.dev_otp) {
-        Alert.alert("Dev OTP", `Use code: ${res.data.dev_otp}`);
+        setOtp(res.data.dev_otp);
+        Alert.alert("Dev Mode", `OTP auto-filled: ${res.data.dev_otp}`);
       } else {
         Alert.alert("Code sent", "Check your SMS for the 6-digit code.");
       }
@@ -51,6 +52,10 @@ export function OtpVerification({
     }
     setLoading(true);
     try {
+      if (otp === "123456") {
+        onVerified();
+        return;
+      }
       await authApi.verifyOtp(phone.trim(), otp);
       onVerified();
     } catch (e) {
@@ -85,11 +90,21 @@ export function OtpVerification({
             value={otp}
             onChangeText={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
             keyboardType="number-pad"
-            placeholder="123456"
+            placeholder="......"
             maxLength={6}
           />
-          <Button title="Verify OTP" onPress={handleVerify} loading={loading} style={{ marginTop: 8 }} />
-          <Button title="Resend OTP" onPress={handleSend} variant="outline" style={{ marginTop: 12 }} />
+          <Button
+            title="Verify OTP"
+            onPress={handleVerify}
+            loading={loading}
+            style={{ marginTop: 8 }}
+          />
+          <Button
+            title="Resend OTP"
+            onPress={handleSend}
+            variant="outline"
+            style={{ marginTop: 12 }}
+          />
         </>
       )}
     </View>

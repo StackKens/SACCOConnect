@@ -20,16 +20,10 @@ function sanitizeLog(input: string): string {
 }
 
 export async function sendOTP(phoneNumber: string, otp: string): Promise<void> {
-  const isDev = process.env.NODE_ENV !== "production";
-
-  if (isDev) {
-    console.log(`[DEV OTP] Phone: ${sanitizeLog(phoneNumber)} | Code: ${sanitizeLog(otp)}`);
-    return;
-  }
-
   const client = getTwilioClient();
+
   if (!client) {
-    console.log(`[OTP - no Twilio configured] Phone: ${sanitizeLog(phoneNumber)} | Code: ${sanitizeLog(otp)}`);
+    console.log(`[DEV OTP] Phone: ${sanitizeLog(phoneNumber)} | Code: ${sanitizeLog(otp)}`);
     return;
   }
 
@@ -41,16 +35,10 @@ export async function sendOTP(phoneNumber: string, otp: string): Promise<void> {
 }
 
 export async function sendSMS(phoneNumber: string, message: string): Promise<void> {
-  const isDev = process.env.NODE_ENV !== "production";
-
-  if (isDev) {
-    console.log(`[DEV SMS] Phone: ${sanitizeLog(phoneNumber)} | Message: ${sanitizeLog(message)}`);
-    return;
-  }
-
   const client = getTwilioClient();
+
   if (!client) {
-    console.log(`[SMS - no Twilio configured] Phone: ${sanitizeLog(phoneNumber)} | Message: ${sanitizeLog(message)}`);
+    console.log(`[DEV SMS] Phone: ${sanitizeLog(phoneNumber)} | Message: ${sanitizeLog(message)}`);
     return;
   }
 

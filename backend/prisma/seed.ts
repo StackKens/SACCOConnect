@@ -35,7 +35,7 @@ async function main() {
       meetingDay: "Saturday",
       rulesText:
         "1. Monthly contribution of UGX 50,000 due by the 5th\n2. Members must have 3 months of contributions to qualify for a loan\n3. Maximum loan is 3x your savings balance\n4. Late payments attract a 5% penalty\n5. Two guarantors required for any loan above UGX 100,000",
-      inviteCode: "UNITY2024",
+      inviteCode: "UNITY6",
     },
   });
 
@@ -349,7 +349,7 @@ async function main() {
   console.log("  Alice : +256700000002");
   console.log("  Bob   : +256700000003");
   console.log("  Cathy : +256700000004");
-  console.log("  Invite code: UNITY2024");
+  console.log("  Invite code: UNITY6");
 }
 
 main()
