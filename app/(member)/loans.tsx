@@ -4,112 +4,123 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
-import { router } from "expo-router";
-import { useMemberDataStore } from "@/store/member.store";
+import { formatDate } from "@/utils/date";
+import { router, useFocusEffect } from "expo-router";
 import { Banknote, PlusCircle, ShieldCheck, Clock } from "lucide-react-native";
+import { api } from "@/services/api";
+import { useState, useCallback } from "react";
+import { SkeletonLoanQueue } from "@/components/ui/Skeleton";
+
+interface Loan {
+  id: string;
+  amountRequested: number;
+  amountApproved: number | null;
+  amountRepaid: number;
+  status: string;
+  purpose: string;
+  interestRate: number;
+  repaymentMonths: number;
+  expectedCompletion: string | null;
+  rejectionReason: string | null;
+}
 
 export default function Loans() {
   const { colors } = useTheme();
-  const { loans } = useMemberDataStore();
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      setLoading(true);
+      api.get("/api/loans/my")
+        .then((res) => { if (active) setLoans(res.data.data); })
+        .catch(() => {})
+        .finally(() => { if (active) setLoading(false); });
+      return () => { active = false; };
+    }, []),
+  );
+
+  const statusVariant = (status: string) => {
+    if (status === "ACTIVE") return "warning";
+    if (status === "REPAID") return "success";
+    if (status === "REJECTED") return "error";
+    return "info";
+  };
 
   return (
     <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />}>
-      <View style={styles.list}>
-        {loans.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <View style={[styles.emptyIconWrap, { backgroundColor: colors.primary + "12" }]}>
-              <Banknote size={48} color={colors.primary} />
-            </View>
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No loans yet</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              You have not applied for any loan. Once you do, all your active and past loans will appear here.
-            </Text>
-            <View style={styles.featureList}>
-              <View style={styles.featureRow}>
-                <ShieldCheck size={16} color={colors.success} />
-                <Text style={[styles.featureText, { color: colors.textSecondary }]}>Loans up to 3x your savings</Text>
-              </View>
-              <View style={styles.featureRow}>
-                <Clock size={16} color={colors.warning} />
-                <Text style={[styles.featureText, { color: colors.textSecondary }]}>Flexible repayment terms</Text>
-              </View>
-              <View style={styles.featureRow}>
-                <Banknote size={16} color={colors.primary} />
-                <Text style={[styles.featureText, { color: colors.textSecondary }]}>Competitive interest rates</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.applyBtn, { backgroundColor: colors.primary }]}
-              onPress={() => router.push("/(member)/apply_loan")}
-            >
-              <PlusCircle size={18} color="#fff" />
-              <Text style={styles.applyBtnText}>Apply for a Loan</Text>
-            </TouchableOpacity>
+      {loading ? (
+        <SkeletonLoanQueue />
+      ) : loans.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <View style={[styles.emptyIconWrap, { backgroundColor: colors.primary + "12" }]}>
+            <Banknote size={48} color={colors.primary} />
           </View>
-        ) : (
-          loans.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => item.status === "active" && router.push("/(member)/repay_loan")}
-            >
-              <Card style={styles.card}>
-                <View style={styles.header}>
-                  <Text style={[styles.amount, { color: colors.text }]}>
-                    {formatCurrency(item.amount)}
-                  </Text>
-                  <Badge
-                    label={item.status}
-                    variant={
-                      item.status === "active"
-                        ? "warning"
-                        : item.status === "repaid"
-                          ? "success"
-                          : item.status === "rejected"
-                            ? "error"
-                            : "info"
-                    }
-                  />
-                </View>
-                {item.status === "active" && (
-                  <>
-                    <View style={styles.progressRow}>
-                      <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
-                        Repaid: {formatCurrency(item.repaid)}
-                      </Text>
-                      <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
-                        Remaining: {formatCurrency(item.amount - item.repaid)}
-                      </Text>
-                    </View>
-                    <Text style={[styles.nextPayment, { color: colors.textSecondary }]}>
-                      Next payment due: {item.nextPayment}
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>No loans yet</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+            You have not applied for any loan. Once you do, all your active and past loans will appear here.
+          </Text>
+          <View style={styles.featureList}>
+            <View style={styles.featureRow}>
+              <ShieldCheck size={16} color={colors.success} />
+              <Text style={[styles.featureText, { color: colors.textSecondary }]}>Loans up to 3x your savings</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Clock size={16} color={colors.warning} />
+              <Text style={[styles.featureText, { color: colors.textSecondary }]}>Flexible repayment terms</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Banknote size={16} color={colors.primary} />
+              <Text style={[styles.featureText, { color: colors.textSecondary }]}>Competitive interest rates</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={[styles.applyBtn, { backgroundColor: colors.primary }]} onPress={() => router.push("/(member)/apply_loan")}>
+            <PlusCircle size={18} color="#fff" />
+            <Text style={styles.applyBtnText}>Apply for a Loan</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.list}>
+          {loans.map((item) => {
+            const amount = item.amountApproved ?? item.amountRequested;
+            const remaining = amount - item.amountRepaid;
+            return (
+              <TouchableOpacity key={item.id} onPress={() => item.status === "ACTIVE" && router.push("/(member)/repay_loan")}>
+                <Card style={styles.card}>
+                  <View style={styles.header}>
+                    <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(amount)}</Text>
+                    <Badge label={item.status.replace(/_/g, " ").toLowerCase()} variant={statusVariant(item.status)} />
+                  </View>
+                  <Text style={[styles.purpose, { color: colors.textSecondary }]}>{item.purpose}</Text>
+                  {item.status === "ACTIVE" && (
+                    <>
+                      <View style={styles.progressRow}>
+                        <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>Repaid: {formatCurrency(item.amountRepaid)}</Text>
+                        <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>Remaining: {formatCurrency(remaining)}</Text>
+                      </View>
+                      {item.expectedCompletion && (
+                        <Text style={[styles.dueDate, { color: colors.textSecondary }]}>Due: {formatDate(item.expectedCompletion)}</Text>
+                      )}
+                      <Text style={[styles.interest, { color: colors.textSecondary }]}>Interest: {item.interestRate}% p.a.</Text>
+                    </>
+                  )}
+                  {["PENDING", "AWAITING_GUARANTORS", "UNDER_REVIEW"].includes(item.status) && (
+                    <Text style={[styles.pendingText, { color: colors.warning }]}>Awaiting approval</Text>
+                  )}
+                  {item.status === "REJECTED" && (
+                    <Text style={[styles.pendingText, { color: colors.error }]}>
+                      Rejected{item.rejectionReason ? `: ${item.rejectionReason}` : ""}
                     </Text>
-                    <Text style={[styles.interest, { color: colors.textSecondary }]}>
-                      Interest: {item.interestRate}% p.a.
-                    </Text>
-                  </>
-                )}
-                {item.status === "pending" && (
-                  <Text style={[styles.pendingText, { color: colors.warning }]}>
-                    Awaiting approval
-                  </Text>
-                )}
-                {item.status === "rejected" && (
-                  <Text style={[styles.pendingText, { color: colors.error }]}>
-                    Rejected{item.rejectNote ? `: ${item.rejectNote}` : ""}
-                  </Text>
-                )}
-              </Card>
-            </TouchableOpacity>
-          ))
-        )}
-      </View>
-      {loans.length > 0 && (
-        <TouchableOpacity
-          style={[styles.fab, { backgroundColor: colors.primary }]}
-          onPress={() => router.push("/(member)/apply_loan")}
-        >
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
+                  )}
+                </Card>
+              </TouchableOpacity>
+            );
+          })}
+          <TouchableOpacity style={[styles.fab, { backgroundColor: colors.primary }]} onPress={() => router.push("/(member)/apply_loan")}>
+            <Text style={styles.fabText}>+</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </ScreenWrapper>
   );
@@ -118,11 +129,12 @@ export default function Loans() {
 const styles = StyleSheet.create({
   list: { paddingBottom: 80 },
   card: { marginBottom: 12 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
   amount: { fontSize: 18, fontWeight: "bold" },
-  progressRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
-  progressLabel: { fontSize: 14 },
-  nextPayment: { fontSize: 14, marginTop: 4 },
+  purpose: { fontSize: 13, marginBottom: 6 },
+  progressRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
+  progressLabel: { fontSize: 13 },
+  dueDate: { fontSize: 13, marginTop: 4 },
   interest: { fontSize: 12, marginTop: 2 },
   pendingText: { fontSize: 14, fontWeight: "500", marginTop: 8 },
   fab: { position: "absolute", bottom: 20, right: 20, width: 56, height: 56, borderRadius: 28, justifyContent: "center", alignItems: "center", elevation: 5 },

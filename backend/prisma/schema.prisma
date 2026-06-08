@@ -74,6 +74,7 @@ model Sacco {
   updatedAt          DateTime @updatedAt
   users              User[]
   members            Member[]
+  announcements      Announcement[]
 }
 
 model Member {
@@ -179,4 +180,14 @@ model LoanRepayment {
   transactionRef String?
   paymentDate    DateTime      @default(now())
   loan           Loan          @relation(fields: [loanId], references: [id], onDelete: Cascade)
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  saccoId   String
+  title     String
+  content   String
+  author    String
+  createdAt DateTime @default(now())
+  sacco     Sacco    @relation(fields: [saccoId], references: [id], onDelete: Cascade)
 }

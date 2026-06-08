@@ -8,8 +8,6 @@ import { Divider } from "@/components/ui/Divider";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
 import { useMemberDataStore } from "@/store/member.store";
-import { useAuthStore } from "@/store/auth.store";
-import { dueDateLabel, formatDate } from "@/utils/date";
 
 type PaymentMethod = "MTN" | "Airtel" | "Bank";
 
@@ -19,21 +17,13 @@ const METHODS: { key: PaymentMethod; label: string }[] = [
   { key: "Bank", label: "Bank Transfer" },
 ];
 
-const METHOD_LABELS: Record<PaymentMethod, string> = {
-  MTN: "MTN Mobile Money",
-  Airtel: "Airtel Money",
-  Bank: "Bank Transfer",
-};
-
 export default function Contribute() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("MTN");
   const [phone, setPhone] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const { colors } = useTheme();
-  const sacco = useAuthStore((state) => state.sacco);
   const { addContribution } = useMemberDataStore();
-  const dueDate = sacco?.contributionDueDate;
 
   const isMobile = method === "MTN" || method === "Airtel";
 
@@ -44,90 +34,39 @@ export default function Contribute() {
       return;
     }
     if (isMobile && phone.trim().length < 10) {
-      Alert.alert(
-        "Invalid Number",
-        "Please enter a valid Uganda mobile number.",
-      );
+      Alert.alert("Invalid Number", "Please enter a valid Uganda mobile number.");
       return;
     }
-
     if (method === "Bank" && accountNumber.trim().length < 6) {
-      Alert.alert(
-        "Invalid Account",
-        "Please enter a valid bank account number.",
-      );
+      Alert.alert("Invalid Account", "Please enter a valid bank account number.");
       return;
     }
 
-    addContribution(numAmount, METHOD_LABELS[method]);
+    const methodLabel = method === "MTN" ? "MTN Mobile Money" : method === "Airtel" ? "Airtel Money" : "Bank Transfer";
+    addContribution(numAmount, methodLabel);
 
     if (isMobile) {
       Alert.alert(
-        "Payment Request Sent",
-        `A payment prompt has been sent to ${phone}.\nApprove it on your phone to complete the contribution.`,
+        "Contribution Recorded",
+        `UGX ${numAmount.toLocaleString()} via ${methodLabel} has been recorded.`,
         [{ text: "OK", onPress: () => router.back() }],
       );
     } else {
-      Alert.alert(
-        "Contribution Recorded",
-        "Your bank transfer has been submitted for processing.",
-        [{ text: "OK", onPress: () => router.back() }],
-      );
+      Alert.alert("Contribution Recorded", "Your bank transfer has been submitted for processing.", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
     }
   };
 
   return (
-    <ScreenWrapper
-      header={
-        <PageHeader
-          title="Make Contribution"
-          subtitle="Choose your payment method"
-        />
-      }
-    >
-      {dueDate && (
-        <View
-          style={[
-            styles.dueBanner,
-            {
-              backgroundColor: colors.primary + "12",
-              borderColor: colors.primary + "30",
-            },
-          ]}
-        >
-          <Text style={[styles.dueBannerText, { color: colors.text }]}>
-            Due by {formatDate(dueDate)} · {dueDateLabel(dueDate)}
-          </Text>
-          <Text style={[styles.dueBannerSub, { color: colors.textSecondary }]}>
-            Expected amount: UGX{" "}
-            {sacco?.contributionAmount?.toLocaleString() ?? "—"}
-          </Text>
-        </View>
-      )}
-
+    <ScreenWrapper header={<PageHeader title="Make Contribution" subtitle="Choose your payment method" />}>
       <Card style={styles.card}>
-        <Input
-          label="Amount (UGX)"
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="numeric"
-          placeholder="e.g. 50000"
-        />
-
+        <Input label="Amount (UGX)" value={amount} onChangeText={setAmount} keyboardType="numeric" placeholder="e.g. 50000" />
         <Divider style={styles.divider} />
-
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          Payment Method
-        </Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Payment Method</Text>
         <View style={styles.methodContainer}>
           {METHODS.map((m) => (
-            <Button
-              key={m.key}
-              title={m.label}
-              onPress={() => setMethod(m.key)}
-              variant={method === m.key ? "primary" : "outline"}
-              style={styles.methodBtn}
-            />
+            <Button key={m.key} title={m.label} onPress={() => setMethod(m.key)} variant={method === m.key ? "primary" : "outline"} style={styles.methodBtn} />
           ))}
         </View>
 
@@ -139,11 +78,10 @@ export default function Contribute() {
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
-              placeholder={`${method === "MTN" ? "0771234567" : "0751234567"}`}
+              placeholder="e.g. 0771234567"
             />
             <Text style={[styles.hint, { color: colors.textSecondary }]}>
               Enter the registered {method === "MTN" ? "MTN" : "Airtel"} number.
-              You will receive a payment prompt to approve.
             </Text>
           </>
         )}
@@ -151,16 +89,9 @@ export default function Contribute() {
         {method === "Bank" && (
           <>
             <Divider style={styles.divider} />
-            <Input
-              label="Bank Account Number"
-              value={accountNumber}
-              onChangeText={setAccountNumber}
-              keyboardType="numeric"
-              placeholder="e.g. 1234567890"
-            />
+            <Input label="Bank Account Number" value={accountNumber} onChangeText={setAccountNumber} keyboardType="numeric" placeholder="e.g. 1234567890" />
             <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Use your member ID as the transfer reference. Your contribution
-              will be confirmed within 24 hours.
+              Use your member ID as the transfer reference.
             </Text>
           </>
         )}
@@ -172,14 +103,6 @@ export default function Contribute() {
 }
 
 const styles = StyleSheet.create({
-  dueBanner: {
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 16,
-  },
-  dueBannerText: { fontSize: 14, fontWeight: "600" },
-  dueBannerSub: { fontSize: 12, marginTop: 4 },
   card: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: "500", marginBottom: 10 },
   methodContainer: { gap: 10, marginBottom: 4 },

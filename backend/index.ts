@@ -8,6 +8,7 @@ import loanRoutes from "./routes/loan.routes";
 import contributionRoutes from "./routes/contribution.routes";
 import memberRoutes from "./routes/member.routes";
 import guarantorRoutes from "./routes/guarantor.routes";
+import announcementRoutes from "./routes/announcement.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/api/loans", loanRoutes);
 app.use("/api/contributions", contributionRoutes);
 app.use("/api/members", memberRoutes);
 app.use("/api/guarantors", guarantorRoutes);
+app.use("/api/announcements", announcementRoutes);
 
 app.use(errorHandler);
 
