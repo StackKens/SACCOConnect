@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, StyleSheet, Alert, TextInput } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -8,36 +8,71 @@ import { Badge } from "@/components/ui/Badge";
 import { Divider } from "@/components/ui/Divider";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
-import { useLoanStore } from "@/store/loan.store";
+import { api } from "@/services/api";
+
+interface LoanDetail {
+  id: string;
+  amountRequested: number;
+  amountApproved: number | null;
+  purpose: string;
+  status: string;
+  interestRate: number;
+  repaymentMonths: number;
+  totalRepayable: number | null;
+  amountRepaid: number;
+  rejectionReason: string | null;
+  createdAt: string;
+  member: {
+    fullName: string;
+    currentBalance: number;
+    joinDate: string;
+  };
+}
 
 export default function LoanReview() {
   const { id } = useLocalSearchParams<{ id: string | string[] }>();
   const loanId = Array.isArray(id) ? id[0] : id;
   const { colors } = useTheme();
-  const { getById, approveLoan, rejectLoan } = useLoanStore();
+  const [loan, setLoan] = useState<LoanDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
 
-  const loan = loanId ? getById(loanId) : undefined;
-
-  if (!loan) {
-    return (
-      <ScreenWrapper header={<PageHeader title="Loan Review" showBack onBack={() => router.push("/(admin)/loan-queue")} />}>
-        <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>Loan not found.</Text>
-      </ScreenWrapper>
-    );
-  }
+  useFocusEffect(
+    useCallback(() => {
+      if (!loanId) return;
+      let active = true;
+      setLoading(true);
+      api.get(`/api/loans/${loanId}`)
+        .then((res) => { if (active) setLoan(res.data.data); })
+        .catch(() => {})
+        .finally(() => { if (active) setLoading(false); });
+      return () => { active = false; };
+    }, [loanId]),
+  );
 
   const handleApprove = () => {
-    Alert.alert("Approve Loan", `Approve UGX ${loan.amount.toLocaleString()} for ${loan.memberName}?`, [
+    if (!loan) return;
+    Alert.alert("Approve Loan", `Approve ${formatCurrency(loan.amountRequested)} for ${loan.member.fullName}?`, [
       { text: "Cancel", style: "cancel" },
       {
         text: "Approve",
-        onPress: () => {
-          approveLoan(loan.id);
-          Alert.alert("Approved ✅", `Loan for ${loan.memberName} has been approved.`, [
-            { text: "OK", onPress: () => router.push("/(admin)/loan-queue") },
-          ]);
+        onPress: async () => {
+          setActionLoading(true);
+          try {
+            await api.post(`/api/loans/${loanId}/approve`, {
+              amountApproved: loan.amountRequested,
+              repaymentMonths: loan.repaymentMonths,
+            });
+            Alert.alert("Approved ✅", `Loan for ${loan.member.fullName} has been approved.`, [
+              { text: "OK", onPress: () => router.push("/(admin)/loan-queue") },
+            ]);
+          } catch (e: any) {
+            Alert.alert("Error", e?.response?.data?.message || "Could not approve loan.");
+          } finally {
+            setActionLoading(false);
+          }
         },
       },
     ]);
@@ -48,22 +83,47 @@ export default function LoanReview() {
       Alert.alert("Note required", "Please provide a reason for rejection.");
       return;
     }
-    Alert.alert("Reject Loan", `Reject this application from ${loan.memberName}?`, [
+    if (!loan) return;
+    Alert.alert("Reject Loan", `Reject this application from ${loan.member.fullName}?`, [
       { text: "Cancel", style: "cancel" },
       {
         text: "Reject",
         style: "destructive",
-        onPress: () => {
-          rejectLoan(loan.id, rejectNote.trim());
-          Alert.alert("Rejected", `Loan application has been rejected.`, [
-            { text: "OK", onPress: () => router.push("/(admin)/loan-queue") },
-          ]);
+        onPress: async () => {
+          setActionLoading(true);
+          try {
+            await api.post(`/api/loans/${loanId}/reject`, { reason: rejectNote.trim() });
+            Alert.alert("Rejected", "Loan application has been rejected.", [
+              { text: "OK", onPress: () => router.push("/(admin)/loan-queue") },
+            ]);
+          } catch (e: any) {
+            Alert.alert("Error", e?.response?.data?.message || "Could not reject loan.");
+          } finally {
+            setActionLoading(false);
+          }
         },
       },
     ]);
   };
 
-  const isAlreadyActioned = loan.status !== "pending";
+  if (loading) {
+    return (
+      <ScreenWrapper header={<PageHeader title="Loan Review" showBack onBack={() => router.push("/(admin)/loan-queue")} />}>
+        <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>Loading...</Text>
+      </ScreenWrapper>
+    );
+  }
+
+  if (!loan) {
+    return (
+      <ScreenWrapper header={<PageHeader title="Loan Review" showBack onBack={() => router.push("/(admin)/loan-queue")} />}>
+        <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>Loan not found.</Text>
+      </ScreenWrapper>
+    );
+  }
+
+  const isAlreadyActioned = !["PENDING", "AWAITING_GUARANTORS", "UNDER_REVIEW"].includes(loan.status);
+  const statusVariant = loan.status === "ACTIVE" ? "success" : loan.status === "REJECTED" ? "error" : "warning";
 
   return (
     <ScreenWrapper scroll header={
@@ -71,23 +131,17 @@ export default function LoanReview() {
         title="Loan Review"
         showBack
         onBack={() => router.push("/(admin)/loan-queue")}
-        rightComponent={
-          <Badge
-            label={loan.status}
-            variant={loan.status === "approved" ? "success" : loan.status === "rejected" ? "error" : "warning"}
-          />
-        }
+        rightComponent={<Badge label={loan.status.replace(/_/g, " ").toLowerCase()} variant={statusVariant} />}
       />
     }>
       <Card style={styles.card}>
         {[
-          { label: "Applicant", value: loan.memberName },
-          { label: "Amount Requested", value: formatCurrency(loan.amount) },
-          { label: "Term", value: `${loan.term} months` },
+          { label: "Applicant", value: loan.member.fullName },
+          { label: "Amount Requested", value: formatCurrency(loan.amountRequested) },
+          { label: "Term", value: `${loan.repaymentMonths} months` },
           { label: "Interest Rate", value: `${loan.interestRate}% p.a.` },
           { label: "Purpose", value: loan.purpose },
-          { label: "Member Since", value: loan.memberSince },
-          { label: "Total Savings", value: formatCurrency(loan.totalSavings), highlight: true },
+          { label: "Total Savings", value: formatCurrency(loan.member.currentBalance), highlight: true },
         ].map(({ label, value, highlight }, i) => (
           <View key={i}>
             {i > 0 && <Divider style={styles.divider} />}
@@ -97,15 +151,15 @@ export default function LoanReview() {
             </View>
           </View>
         ))}
-        {loan.rejectNote ? (
+        {loan.rejectionReason && (
           <>
             <Divider style={styles.divider} />
             <View style={styles.row}>
               <Text style={[styles.label, { color: colors.textSecondary }]}>Rejection Reason</Text>
-              <Text style={[styles.value, { color: colors.error }]}>{loan.rejectNote}</Text>
+              <Text style={[styles.value, { color: colors.error }]}>{loan.rejectionReason}</Text>
             </View>
           </>
-        ) : null}
+        )}
       </Card>
 
       {!isAlreadyActioned && (
@@ -124,14 +178,14 @@ export default function LoanReview() {
               />
             </Card>
           )}
-
           <View style={styles.actions}>
-            <Button title="Approve" onPress={handleApprove} variant="primary" style={styles.button} />
+            <Button title="Approve" onPress={handleApprove} variant="primary" style={styles.button} loading={actionLoading} />
             <Button
               title={showRejectInput ? "Confirm Reject" : "Reject"}
               onPress={showRejectInput ? handleReject : () => setShowRejectInput(true)}
               variant="danger"
               style={styles.button}
+              loading={actionLoading}
             />
           </View>
         </>

@@ -1,16 +1,25 @@
 import { z } from "zod";
 
-export const sendOTPSchema = z.object({
-  phoneNumber: z.string().min(10).max(15),
-});
+// Normalizes any Uganda phone format to 07XXXXXXXX
+function normalizeUgandaPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("256")) return "0" + digits.slice(3);
+  if (digits.startsWith("0")) return digits.slice(0, 10);
+  return "0" + digits;
+}
 
-export const verifyOTPSchema = z.object({
-  phoneNumber: z.string().min(10).max(15),
-  code: z.string().length(6),
-});
+const phoneSchema = z
+  .string()
+  .min(9)
+  .max(15)
+  .transform(normalizeUgandaPhone);
+
+export const sendOTPSchema = z.object({ phoneNumber: phoneSchema });
+export const verifyOTPSchema = z.object({ phoneNumber: phoneSchema, code: z.string().length(6) });
+export const loginSchema = z.object({ phoneNumber: phoneSchema, pin: z.string().length(4) });
 
 export const registerAdminSchema = z.object({
-  phoneNumber: z.string().min(10).max(15),
+  phoneNumber: phoneSchema,
   fullName: z.string().min(2).max(100),
   nationalId: z.string().optional(),
   pin: z.string().length(4),
@@ -25,16 +34,11 @@ export const registerAdminSchema = z.object({
 });
 
 export const registerMemberSchema = z.object({
-  phoneNumber: z.string().min(10).max(15),
+  phoneNumber: phoneSchema,
   fullName: z.string().min(2).max(100),
   nationalId: z.string().optional(),
   pin: z.string().length(4),
   inviteCode: z.string().min(6).max(12),
-});
-
-export const loginSchema = z.object({
-  phoneNumber: z.string().min(10).max(15),
-  pin: z.string().length(4),
 });
 
 export const contributionSchema = z.object({

@@ -42,7 +42,7 @@ async function main() {
   // ADMIN USER
   const adminUser = await prisma.user.create({
     data: {
-      phoneNumber: "+256700000001",
+      phoneNumber: "0700000001",
       pinHash: pin,
       role: "ADMIN",
       saccoId: sacco.id,
@@ -71,7 +71,7 @@ async function main() {
   // MEMBER 1
   const user1 = await prisma.user.create({
     data: {
-      phoneNumber: "+256700000002",
+      phoneNumber: "0700000002",
       pinHash: pin,
       role: "MEMBER",
       saccoId: sacco.id,
@@ -100,7 +100,7 @@ async function main() {
   // MEMBER 2
   const user2 = await prisma.user.create({
     data: {
-      phoneNumber: "+256700000003",
+      phoneNumber: "0700000003",
       pinHash: pin,
       role: "MEMBER",
       saccoId: sacco.id,
@@ -129,7 +129,7 @@ async function main() {
   // MEMBER 3
   const user3 = await prisma.user.create({
     data: {
-      phoneNumber: "+256700000004",
+      phoneNumber: "0700000004",
       pinHash: pin,
       role: "MEMBER",
       saccoId: sacco.id,
@@ -158,7 +158,7 @@ async function main() {
   // MEMBER 4 (inactive)
   const user4 = await prisma.user.create({
     data: {
-      phoneNumber: "+256700000005",
+      phoneNumber: "0700000005",
       pinHash: pin,
       role: "MEMBER",
       saccoId: sacco.id,
@@ -345,10 +345,10 @@ async function main() {
 
   console.log("Seed complete!");
   console.log("\nTest credentials (PIN: 1234):");
-  console.log("  Admin : +256700000001");
-  console.log("  Alice : +256700000002");
-  console.log("  Bob   : +256700000003");
-  console.log("  Cathy : +256700000004");
+  console.log("  Admin : 0700000001");
+  console.log("  Alice : 0700000002");
+  console.log("  Bob   : 0700000003");
+  console.log("  Cathy : 0700000004");
   console.log("  Invite code: UNITY6");
 }
 

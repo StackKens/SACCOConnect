@@ -80,6 +80,14 @@ export async function updateMemberStatus(req: AuthRequest, res: Response) {
   return res.json({ success: true, data: member });
 }
 
+export async function deleteMember(req: AuthRequest, res: Response) {
+  const id = paramString(req.params, "id");
+  const member = await prisma.member.findUnique({ where: { id } });
+  if (!member) throw new AppError("Member not found", 404);
+  await prisma.user.delete({ where: { id: member.userId } });
+  return res.json({ success: true, message: "Member deleted" });
+}
+
 export async function generateInviteLink(req: AuthRequest, res: Response) {
   const saccoId = req.user!.saccoId;
   if (!saccoId) throw new AppError("No SACCO assigned", 400);

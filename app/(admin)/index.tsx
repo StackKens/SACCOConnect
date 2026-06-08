@@ -29,16 +29,23 @@ export default function AdminDashboard() {
         api.get("/api/members"),
         api.get("/api/contributions/treasury"),
         api.get("/api/loans/queue"),
-      ]).then(([membersRes, treasuryRes, queueRes]) => {
-        if (!active) return;
-        setStats({
-          totalMembers: membersRes.data.data.length,
-          totalSavings: treasuryRes.data.data.totalSavings,
-          activeLoans: treasuryRes.data.data.outstanding,
-          pendingApplications: queueRes.data.data.length,
+      ])
+        .then(([membersRes, treasuryRes, queueRes]) => {
+          if (!active) return;
+          setStats({
+            totalMembers: membersRes.data.data.length,
+            totalSavings: treasuryRes.data.data.totalSavings,
+            activeLoans: treasuryRes.data.data.outstanding,
+            pendingApplications: queueRes.data.data.length,
+          });
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (active) setLoading(false);
         });
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
+      return () => {
+        active = false;
+      };
     }, []),
   );
 
@@ -57,10 +64,26 @@ export default function AdminDashboard() {
           <SkeletonDashboard />
         ) : (
           <>
-            <StatCard title="Members" value={stats.totalMembers.toString()} icon={<Users size={24} color={colors.primary} />} />
-            <StatCard title="Total Savings" value={formatCurrency(stats.totalSavings)} icon={<Wallet size={24} color={colors.secondary} />} />
-            <StatCard title="Active Loans" value={formatCurrency(stats.activeLoans)} icon={<Banknote size={24} color={colors.warning} />} />
-            <StatCard title="Pending Applications" value={stats.pendingApplications.toString()} icon={<Clock size={24} color={colors.error} />} />
+            <StatCard
+              title="Members"
+              value={stats.totalMembers.toString()}
+              icon={<Users size={24} color={colors.primary} />}
+            />
+            <StatCard
+              title="Total Savings"
+              value={formatCurrency(stats.totalSavings)}
+              icon={<Wallet size={24} color={colors.secondary} />}
+            />
+            <StatCard
+              title="Active Loans"
+              value={formatCurrency(stats.activeLoans)}
+              icon={<Banknote size={24} color={colors.warning} />}
+            />
+            <StatCard
+              title="Pending Applications"
+              value={stats.pendingApplications.toString()}
+              icon={<Clock size={24} color={colors.error} />}
+            />
           </>
         )}
       </View>
@@ -98,9 +121,7 @@ export default function AdminDashboard() {
       </Card>
 
       <Card>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          More
-        </Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Loans</Text>
         <View style={styles.actionButtons}>
           <Button
             title="All Contributions"

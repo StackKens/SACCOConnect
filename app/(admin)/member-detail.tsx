@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
@@ -32,17 +32,18 @@ export default function MemberDetail() {
   const { colors } = useTheme();
   const [member, setMember] = useState<MemberDetailData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!memberId) return;
-      let active = true;
-      api.get(`/api/members/${memberId}`).then((res) => {
-        if (active) setMember(res.data.data);
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, [memberId]),
-  );
+  const fetchMember = useCallback(() => {
+    if (!memberId) return;
+    let active = true;
+    api.get(`/api/members/${memberId}`).then((res) => {
+      if (active) setMember(res.data.data);
+    }).catch(() => {}).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [memberId]);
+
+  useFocusEffect(fetchMember);
 
   if (loading) {
     return (
@@ -150,6 +151,62 @@ export default function MemberDetail() {
             </View>
           ))
         )}
+      </Card>
+
+      <Card style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Manage Member</Text>
+        <Button
+          title={member.status === "ACTIVE" ? "Deactivate Member" : "Activate Member"}
+          variant={member.status === "ACTIVE" ? "outline" : "primary"}
+          loading={actionLoading}
+          style={{ marginBottom: 10 }}
+          onPress={() => {
+            const next = member.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+            const label = next === "INACTIVE" ? "Deactivate" : "Activate";
+            Alert.alert(`${label} Member`, `Are you sure you want to ${label.toLowerCase()} ${member.fullName}?`, [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: label,
+                onPress: async () => {
+                  setActionLoading(true);
+                  try {
+                    await api.patch(`/api/members/${memberId}/status`, { status: next });
+                    setMember((m) => m ? { ...m, status: next } : m);
+                  } catch {
+                    Alert.alert("Error", "Could not update member status.");
+                  } finally {
+                    setActionLoading(false);
+                  }
+                },
+              },
+            ]);
+          }}
+        />
+        <Button
+          title="Delete Member"
+          variant="danger"
+          loading={actionLoading}
+          onPress={() => {
+            Alert.alert("Delete Member", `This will permanently delete ${member.fullName} and all their data. This cannot be undone.`, [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                  setActionLoading(true);
+                  try {
+                    await api.delete(`/api/members/${memberId}`);
+                    router.replace("/(admin)/members");
+                  } catch {
+                    Alert.alert("Error", "Could not delete member.");
+                  } finally {
+                    setActionLoading(false);
+                  }
+                },
+              },
+            ]);
+          }}
+        />
       </Card>
 
       <View style={styles.actions}>

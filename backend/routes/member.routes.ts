@@ -9,6 +9,7 @@ import {
   updateMemberStatus,
   generateInviteLink,
   sendInviteSms,
+  deleteMember,
 } from "../controllers/member.contoller";
 
 const router = Router();
@@ -24,5 +25,6 @@ router.get("/invite", authenticate, requireAdmin, generateInviteLink);
 router.post("/invite/send", authenticate, requireAdmin, sendInviteSms);
 router.get("/:id", authenticate, requireAdmin, getMemberById);
 router.patch("/:id/status", authenticate, requireAdmin, updateMemberStatus);
+router.delete("/:id", authenticate, requireAdmin, deleteMember);
 
 export default router;

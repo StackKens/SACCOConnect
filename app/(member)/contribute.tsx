@@ -44,12 +44,18 @@ export default function Contribute() {
       return;
     }
     if (isMobile && phone.trim().length < 10) {
-      Alert.alert("Invalid Number", "Please enter a valid Uganda mobile number.");
+      Alert.alert(
+        "Invalid Number",
+        "Please enter a valid Uganda mobile number.",
+      );
       return;
     }
 
     if (method === "Bank" && accountNumber.trim().length < 6) {
-      Alert.alert("Invalid Account", "Please enter a valid bank account number.");
+      Alert.alert(
+        "Invalid Account",
+        "Please enter a valid bank account number.",
+      );
       return;
     }
 
@@ -62,22 +68,39 @@ export default function Contribute() {
         [{ text: "OK", onPress: () => router.back() }],
       );
     } else {
-      Alert.alert("Contribution Recorded", "Your bank transfer has been submitted for processing.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      Alert.alert(
+        "Contribution Recorded",
+        "Your bank transfer has been submitted for processing.",
+        [{ text: "OK", onPress: () => router.back() }],
+      );
     }
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="Make Contribution" subtitle="Choose your payment method" />}>
-
+    <ScreenWrapper
+      header={
+        <PageHeader
+          title="Make Contribution"
+          subtitle="Choose your payment method"
+        />
+      }
+    >
       {dueDate && (
-        <View style={[styles.dueBanner, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
+        <View
+          style={[
+            styles.dueBanner,
+            {
+              backgroundColor: colors.primary + "12",
+              borderColor: colors.primary + "30",
+            },
+          ]}
+        >
           <Text style={[styles.dueBannerText, { color: colors.text }]}>
             Due by {formatDate(dueDate)} · {dueDateLabel(dueDate)}
           </Text>
           <Text style={[styles.dueBannerSub, { color: colors.textSecondary }]}>
-            Expected amount: UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"}
+            Expected amount: UGX{" "}
+            {sacco?.contributionAmount?.toLocaleString() ?? "—"}
           </Text>
         </View>
       )}
@@ -93,7 +116,9 @@ export default function Contribute() {
 
         <Divider style={styles.divider} />
 
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Payment Method</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
+          Payment Method
+        </Text>
         <View style={styles.methodContainer}>
           {METHODS.map((m) => (
             <Button
@@ -114,10 +139,11 @@ export default function Contribute() {
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
-              placeholder="e.g. 0771234567"
+              placeholder={`${method === "MTN" ? "0771234567" : "0751234567"}`}
             />
             <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Enter the registered {method === "MTN" ? "MTN" : "Airtel"} number. You will receive a payment prompt to approve.
+              Enter the registered {method === "MTN" ? "MTN" : "Airtel"} number.
+              You will receive a payment prompt to approve.
             </Text>
           </>
         )}
@@ -133,7 +159,8 @@ export default function Contribute() {
               placeholder="e.g. 1234567890"
             />
             <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Use your member ID as the transfer reference. Your contribution will be confirmed within 24 hours.
+              Use your member ID as the transfer reference. Your contribution
+              will be confirmed within 24 hours.
             </Text>
           </>
         )}
@@ -145,7 +172,12 @@ export default function Contribute() {
 }
 
 const styles = StyleSheet.create({
-  dueBanner: { borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 16 },
+  dueBanner: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+  },
   dueBannerText: { fontSize: 14, fontWeight: "600" },
   dueBannerSub: { fontSize: 12, marginTop: 4 },
   card: { marginBottom: 20 },
