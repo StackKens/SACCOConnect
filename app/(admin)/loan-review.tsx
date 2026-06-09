@@ -61,13 +61,15 @@ export default function LoanReview() {
         onPress: async () => {
           setActionLoading(true);
           try {
-            await api.post(`/api/loans/${loanId}/approve`, {
+            const res = await api.post(`/api/loans/${loanId}/approve`, {
               amountApproved: loan.amountRequested,
               repaymentMonths: loan.repaymentMonths,
             });
-            Alert.alert("Approved ✅", `Loan for ${loan.member.fullName} has been approved.`, [
-              { text: "OK", onPress: () => router.push("/(admin)/loan-queue") },
-            ]);
+            Alert.alert(
+              "Loan Approved ✅",
+              res.data.message ?? `Loan for ${loan.member.fullName} has been approved.`,
+              [{ text: "OK", onPress: () => router.push("/(admin)/loan-queue") }],
+            );
           } catch (e: any) {
             Alert.alert("Error", e?.response?.data?.message || "Could not approve loan.");
           } finally {

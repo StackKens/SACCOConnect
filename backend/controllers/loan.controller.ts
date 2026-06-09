@@ -16,6 +16,7 @@ import {
   notifyGuarantorRequest,
   notifyLoanApproved,
   notifyLoanRejected,
+  scheduleRepaymentReminders,
 } from "../services/notification.service";
 import { paramString } from "../utils/helpers";
 
@@ -81,16 +82,14 @@ export async function applyForLoan(req: AuthRequest, res: Response) {
     return newLoan;
   });
 
-  await Promise.all(
-    guarantorMembers.map((g) =>
-      notifyGuarantorRequest(
-        g.userId,
-        member.fullName,
-        loan.id,
-        data.amountRequested,
+  // notify guarantors — never crash application if SMS fails
+  try {
+    await Promise.all(
+      guarantorMembers.map((g) =>
+        notifyGuarantorRequest(g.userId, member.fullName, loan.id, data.amountRequested),
       ),
-    ),
-  );
+    );
+  } catch {}
 
   return res
     .status(201)
@@ -200,9 +199,17 @@ export async function approveLoan(req: AuthRequest, res: Response) {
     },
   });
 
-  await notifyLoanApproved(loan.member.userId, data.amountApproved, id);
+  // notify member — never crash approval if SMS fails
+  try { await notifyLoanApproved(loan.member.userId, data.amountApproved, id); } catch {}
 
-  return res.json({ success: true, data: updated });
+  // schedule weekly repayment reminders (7 × repaymentMonths reminders)
+  scheduleRepaymentReminders(loan.member.userId, loan.member.fullName, data.amountApproved, data.repaymentMonths, expectedCompletion);
+
+  return res.json({
+    success: true,
+    data: updated,
+    message: `Loan of UGX ${data.amountApproved.toLocaleString()} approved for ${loan.member.fullName}. Repayment due by ${expectedCompletion.toDateString()}.`,
+  });
 }
 
 export async function rejectLoan(req: AuthRequest, res: Response) {
@@ -224,7 +231,7 @@ export async function rejectLoan(req: AuthRequest, res: Response) {
     },
   });
 
-  await notifyLoanRejected(loan.member.userId, data.reason, id);
+  try { await notifyLoanRejected(loan.member.userId, data.reason, id); } catch {}
 
   return res.json({ success: true, data: updated });
 }

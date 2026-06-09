@@ -34,11 +34,7 @@ export async function submitContribution(req: AuthRequest, res: Response) {
       data: { currentBalance: { increment: data.amount } },
     });
     await updateStreak(member.id);
-    await notifyContributionConfirmed(
-      req.user!.userId,
-      data.amount,
-      contribution.id,
-    );
+    try { await notifyContributionConfirmed(req.user!.userId, data.amount, contribution.id); } catch {}
   }
 
   return res.status(201).json({ success: true, data: contribution });
