@@ -9,6 +9,8 @@ import { formatCurrency } from "@/utils/currency";
 import { router, useFocusEffect } from "expo-router";
 import { api } from "@/services/api";
 import { getApiErrorMessage } from "@/services/auth.service";
+import { enqueue } from "@/services/offlineQueue";
+import NetInfo from "@react-native-community/netinfo";
 
 interface ActiveLoan {
   id: string;
@@ -66,11 +68,19 @@ export default function RepayLoan() {
     }
 
     setSubmitting(true);
+    const body = { amountPaid: numAmount, method };
     try {
-      const res = await api.post(`/api/loans/${loan.id}/repay`, {
-        amountPaid: numAmount,
-        method,
-      });
+      const net = await NetInfo.fetch();
+      if (!net.isConnected) {
+        enqueue({ endpoint: `/api/loans/${loan.id}/repay`, method: "POST", body });
+        Alert.alert(
+          "Saved Offline 📶",
+          `Payment of ${formatCurrency(numAmount)} saved. It will be submitted automatically when you're back online.`,
+          [{ text: "OK", onPress: () => router.back() }],
+        );
+        return;
+      }
+      const res = await api.post(`/api/loans/${loan.id}/repay`, body);
       const fullyRepaid = res.data.fullyRepaid;
       Alert.alert(
         fullyRepaid ? "Loan Fully Repaid 🎉" : "Payment Recorded ✅",

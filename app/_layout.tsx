@@ -6,6 +6,10 @@ import { useUIStore } from "./src/store/ui.store";
 import { LoadingSpinner } from "./src/components/ui/LoadingSpinner";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { startQueueListener } from "./src/services/offlineQueue";
+
+// start offline queue listener once at app boot
+startQueueListener();
 
 function ThemeUpdater() {
   const updateEffectiveTheme = useUIStore(

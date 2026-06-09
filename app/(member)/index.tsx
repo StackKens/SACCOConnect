@@ -5,13 +5,14 @@ import { StatCard } from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { Wallet, AlertCircle, Flame } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate, dueDateLabel } from "@/utils/date";
 import { api } from "@/services/api";
 import { useState, useCallback } from "react";
 import { SkeletonDashboard } from "@/components/ui/Skeleton";
+import { useOfflineApi } from "@/hooks/useOfflineApi";
 
 interface MemberProfile {
   currentBalance: number;
@@ -28,25 +29,9 @@ export default function MemberDashboard() {
   const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
-  const [profile, setProfile] = useState<MemberProfile | null>(null);
-  const [activeLoan, setActiveLoan] = useState<ActiveLoan | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      Promise.all([
-        api.get("/api/members/me"),
-        api.get("/api/loans/my/active"),
-      ]).then(([profileRes, loanRes]) => {
-        if (!active) return;
-        setProfile(profileRes.data.data);
-        setActiveLoan(loanRes.data.data);
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
+  const { data: profile, loading: profileLoading } = useOfflineApi<MemberProfile>("/api/members/me");
+  const { data: activeLoan, loading: loanLoading } = useOfflineApi<ActiveLoan | null>("/api/loans/my/active");
+  const loading = profileLoading && loanLoading;
 
   const totalSavings = profile?.currentBalance ?? 0;
   const activeLoanBalance = activeLoan ? (activeLoan.amountApproved - activeLoan.amountRepaid) : 0;
