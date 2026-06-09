@@ -1,73 +1,120 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
-import { useAuthStore } from "@/store/auth.store";
-import { useFocusEffect, router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { getContributionsForSacco, AdminContribution } from "@/helpers/members";
+import { api } from "@/services/api";
+import { getApiErrorMessage } from "@/services/auth.service";
+import { SkeletonMemberList } from "@/components/ui/Skeleton";
+
+interface Contribution {
+  id: string;
+  amount: number;
+  method: string;
+  status: string;
+  createdAt: string;
+  transactionRef: string | null;
+  member: { fullName: string };
+}
 
 export default function AdminContributions() {
   const { colors } = useTheme();
-  const sacco = useAuthStore((state) => state.sacco);
-  const [contributions, setContributions] = useState<AdminContribution[]>([]);
+  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [confirming, setConfirming] = useState<string | null>(null);
 
-  const refresh = useCallback(() => {
-    if (!sacco?.id) {
-      setContributions([]);
-      return;
-    }
-    setContributions(getContributionsForSacco(sacco.id));
-  }, [sacco?.id]);
+  const fetch = useCallback(() => {
+    let active = true;
+    setLoading(true);
+    api.get("/api/contributions")
+      .then((res) => { if (active) setContributions(res.data.data); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh]),
-  );
+  useFocusEffect(fetch);
+
+  const handleConfirm = (id: string, memberName: string, amount: number) => {
+    Alert.alert(
+      "Confirm Contribution",
+      `Confirm UGX ${amount.toLocaleString()} cash payment from ${memberName}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Confirm",
+          onPress: async () => {
+            setConfirming(id);
+            try {
+              await api.post(`/api/contributions/${id}/confirm`);
+              setContributions((prev) =>
+                prev.map((c) => c.id === id ? { ...c, status: "CONFIRMED" } : c)
+              );
+            } catch (e) {
+              Alert.alert("Error", getApiErrorMessage(e));
+            } finally {
+              setConfirming(null);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const total = contributions
-    .filter((c) => c.status === "completed")
+    .filter((c) => c.status === "CONFIRMED")
     .reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <ScreenWrapper
-      scroll
-      header={<PageHeader title="Contributions" subtitle="All member savings contributions" showBack onBack={() => router.back()} />}
-    >
+    <ScreenWrapper scroll header={<PageHeader title="Contributions" subtitle="All member savings contributions" showBack onBack={() => router.back()} />}>
 
       <Card style={styles.summaryCard}>
-        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Collected</Text>
+        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Confirmed</Text>
         <Text style={[styles.summaryAmount, { color: colors.text }]}>{formatCurrency(total)}</Text>
       </Card>
 
-      <View style={styles.list}>
-        {contributions.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No contributions recorded yet.
-          </Text>
-        ) : (
-          contributions.map((item) => (
+      {loading ? <SkeletonMemberList /> : (
+        <View style={styles.list}>
+          {contributions.length === 0 ? (
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No contributions yet.</Text>
+          ) : contributions.map((item) => (
             <Card key={item.id} style={styles.card}>
               <View style={styles.row}>
                 <View style={styles.left}>
-                  <Text style={[styles.memberName, { color: colors.text }]}>{item.memberName}</Text>
+                  <Text style={[styles.memberName, { color: colors.text }]}>{item.member.fullName}</Text>
                   <Text style={[styles.detail, { color: colors.textSecondary }]}>
-                    {formatDate(item.date)} • {item.method}
+                    {formatDate(item.createdAt)} · {item.method.replace(/_/g, " ")}
                   </Text>
+                  {item.transactionRef && (
+                    <Text style={[styles.ref, { color: colors.textSecondary }]}>Ref: {item.transactionRef}</Text>
+                  )}
                 </View>
                 <View style={styles.right}>
                   <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(item.amount)}</Text>
-                  <Badge label={item.status} variant={item.status === "completed" ? "success" : "warning"} />
+                  <Badge
+                    label={item.status.toLowerCase()}
+                    variant={item.status === "CONFIRMED" ? "success" : "warning"}
+                  />
+                  {item.status === "PENDING" && (
+                    <Button
+                      title="Confirm"
+                      variant="primary"
+                      style={styles.confirmBtn}
+                      loading={confirming === item.id}
+                      onPress={() => handleConfirm(item.id, item.member.fullName, item.amount)}
+                    />
+                  )}
                 </View>
               </View>
             </Card>
-          ))
-        )}
-      </View>
+          ))}
+        </View>
+      )}
     </ScreenWrapper>
   );
 }
@@ -79,10 +126,12 @@ const styles = StyleSheet.create({
   list: { paddingBottom: 20 },
   emptyText: { textAlign: "center", fontSize: 14, marginTop: 24 },
   card: { marginBottom: 12 },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   left: { flex: 1 },
   memberName: { fontSize: 15, fontWeight: "600" },
   detail: { fontSize: 12, marginTop: 2 },
+  ref: { fontSize: 11, marginTop: 2 },
   right: { alignItems: "flex-end", gap: 6 },
   amount: { fontSize: 16, fontWeight: "bold" },
+  confirmBtn: { marginTop: 4, paddingHorizontal: 12, height: 32 },
 });

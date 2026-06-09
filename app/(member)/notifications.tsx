@@ -4,22 +4,54 @@ import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { getRelativeTime } from "@/utils/date";
 import { Info, BellOff } from "lucide-react-native";
-import { useAnnouncementStore, getReadIds, markReadInStorage } from "@/store/announcement.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
+import { api } from "@/services/api";
+import { createMMKV } from "react-native-mmkv";
+
+const readStorage = createMMKV({ id: "read_announcements" });
+
+function getReadIds(userId: string): Set<string> {
+  const stored = readStorage.getString(`read_${userId}`);
+  return stored ? new Set(JSON.parse(stored)) : new Set();
+}
+
+function markReadInStorage(userId: string, id: string) {
+  const ids = getReadIds(userId);
+  ids.add(id);
+  readStorage.set(`read_${userId}`, JSON.stringify([...ids]));
+}
+
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  createdAt: string;
+}
 
 export default function Notifications() {
   const { colors } = useTheme();
-  const { announcements } = useAnnouncementStore();
   const user = useAuthStore((s) => s.user);
   const userId = user?.id ?? "guest";
-
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds(userId));
 
-  const markAsRead = useCallback((id: string) => {
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      api.get("/api/announcements")
+        .then((res) => { if (active) setAnnouncements(res.data.data); })
+        .catch(() => {});
+      return () => { active = false; };
+    }, []),
+  );
+
+  const markAsRead = (id: string) => {
     markReadInStorage(userId, id);
     setReadIds((prev) => new Set([...prev, id]));
-  }, [userId]);
+  };
 
   const markAllRead = () => {
     announcements.forEach((a) => markReadInStorage(userId, a.id));
@@ -72,12 +104,10 @@ export default function Notifications() {
                           {item.content}
                         </Text>
                         <Text style={[styles.date, { color: colors.textSecondary }]}>
-                          {getRelativeTime(item.date)} · by {item.author}
+                          {getRelativeTime(item.createdAt)} · by {item.author}
                         </Text>
                       </View>
-                      {!isRead && (
-                        <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />
-                      )}
+                      {!isRead && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
                     </View>
                   </Card>
                 </TouchableOpacity>
