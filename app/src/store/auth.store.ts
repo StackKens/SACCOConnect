@@ -12,6 +12,8 @@ import {
   getApiErrorMessage,
   setAccessToken,
 } from "../services/auth.service";
+import { api } from "../services/api";
+import { Contribution, MemberLoan, Transaction } from "./member.store";
 
 const storage = new MMKV({ id: "auth" });
 
@@ -53,6 +55,77 @@ function persistSession(data: AuthSessionResponse) {
   storage.set("user", JSON.stringify(user));
   if (sacco) storage.set("sacco", JSON.stringify(sacco));
   return { user, sacco };
+}
+
+async function syncMemberData(userId: string) {
+  try {
+    const [contribRes, loanRes] = await Promise.all([
+      api.get("/api/contributions/my"),
+      api.get("/api/loans/my"),
+    ]);
+
+    const rawContributions = contribRes.data.data ?? [];
+    const rawLoans = loanRes.data.data ?? [];
+
+    const contributions: Contribution[] = rawContributions.map((c: any) => ({
+      id: c.id,
+      amount: c.amount,
+      date: c.createdAt?.split("T")[0] ?? c.date ?? "",
+      status: c.status === "CONFIRMED" ? "completed" : "pending",
+      method: c.method?.replace("_", " ") ?? "Unknown",
+    }));
+
+    const loans: MemberLoan[] = rawLoans.map((l: any) => ({
+      id: l.id,
+      amount: l.amountApproved ?? l.amountRequested,
+      repaid: l.amountRepaid ?? 0,
+      status: l.status === "ACTIVE" ? "active"
+        : l.status === "REPAID" ? "repaid"
+        : l.status === "REJECTED" ? "rejected"
+        : "pending",
+      purpose: l.purpose,
+      interestRate: l.interestRate,
+      term: l.repaymentMonths,
+      nextPayment: l.expectedCompletion?.split("T")[0] ?? null,
+      dueDate: l.expectedCompletion?.split("T")[0] ?? null,
+      rejectNote: l.rejectionReason ?? undefined,
+    }));
+
+    const transactions: Transaction[] = [
+      ...contributions.map((c) => ({
+        id: `tx_c_${c.id}`,
+        type: "contribution" as const,
+        amount: c.amount,
+        date: c.date,
+        reference: `CONT-${c.id.slice(-6).toUpperCase()}`,
+        status: "completed" as const,
+      })),
+      ...rawLoans
+        .filter((l: any) => l.disbursementDate)
+        .map((l: any) => ({
+          id: `tx_l_${l.id}`,
+          type: "loan_disbursement" as const,
+          amount: l.amountApproved ?? l.amountRequested,
+          date: l.disbursementDate.split("T")[0],
+          reference: `LOAN-${l.id.slice(-6).toUpperCase()}`,
+          status: "completed" as const,
+        })),
+      ...rawLoans.flatMap((l: any) =>
+        (l.repayments ?? []).map((r: any) => ({
+          id: `tx_r_${r.id}`,
+          type: "loan_repayment" as const,
+          amount: -r.amountPaid,
+          date: r.paymentDate?.split("T")[0] ?? "",
+          reference: r.transactionRef ?? `RPY-${r.id.slice(-6).toUpperCase()}`,
+          status: "completed" as const,
+        }))
+      ),
+    ].sort((a, b) => b.date.localeCompare(a.date));
+
+    useMemberDataStore.getState().hydrateFromApi(userId, { contributions, loans, transactions });
+  } catch {
+    // offline — use cached data already loaded by initForUser
+  }
 }
 
 interface AuthState {
@@ -114,6 +187,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { user, sacco } = persistSession(res.data.data);
       if (user.role === "member") {
         useMemberDataStore.getState().initForUser(user.id);
+        syncMemberData(user.id);
       } else {
         useMemberDataStore.getState().resetSession();
       }
@@ -258,15 +332,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const sacco = sessionSacco ? JSON.parse(sessionSacco) : null;
       if (user.role === "member") {
         useMemberDataStore.getState().initForUser(user.id);
+        syncMemberData(user.id); // background refresh, falls back to cache if offline
       } else {
         useMemberDataStore.getState().resetSession();
       }
-      set({
-        user,
-        sacco,
-        rulesAccepted: true,
-        isLoading: false,
-      });
+      set({ user, sacco, rulesAccepted: true, isLoading: false });
     } else {
       useMemberDataStore.getState().resetSession();
       set({ isLoading: false });

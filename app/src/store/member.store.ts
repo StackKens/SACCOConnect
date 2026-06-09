@@ -116,6 +116,11 @@ interface MemberDataStore {
   loans: MemberLoan[];
   transactions: Transaction[];
   initForUser: (userId: string) => void;
+  hydrateFromApi: (userId: string, data: {
+    contributions: Contribution[];
+    loans: MemberLoan[];
+    transactions: Transaction[];
+  }) => void;
   resetSession: () => void;
   addContribution: (amount: number, method: string) => void;
   addLoanRepayment: (loanId: string, amount: number) => void;
@@ -142,6 +147,11 @@ export const useMemberDataStore = create<MemberDataStore>((set, get) => ({
 
   initForUser: (userId) => {
     const data = loadUserData(userId);
+    set({ userId, ...data });
+  },
+
+  hydrateFromApi: (userId, data) => {
+    saveUserData(userId, data);
     set({ userId, ...data });
   },
 

@@ -100,7 +100,7 @@ export default function ApplyLoan() {
         guarantorIds: guarantors.map((g) => g.id),
       });
       Alert.alert(
-        "Application Submitted ✅",
+        "Application Submitted",
         "Your loan application has been submitted. Guarantors will be notified and the admin will review it shortly.",
         [{ text: "OK", onPress: () => router.back() }],
       );
@@ -161,7 +161,7 @@ export default function ApplyLoan() {
               <View key={g.id} style={[styles.selectedChip, { backgroundColor: colors.success + "15", borderColor: colors.success + "40" }]}>
                 <Text style={[styles.chipText, { color: colors.success }]}>{g.fullName}</Text>
                 <TouchableOpacity onPress={() => toggleGuarantor(g)}>
-                  <Text style={[styles.chipRemove, { color: colors.error }]}>✕</Text>
+                  <Text style={[styles.chipRemove, { color: colors.error }]}>x</Text>
                 </TouchableOpacity>
               </View>
             ))}

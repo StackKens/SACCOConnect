@@ -62,7 +62,7 @@ export default function CreateSACCO() {
         customRule,
         logoColor,
       });
-      Alert.alert("SACCO Created ✅", `${name} is ready. You can now invite members.`, [
+      Alert.alert("SACCO Created", `${name} is ready. You can now invite members.`, [
         { text: "Invite Members", onPress: () => router.replace("/(admin)/members") },
         { text: "Go to Dashboard", onPress: () => router.replace("/(admin)") },
       ]);
