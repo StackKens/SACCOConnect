@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { createMMKV } from "react-native-mmkv";
+import { MMKV } from "react-native-mmkv";
 import { Appearance, ColorSchemeName } from "react-native";
 
-const storage = createMMKV({ id: "ui" });
+const storage = new MMKV({ id: "ui" });
 
 type Theme = "light" | "dark" | "system";
 

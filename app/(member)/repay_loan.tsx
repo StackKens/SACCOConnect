@@ -10,7 +10,6 @@ import { router, useFocusEffect } from "expo-router";
 import { api } from "@/services/api";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { enqueue } from "@/services/offlineQueue";
-import NetInfo from "@react-native-community/netinfo";
 
 interface ActiveLoan {
   id: string;
@@ -42,15 +41,22 @@ export default function RepayLoan() {
     useCallback(() => {
       let active = true;
       setLoading(true);
-      api.get("/api/loans/my/active")
-        .then((res) => { if (active) setLoan(res.data.data); })
+      api
+        .get("/api/loans/my/active")
+        .then((res) => {
+          if (active) setLoan(res.data.data);
+        })
         .catch(() => {})
-        .finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+      return () => {
+        active = false;
+      };
     }, []),
   );
 
-  const outstanding = loan ? (loan.totalRepayable - loan.amountRepaid) : 0;
+  const outstanding = loan ? loan.totalRepayable - loan.amountRepaid : 0;
 
   const handlePayment = async () => {
     if (!loan) {
@@ -63,18 +69,26 @@ export default function RepayLoan() {
       return;
     }
     if (numAmount > outstanding) {
-      Alert.alert("Error", `Amount exceeds outstanding balance of ${formatCurrency(outstanding)}.`);
+      Alert.alert(
+        "Error",
+        `Amount exceeds outstanding balance of ${formatCurrency(outstanding)}.`,
+      );
       return;
     }
 
     setSubmitting(true);
     const body = { amountPaid: numAmount, method };
     try {
+      const NetInfo = require("@react-native-community/netinfo").default;
       const net = await NetInfo.fetch();
       if (!net.isConnected) {
-        enqueue({ endpoint: `/api/loans/${loan.id}/repay`, method: "POST", body });
+        enqueue({
+          endpoint: `/api/loans/${loan.id}/repay`,
+          method: "POST",
+          body,
+        });
         Alert.alert(
-          "Saved Offline 📶",
+          "Saved Offline",
           `Payment of ${formatCurrency(numAmount)} saved. It will be submitted automatically when you're back online.`,
           [{ text: "OK", onPress: () => router.back() }],
         );
@@ -83,7 +97,7 @@ export default function RepayLoan() {
       const res = await api.post(`/api/loans/${loan.id}/repay`, body);
       const fullyRepaid = res.data.fullyRepaid;
       Alert.alert(
-        fullyRepaid ? "Loan Fully Repaid 🎉" : "Payment Recorded ✅",
+        fullyRepaid ? "Loan Fully Repaid" : "Payment Recorded",
         fullyRepaid
           ? `Congratulations! You have fully repaid your loan of ${formatCurrency(loan.amountApproved)}.`
           : `Payment of ${formatCurrency(numAmount)} recorded. Remaining: ${formatCurrency(outstanding - numAmount)}.`,
@@ -99,14 +113,17 @@ export default function RepayLoan() {
   return (
     <ScreenWrapper header={<PageHeader title="Repay Loan" />}>
       <Card style={styles.card}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Outstanding Balance</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
+          Outstanding Balance
+        </Text>
         <Text style={[styles.outstanding, { color: colors.text }]}>
           {loading ? "Loading..." : formatCurrency(outstanding)}
         </Text>
 
         {loan && (
           <Text style={[styles.detail, { color: colors.textSecondary }]}>
-            {loan.purpose} · {loan.repaymentMonths} months · {loan.interestRate}% p.a.
+            {loan.purpose} · {loan.repaymentMonths} months · {loan.interestRate}
+            % p.a.
           </Text>
         )}
 
@@ -118,7 +135,9 @@ export default function RepayLoan() {
 
         {loan && (
           <>
-            <Text style={[styles.methodLabel, { color: colors.textSecondary }]}>Payment Method</Text>
+            <Text style={[styles.methodLabel, { color: colors.textSecondary }]}>
+              Payment Method
+            </Text>
             <View style={styles.methods}>
               {METHODS.map((m) => (
                 <Button
@@ -138,7 +157,12 @@ export default function RepayLoan() {
               keyboardType="numeric"
               placeholder={`Max ${formatCurrency(outstanding)}`}
             />
-            <Button title="Make Payment" onPress={handlePayment} loading={submitting} disabled={!loan} />
+            <Button
+              title="Make Payment"
+              onPress={handlePayment}
+              loading={submitting}
+              disabled={!loan}
+            />
           </>
         )}
       </Card>
@@ -152,7 +176,12 @@ const styles = StyleSheet.create({
   outstanding: { fontSize: 32, fontWeight: "bold", marginBottom: 4 },
   detail: { fontSize: 13, marginBottom: 20 },
   noLoan: { fontSize: 14, marginBottom: 16 },
-  methodLabel: { fontSize: 14, fontWeight: "500", marginBottom: 10, marginTop: 8 },
+  methodLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 10,
+    marginTop: 8,
+  },
   methods: { gap: 8, marginBottom: 16 },
   methodBtn: {},
 });

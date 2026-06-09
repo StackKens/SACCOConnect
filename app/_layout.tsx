@@ -8,9 +8,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { startQueueListener } from "./src/services/offlineQueue";
 
-// start offline queue listener once at app boot
-startQueueListener();
-
 function ThemeUpdater() {
   const updateEffectiveTheme = useUIStore(
     (state) => state.updateEffectiveTheme,
@@ -28,6 +25,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     checkAuth();
+    // start offline queue listener once at app boot
+    startQueueListener();
   }, []);
 
   useEffect(() => {

@@ -1,8 +1,8 @@
 import axios from "axios";
 import { Platform } from "react-native";
-import { createMMKV } from "react-native-mmkv";
+import { MMKV } from "react-native-mmkv";
 
-const tokenStorage = createMMKV({ id: "auth" });
+const tokenStorage = new MMKV({ id: "auth" });
 
 const defaultBaseUrl =
   process.env.EXPO_PUBLIC_API_URL ||

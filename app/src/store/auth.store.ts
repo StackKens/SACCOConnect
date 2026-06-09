@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { createMMKV } from "react-native-mmkv";
+import { MMKV } from "react-native-mmkv";
 import { User, SACCO, InviteCode } from "../types";
 import { useMemberDataStore } from "./member.store";
 import { useLoanStore } from "./loan.store";
@@ -13,7 +13,7 @@ import {
   setAccessToken,
 } from "../services/auth.service";
 
-const storage = createMMKV({ id: "auth" });
+const storage = new MMKV({ id: "auth" });
 
 function mapSacco(raw: AuthSessionResponse["sacco"]): SACCO | null {
   if (!raw) return null;
@@ -243,8 +243,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: () => {
     clearAccessToken();
-    storage.remove("user");
-    storage.remove("sacco");
+    storage.delete("user");
+    storage.delete("sacco");
     useMemberDataStore.getState().resetSession();
     set({ user: null, sacco: null, rulesAccepted: false, isLoading: false });
   },
@@ -276,10 +276,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   clearAppCache: () => {
     clearAccessToken();
     storage.clearAll();
-    createMMKV({ id: "member_data" }).clearAll();
-    createMMKV({ id: "loans" }).clearAll();
-    createMMKV({ id: "announcements" }).clearAll();
-    createMMKV({ id: "ui" }).clearAll();
+    new MMKV({ id: "member_data" }).clearAll();
+    new MMKV({ id: "loans" }).clearAll();
+    new MMKV({ id: "announcements" }).clearAll();
+    new MMKV({ id: "ui" }).clearAll();
     useMemberDataStore.getState().resetSession();
     useLoanStore.getState().resetLoans();
     useAnnouncementStore.getState().resetAnnouncements();

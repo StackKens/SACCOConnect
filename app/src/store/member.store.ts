@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { createMMKV } from "react-native-mmkv";
+import { MMKV } from "react-native-mmkv";
 import { useLoanStore } from "./loan.store";
 
-const storage = createMMKV({ id: "member_data" });
+const storage = new MMKV({ id: "member_data" });
 
 export const DEMO_MEMBER_ID = "member_demo";
 

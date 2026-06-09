@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import NetInfo from "@react-native-community/netinfo";
 import { api } from "../services/api";
 import { getCached, setCached } from "../services/cache";
 
@@ -18,8 +17,9 @@ export function useOfflineApi<T>(endpoint: string): UseOfflineApiResult<T> {
 
   const fetchFresh = async () => {
     try {
+      const NetInfo = require("@react-native-community/netinfo").default;
       const net = await NetInfo.fetch();
-      if (!net.isConnected) return; // offline — keep showing cache
+      if (!net.isConnected) return;
       const res = await api.get(endpoint);
       setData(res.data.data);
       setCached(endpoint, res.data.data);

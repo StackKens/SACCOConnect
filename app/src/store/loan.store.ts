@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { createMMKV } from "react-native-mmkv";
+import { MMKV } from "react-native-mmkv";
 import { useMemberDataStore } from "./member.store";
 
-const storage = createMMKV({ id: "loans" });
+const storage = new MMKV({ id: "loans" });
 
 export type LoanStatus = "pending" | "approved" | "rejected";
 

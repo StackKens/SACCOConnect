@@ -1,8 +1,8 @@
-import { createMMKV } from "react-native-mmkv";
 import NetInfo from "@react-native-community/netinfo";
+import { MMKV } from "react-native-mmkv";
 import { api } from "./api";
 
-const storage = createMMKV({ id: "offline_queue" });
+const storage = new MMKV({ id: "offline_queue" });
 
 export interface QueuedAction {
   id: string;
@@ -25,7 +25,9 @@ export function enqueue(action: Omit<QueuedAction, "id" | "timestamp">): void {
   const queue = loadQueue();
   // deduplicate — if same endpoint+body already queued, skip
   const isDuplicate = queue.some(
-    (q) => q.endpoint === action.endpoint && JSON.stringify(q.body) === JSON.stringify(action.body)
+    (q) =>
+      q.endpoint === action.endpoint &&
+      JSON.stringify(q.body) === JSON.stringify(action.body),
   );
   if (isDuplicate) return;
 
@@ -41,7 +43,10 @@ export function getQueueLength(): number {
   return loadQueue().length;
 }
 
-export async function flushQueue(): Promise<{ success: number; failed: number }> {
+export async function flushQueue(): Promise<{
+  success: number;
+  failed: number;
+}> {
   const queue = loadQueue();
   if (queue.length === 0) return { success: 0, failed: 0 };
 
@@ -51,12 +56,14 @@ export async function flushQueue(): Promise<{ success: number; failed: number }>
 
   for (const action of queue) {
     try {
-      if (action.method === "POST") await api.post(action.endpoint, action.body);
-      else if (action.method === "PATCH") await api.patch(action.endpoint, action.body);
+      if (action.method === "POST")
+        await api.post(action.endpoint, action.body);
+      else if (action.method === "PATCH")
+        await api.patch(action.endpoint, action.body);
       else if (action.method === "DELETE") await api.delete(action.endpoint);
       success++;
     } catch {
-      // keep failed items older than 24h out of the queue to avoid stale data
+      // keep failed items younger than 24h in the queue to avoid stale data
       const age = Date.now() - action.timestamp;
       if (age < 24 * 60 * 60 * 1000) {
         remaining.push(action);
@@ -73,7 +80,7 @@ export async function flushQueue(): Promise<{ success: number; failed: number }>
 let unsubscribe: (() => void) | null = null;
 
 export function startQueueListener(): void {
-  if (unsubscribe) return; // already listening
+  if (unsubscribe) return;
   unsubscribe = NetInfo.addEventListener((state) => {
     if (state.isConnected && state.isInternetReachable) {
       flushQueue();

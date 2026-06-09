@@ -1,8 +1,8 @@
 import axios from "axios";
-import { createMMKV } from "react-native-mmkv";
+import { MMKV } from "react-native-mmkv";
 import { api } from "./api";
 
-const storage = createMMKV({ id: "auth" });
+const storage = new MMKV({ id: "auth" });
 
 export interface AuthSessionResponse {
   accessToken: string;
@@ -44,7 +44,7 @@ export function getAccessToken() {
 }
 
 export function clearAccessToken() {
-  storage.remove("token");
+  storage.delete("token");
 }
 
 export function getApiErrorMessage(error: unknown): string {

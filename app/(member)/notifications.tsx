@@ -8,9 +8,9 @@ import { useAuthStore } from "@/store/auth.store";
 import { useState, useCallback } from "react";
 import { useFocusEffect } from "expo-router";
 import { api } from "@/services/api";
-import { createMMKV } from "react-native-mmkv";
+import { MMKV } from "react-native-mmkv";
 
-const readStorage = createMMKV({ id: "read_announcements" });
+const readStorage = new MMKV({ id: "read_announcements" });
 
 function getReadIds(userId: string): Set<string> {
   const stored = readStorage.getString(`read_${userId}`);

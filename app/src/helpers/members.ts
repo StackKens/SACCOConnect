@@ -1,8 +1,8 @@
-import { createMMKV } from "react-native-mmkv";
+import { MMKV } from "react-native-mmkv";
 import { User, SACCO } from "../types";
 import { getMemberData } from "../store/member.store";
 
-const authStorage = createMMKV({ id: "auth" });
+const authStorage = new MMKV({ id: "auth" });
 
 const DEMO_SACCO_ID = "sacco_demo";
 const DEMO_MEMBER: User = {
