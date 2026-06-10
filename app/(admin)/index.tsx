@@ -121,7 +121,9 @@ export default function AdminDashboard() {
       </Card>
 
       <Card>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Loans</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Quick data
+        </Text>
         <View style={styles.actionButtons}>
           <Button
             title="All Contributions"
@@ -129,6 +131,7 @@ export default function AdminDashboard() {
             variant="outline"
             style={styles.actionBtn}
           />
+
           <Button
             title="Active Loans"
             onPress={() => router.push("/(admin)/active-loans")}

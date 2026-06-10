@@ -6,6 +6,20 @@ import { calculateEligibility } from "../services/eligibility.service";
 import { paramString } from "../utils/helpers";
 import { sendSMS } from "../services/sms.service";
 
+export async function getSaccoMembers(req: AuthRequest, res: Response) {
+  const member = await prisma.member.findUnique({
+    where: { userId: req.user!.userId },
+  });
+  if (!member) throw new AppError("Member not found", 404);
+
+  const members = await prisma.member.findMany({
+    where: { saccoId: member.saccoId, status: "ACTIVE", NOT: { userId: req.user!.userId } },
+    select: { id: true, fullName: true, user: { select: { phoneNumber: true } } },
+    orderBy: { fullName: "asc" },
+  });
+  return res.json({ success: true, data: members });
+}
+
 export async function getMyProfile(req: AuthRequest, res: Response) {
   const member = await prisma.member.findUnique({
     where: { userId: req.user!.userId },

@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { prisma } from "./config/database";
 import authRoutes from "./routes/auth.routes";
 import loanRoutes from "./routes/loan.routes";
 import contributionRoutes from "./routes/contribution.routes";
@@ -40,8 +41,17 @@ app.use("/api/announcements", announcementRoutes);
 
 app.use(errorHandler);
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`SACCOConnect API listening on http://0.0.0.0:${PORT}`);
+async function start() {
+  // Wake Neon from sleep before accepting requests
+  await prisma.$connect();
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`SACCOConnect API listening on http://0.0.0.0:${PORT}`);
+  });
+}
+
+start().catch((e) => {
+  console.error("Failed to connect to database:", e.message);
+  process.exit(1);
 });
 
 export default app;

@@ -45,7 +45,7 @@ export default function ApplyLoan() {
       setLoading(true);
       Promise.all([
         api.get("/api/members/me/eligibility"),
-        api.get("/api/members"),
+      api.get("/api/members/sacco-members"),
       ]).then(([eligRes, membersRes]) => {
         if (!active) return;
         setEligibility(eligRes.data.data);
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   chipRemove: { fontSize: 14, fontWeight: "700", paddingLeft: 8 },
   guarantorBtn: { marginTop: 4 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  modalSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: "75%", paddingTop: 16 },
+  modalSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, minHeight: "60%", maxHeight: "90%", paddingTop: 16 },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingBottom: 12 },
   modalTitle: { fontSize: 16, fontWeight: "700" },
   doneBtn: { minWidth: 70 },

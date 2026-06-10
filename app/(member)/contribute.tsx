@@ -8,6 +8,7 @@ import { Divider } from "@/components/ui/Divider";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
+import { useMemberDataStore } from "@/store/member.store";
 import { dueDateLabel, formatDate } from "@/utils/date";
 import { api } from "@/services/api";
 import { getApiErrorMessage } from "@/services/auth.service";
@@ -29,6 +30,7 @@ export default function Contribute() {
   const [loading, setLoading] = useState(false);
   const { colors } = useTheme();
   const sacco = useAuthStore((state) => state.sacco);
+  const addContribution = useMemberDataStore((s) => s.addContribution);
   const dueDate = sacco?.contributionDueDate;
   const isMobile = method === "MTN" || method === "Airtel";
   const selectedMethod = METHODS.find((m) => m.key === method)!;
@@ -79,11 +81,12 @@ export default function Contribute() {
       }
 
       await api.post("/api/contributions", body);
+      addContribution(numAmount, selectedMethod.label);
 
       Alert.alert(
         isMobile ? "Payment Request Sent" : "Contribution Recorded",
         isMobile
-          ? `A payment prompt will be sent to ${phone}. Approve it to complete your contribution.`
+          ? `A payment prompt has been sent to ${phone}. Approve it to complete your contribution.`
           : "Your bank transfer has been submitted for processing.",
         [{ text: "OK", onPress: () => router.back() }],
       );

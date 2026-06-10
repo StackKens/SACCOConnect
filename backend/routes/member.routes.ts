@@ -10,6 +10,7 @@ import {
   generateInviteLink,
   sendInviteSms,
   deleteMember,
+  getSaccoMembers,
 } from "../controllers/member.contoller";
 
 const router = Router();
@@ -18,6 +19,7 @@ const router = Router();
 router.get("/me", authenticate, requireMember, getMyProfile);
 router.put("/me", authenticate, requireMember, updateMyProfile);
 router.get("/me/eligibility", authenticate, requireMember, getMyEligibility);
+router.get("/sacco-members", authenticate, requireMember, getSaccoMembers);
 
 // Admin routes
 router.get("/", authenticate, requireAdmin, getAllMembers);
