@@ -30,6 +30,9 @@
     "scheme": "saccoconnect",
     "router": {
       "ignoredRouteFiles": ["**/src/**"]
+    },
+    "extra": {
+      "apiUrl": "https://saccoconnect-production.up.railway.app"
     }
   }
 }
