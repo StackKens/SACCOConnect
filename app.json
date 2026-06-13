@@ -4,10 +4,10 @@
     "slug": "saccoconnect",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/Logo.jpeg",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/logo.png",
+      "image": "./assets/Logo.jpeg",
       "resizeMode": "contain",
       "backgroundColor": "#0A2540"
     },
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
+        "foregroundImage": "./assets/Logo.jpeg",
         "backgroundColor": "#0A2540"
       },
       "package": "com.saccoconnect.app"
