@@ -52,7 +52,7 @@ export function getApiErrorMessage(error: unknown): string {
     const message = error.response?.data?.message;
     if (typeof message === "string") return message;
     if (!error.response) {
-      return "Cannot reach the server. Make sure the backend is running.";
+      return "Oops, we are sorry,we are unable to send you the code. Please try again later";
     }
     return error.message;
   }
@@ -73,10 +73,13 @@ export const authApi = {
     }),
 
   login: (phoneNumber: string, pin: string) =>
-    api.post<{ success: boolean; data: AuthSessionResponse }>("/api/auth/login", {
-      phoneNumber,
-      pin,
-    }),
+    api.post<{ success: boolean; data: AuthSessionResponse }>(
+      "/api/auth/login",
+      {
+        phoneNumber,
+        pin,
+      },
+    ),
 
   registerAdmin: (payload: {
     phoneNumber: string;

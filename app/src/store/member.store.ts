@@ -5,6 +5,7 @@ import { useLoanStore } from "./loan.store";
 const storage = new MMKV({ id: "member_data" });
 
 export const DEMO_MEMBER_ID = "member_demo";
+const MOCK_MEMBER_IDS = new Set(["member_alice_002", "member_bob_003", "member_cathy_004"]);
 
 export type ContributionStatus = "completed" | "pending";
 export type LoanStatus = "active" | "pending" | "repaid" | "rejected";
@@ -84,7 +85,7 @@ function storageKey(userId: string, key: string) {
 }
 
 function loadUserData(userId: string) {
-  const isDemo = userId === DEMO_MEMBER_ID;
+  const isDemo = userId === DEMO_MEMBER_ID || MOCK_MEMBER_IDS.has(userId);
   return {
     contributions: loadKey(storageKey(userId, "contributions"), isDemo ? INITIAL_CONTRIBUTIONS : []),
     loans: loadKey(storageKey(userId, "loans"), isDemo ? INITIAL_LOANS : []),

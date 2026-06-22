@@ -1,11 +1,14 @@
 import { Tabs, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { Home, Wallet, Banknote, Bell, User } from "lucide-react-native";
 
 export default function MemberLayout() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 60 + insets.bottom;
   const refreshSacco = useAuthStore((state) => state.refreshSacco);
 
   useFocusEffect(
@@ -23,8 +26,8 @@ export default function MemberLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          height: 74,
-          paddingBottom: 16,
+          height: tabBarHeight,
+          paddingBottom: insets.bottom + 4,
           paddingTop: 6,
         },
         tabBarLabelStyle: {

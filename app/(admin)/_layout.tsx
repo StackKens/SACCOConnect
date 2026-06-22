@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
 import {
   LayoutDashboard,
@@ -10,6 +11,8 @@ import {
 
 export default function AdminLayout() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 60 + insets.bottom;
 
   return (
     <Tabs
@@ -20,8 +23,8 @@ export default function AdminLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          height: 74,
-          paddingBottom: 16,
+          height: tabBarHeight,
+          paddingBottom: insets.bottom + 4,
           paddingTop: 6,
         },
         tabBarLabelStyle: {

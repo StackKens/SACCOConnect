@@ -12,6 +12,7 @@ import {
   getApiErrorMessage,
   setAccessToken,
 } from "../services/auth.service";
+import { mockLogin } from "../services/mockAuth";
 import { api } from "../services/api";
 import { Contribution, MemberLoan, Transaction } from "./member.store";
 
@@ -182,19 +183,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
 
   login: async (phone, pin) => {
+    let sessionData: AuthSessionResponse;
     try {
       const res = await authApi.login(phone.trim(), pin);
-      const { user, sacco } = persistSession(res.data.data);
-      if (user.role === "member") {
-        useMemberDataStore.getState().initForUser(user.id);
-        syncMemberData(user.id);
-      } else {
-        useMemberDataStore.getState().resetSession();
+      sessionData = res.data.data;
+    } catch (apiError) {
+      // API unreachable — fall back to mock (local dev / offline)
+      try {
+        sessionData = mockLogin(phone.trim(), pin);
+      } catch {
+        throw new Error(getApiErrorMessage(apiError));
       }
-      set({ user, sacco, rulesAccepted: true });
-    } catch (e) {
-      throw new Error(getApiErrorMessage(e));
     }
+    const { user, sacco } = persistSession(sessionData);
+    if (user.role === "member") {
+      useMemberDataStore.getState().initForUser(user.id);
+      syncMemberData(user.id);
+    } else {
+      useMemberDataStore.getState().resetSession();
+    }
+    set({ user, sacco, rulesAccepted: true });
   },
 
   requestOtp: async (phone) => {

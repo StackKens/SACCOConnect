@@ -26,12 +26,12 @@
     "react-native-screens": "~4.25.2",
     "react-native-svg": "~15.15.5",
     "react-native-worklets": "^0.9.1",
-    "zustand": "^5.0.14",
-    "postinstall": "patch-package"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.2.2",
+    "patch-package": "^8.0.1",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -39,7 +39,8 @@
     "android": "node scripts/tunnel-keeper.js & npx expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "tunnel": "node scripts/tunnel-keeper.js"
+    "tunnel": "node scripts/tunnel-keeper.js",
+    "postinstall": "patch-package"
   },
   "private": true
 }
