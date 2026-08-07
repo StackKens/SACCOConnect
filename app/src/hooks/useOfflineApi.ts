@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
-import { getCached, setCached } from "../services/cache";
+import { getCached, getCacheAge, setCached } from "../services/cache";
+
+const FRESH_TTL_MS = 60 * 1000;
 
 interface UseOfflineApiResult<T> {
   data: T | null;
@@ -32,6 +34,14 @@ export function useOfflineApi<T>(endpoint: string): UseOfflineApiResult<T> {
   };
 
   useEffect(() => {
+    // Skip the network round-trip when the cached copy is fresh enough,
+    // avoiding duplicate API calls on every tab focus.
+    const age = getCacheAge(endpoint);
+    if (age !== null && age < FRESH_TTL_MS) {
+      setIsStale(false);
+      setLoading(false);
+      return;
+    }
     fetchFresh();
   }, [endpoint]);
 

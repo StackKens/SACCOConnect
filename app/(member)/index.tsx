@@ -29,8 +29,14 @@ export default function MemberDashboard() {
   const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
-  const { data: profile, loading: profileLoading } = useOfflineApi<MemberProfile>("/api/members/me");
-  const { data: activeLoan, loading: loanLoading } = useOfflineApi<ActiveLoan | null>("/api/loans/my/active");
+  const { data: profile, loading: profileLoading, refresh: refreshProfile } = useOfflineApi<MemberProfile>("/api/members/me");
+  const { data: activeLoan, loading: loanLoading, refresh: refreshLoan } = useOfflineApi<ActiveLoan | null>("/api/loans/my/active");
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([refreshProfile(), refreshLoan()]);
+    setRefreshing(false);
+  }, [refreshProfile, refreshLoan]);
   const loading = profileLoading && loanLoading;
 
   const totalSavings = profile?.currentBalance ?? 0;
@@ -43,7 +49,7 @@ export default function MemberDashboard() {
   const saccoInitials = (sacco?.name ?? "SC").split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join("");
 
   return (
-    <ScreenWrapper scroll header={<PageHeader title={`Welcome, ${user?.name?.split(" ")[0] || "Member"}`} />}>
+    <ScreenWrapper scroll header={<PageHeader title={`Welcome, ${user?.name?.split(" ")[0] || "Member"}`} />} refreshing={refreshing} onRefresh={refresh}>
 
       {sacco && (
         <View style={[styles.saccoStrip, { backgroundColor: colors.card, borderColor: colors.border }]}>
