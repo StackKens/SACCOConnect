@@ -567,6 +567,18 @@ Backend: tenant-isolation integration tests with two-tenant fixtures (`backend/t
 |---|---|---|
 | 2026-08-07 | SEC-01 | Done |
 | 2026-08-07 | SEC-02 | Done |
+| 2026-08-07 | UX-01 — fetch failure retry states + `useApiFetch` | Done |
+| 2026-08-07 | UX-02 — shared `EmptyState` on list screens | Done |
+| 2026-08-07 | UX-03 — pull-to-refresh on all list screens | Done |
+| 2026-08-07 | UX-04 — accessibility roles/labels | Done |
+| 2026-08-07 | UX-05 — PIN visibility toggle + haptic | Done |
+| 2026-08-07 | UX-06 — shared phone normalizer | Done |
+| 2026-08-07 | UX-07 — optimistic offline repay + pending-sync banner | Done |
+| 2026-08-07 | ARCH-03 — remove dead feature components / stores | Done |
+| 2026-08-07 | PERF-01 — admin members list → FlatList | Done |
+| 2026-08-07 | PERF-03 — memoized row components | Done |
+| 2026-08-07 | PERF-04 — guarantor picker windowing | Done |
+| 2026-08-07 | PERF-05 — TTL cache dedup on tab focus | Done |
 | — | SEC-03 | Pending |
 | — | SEC-05 | Pending |
 | — | Mock layer (§7) | Pending |
