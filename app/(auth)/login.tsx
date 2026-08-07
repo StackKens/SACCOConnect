@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Vibration } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/Input";
@@ -29,6 +29,7 @@ export default function Login() {
         router.replace("/(member)");
       }
     } catch (e: any) {
+      Vibration.vibrate(80);
       Alert.alert("Login Failed", e?.message || "Invalid credentials.");
     } finally {
       setLoading(false);
