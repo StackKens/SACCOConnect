@@ -52,8 +52,12 @@ export interface TokenPayload {
   saccoId?: string;
 }
 
+// Short-lived access tokens (default 1h) to limit exposure if a device/backup
+// is stolen. Configurable via JWT_ACCESS_TTL (e.g. "15m", "1h").
+const ACCESS_TOKEN_TTL = (process.env.JWT_ACCESS_TTL || "1h") as jwt.SignOptions["expiresIn"];
+
 export function generateAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, accessSecret, { expiresIn: "7d" });
+  return jwt.sign(payload, accessSecret, { expiresIn: ACCESS_TOKEN_TTL });
 }
 
 export function generateRefreshToken(payload: TokenPayload): string {
@@ -65,5 +69,10 @@ export function verifyAccessToken(token: string): TokenPayload {
 }
 
 export function verifyRefreshToken(token: string): TokenPayload {
-  return jwt.verify(token, refreshSecret) as TokenPayload;
+  const decoded = jwt.verify(token, refreshSecret) as TokenPayload & {
+    iat?: number;
+    exp?: number;
+  };
+  const { iat, exp, ...payload } = decoded;
+  return payload;
 }

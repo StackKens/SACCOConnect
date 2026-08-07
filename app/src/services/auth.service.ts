@@ -1,8 +1,22 @@
 import axios from "axios";
-import { MMKV } from "react-native-mmkv";
 import { api } from "./api";
+import {
+  getAccessToken,
+  setAccessToken,
+  clearAccessToken,
+  getRefreshToken,
+  setRefreshToken,
+  clearRefreshToken,
+} from "./tokenStorage";
 
-const storage = new MMKV({ id: "auth" });
+export {
+  getAccessToken,
+  setAccessToken,
+  clearAccessToken,
+  getRefreshToken,
+  setRefreshToken,
+  clearRefreshToken,
+};
 
 export interface AuthSessionResponse {
   accessToken: string;
@@ -33,18 +47,6 @@ export interface InvitePreviewResponse {
   inviteCode: string;
   adminName: string;
   memberCount?: number;
-}
-
-export function setAccessToken(token: string) {
-  storage.set("token", token);
-}
-
-export function getAccessToken() {
-  return storage.getString("token");
-}
-
-export function clearAccessToken() {
-  storage.delete("token");
 }
 
 export function getApiErrorMessage(error: unknown): string {
@@ -116,4 +118,15 @@ export const authApi = {
     api.get<{ success: boolean; data: InvitePreviewResponse }>(
       `/api/auth/invite/${encodeURIComponent(code.trim().toUpperCase())}`,
     ),
+
+  refresh: (refreshToken: string) =>
+    api.post<{ success: boolean; data: { accessToken: string } }>(
+      "/api/auth/refresh",
+      { token: refreshToken },
+    ),
+
+  logout: (refreshToken: string) =>
+    api.post<{ success: boolean; message: string }>("/api/auth/logout", {
+      token: refreshToken,
+    }),
 };

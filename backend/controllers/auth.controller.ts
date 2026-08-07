@@ -325,3 +325,12 @@ export async function validateInviteCode(req: Request, res: Response) {
     },
   });
 }
+
+export async function logout(req: Request, res: Response) {
+  const { token } = req.body;
+  if (token) {
+    await prisma.refreshToken.deleteMany({ where: { token } });
+  }
+  return res.json({ success: true, message: "Logged out" });
+}
+

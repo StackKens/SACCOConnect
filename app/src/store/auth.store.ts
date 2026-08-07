@@ -10,11 +10,14 @@ import {
   AuthSessionResponse,
   clearAccessToken,
   getApiErrorMessage,
+  getRefreshToken,
   setAccessToken,
+  setRefreshToken,
+  clearRefreshToken,
 } from "../services/auth.service";
 import { USE_MOCK_API } from "../constants/config";
 import { mockLogin, mockRequestOtp, mockVerifyOtp } from "../mocks";
-import { api } from "../services/api";
+import { api, setOnAuthFailure } from "../services/api";
 import { Contribution, MemberLoan, Transaction } from "./member.store";
 
 const storage = new MMKV({ id: "auth" });
@@ -54,6 +57,7 @@ function persistSession(data: AuthSessionResponse) {
   const user = mapUser(data);
   const sacco = mapSacco(data.sacco);
   setAccessToken(data.accessToken);
+  if (data.refreshToken) setRefreshToken(data.refreshToken);
   storage.set("user", JSON.stringify(user));
   if (sacco) storage.set("sacco", JSON.stringify(sacco));
   return { user, sacco };
@@ -330,7 +334,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ rulesAccepted: true });
   },
 
-  logout: () => {
+  logout: async () => {
+    const refreshToken = await getRefreshToken();
+    if (refreshToken) {
+      try {
+        await authApi.logout(refreshToken);
+      } catch {
+        // Best-effort revocation; local session is cleared regardless.
+      }
+      await clearRefreshToken();
+    }
     clearAccessToken();
     storage.delete("user");
     storage.delete("sacco");
@@ -360,6 +373,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearAppCache: () => {
     clearAccessToken();
+    clearRefreshToken();
     storage.clearAll();
     new MMKV({ id: "member_data" }).clearAll();
     new MMKV({ id: "loans" }).clearAll();
@@ -371,3 +385,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user: null, sacco: null, rulesAccepted: false });
   },
 }));
+
+// When the API cannot refresh an expired session (refresh token invalid/missing),
+// force the app back to the login screen.
+setOnAuthFailure(() => {
+  useAuthStore.getState().logout();
+});

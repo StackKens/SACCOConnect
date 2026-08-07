@@ -118,4 +118,26 @@ describe("mockAxiosAdapter", () => {
       response: { status: 404 },
     });
   });
+
+  it("refreshes an access token from a mock refresh token", async () => {
+    const res = await mockAxiosAdapter(
+      cfg("/api/auth/refresh", "post", { token: "mock_token_alice" }),
+    );
+    expect(res.status).toBe(200);
+    expect((res.data.data as any).accessToken).toMatch(/^mock_token_refreshed_/);
+  });
+
+  it("rejects a refresh with a non-mock token", async () => {
+    await expect(
+      mockAxiosAdapter(cfg("/api/auth/refresh", "post", { token: "garbage" })),
+    ).rejects.toMatchObject({ response: { status: 401 } });
+  });
+
+  it("logs out successfully", async () => {
+    const res = await mockAxiosAdapter(
+      cfg("/api/auth/logout", "post", { token: "mock_token_alice" }),
+    );
+    expect(res.status).toBe(200);
+    expect((res.data.data as any).message).toBe("Logged out");
+  });
 });

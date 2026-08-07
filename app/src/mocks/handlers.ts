@@ -138,8 +138,7 @@ export function handleMockRequest(req: MockRequest): MockResponse {
   }
 
   // ---- register member (join via invite) ----
-  if (req.path === "/api/auth/register/member" && method === "POST") {
-    const body = (req.body ?? {}) as {
+  if (req.path === "/api/auth/register/member" && method === "POST") {    const body = (req.body ?? {}) as {
       fullName?: string;
       phoneNumber?: string;
       nationalId?: string;
@@ -164,6 +163,19 @@ export function handleMockRequest(req: MockRequest): MockResponse {
       },
       sacco: MOCK_SACCO,
     });
+  }
+
+  // ---- refresh / logout ----
+  if (req.path === "/api/auth/refresh" && method === "POST") {
+    const body = (req.body ?? {}) as { token?: string };
+    if (!body.token?.startsWith("mock_")) {
+      return { status: 401, data: { success: false, message: "Invalid refresh token" } };
+    }
+    return ok({ accessToken: "mock_token_refreshed_" + Date.now() });
+  }
+
+  if (req.path === "/api/auth/logout" && method === "POST") {
+    return ok({ message: "Logged out" });
   }
 
   // ---- members ----
