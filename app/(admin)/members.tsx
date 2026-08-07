@@ -76,7 +76,7 @@ export default function Members() {
   };
 
   return (
-    <ScreenWrapper header={
+    <ScreenWrapper refreshing={loading} onRefresh={refresh} header={
       <PageHeader
         title="Members"
         rightComponent={

@@ -33,7 +33,7 @@ export default function ActiveLoans() {
   });
 
   return (
-    <ScreenWrapper header={<PageHeader title="Active Loans" subtitle="Monitor all disbursed loans" />}>
+    <ScreenWrapper header={<PageHeader title="Active Loans" subtitle="Monitor all disbursed loans" />} refreshing={loading} onRefresh={refresh}>
       {error ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : loading ? (

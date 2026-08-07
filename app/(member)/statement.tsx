@@ -74,7 +74,7 @@ export default function Statement() {
   };
 
   return (
-    <ScreenWrapper scroll header={
+    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={
       <PageHeader
         title="Statement"
         rightComponent={

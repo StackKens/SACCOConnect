@@ -65,7 +65,7 @@ export default function AdminContributions() {
     .reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <ScreenWrapper scroll header={<PageHeader title="Contributions" subtitle="All member savings contributions" showBack onBack={() => router.back()} />}>
+    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title="Contributions" subtitle="All member savings contributions" showBack onBack={() => router.back()} />}>
 
       <Card style={styles.summaryCard}>
         <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Confirmed</Text>

@@ -75,6 +75,8 @@ export default function MemberDetail() {
   return (
     <ScreenWrapper
       scroll
+      refreshing={loading}
+      onRefresh={refresh}
       header={
         <PageHeader
           title={member.fullName}

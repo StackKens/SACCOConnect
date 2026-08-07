@@ -151,7 +151,7 @@ export default function Treasury() {
   }));
 
   return (
-    <ScreenWrapper scroll header={<PageHeader title="Treasury" subtitle="Financial summary and collections" />}>
+    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title="Treasury" subtitle="Financial summary and collections" />}>
 
       {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonTreasury /> : (
         <>

@@ -93,7 +93,7 @@ export default function Notifications() {
   const { contributions, loans, transactions } = useMemberDataStore();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds(userId));
-  const { error, refresh } = useApiFetch(async () => {
+  const { loading, error, refresh } = useApiFetch(async () => {
     const res = await api.get("/api/announcements");
     setAnnouncements(res.data.data);
   });
@@ -181,6 +181,8 @@ export default function Notifications() {
             data={items}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.list}
+            refreshing={loading}
+            onRefresh={refresh}
             renderItem={({ item }) => {
               const isRead = readIds.has(item.id);
               const meta = NOTIF_META[item.type];

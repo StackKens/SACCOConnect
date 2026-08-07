@@ -40,7 +40,7 @@ export default function Contributions() {
   const isOverdue = dueLabel?.startsWith("Overdue");
 
   return (
-    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" />}>
+    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" />} refreshing={loading} onRefresh={refresh}>
       <Card style={styles.totalCard}>
         <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total Saved</Text>
         <Text style={[styles.totalAmount, { color: colors.text }]}>{formatCurrency(totalSavings)}</Text>

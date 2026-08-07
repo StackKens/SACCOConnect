@@ -42,7 +42,7 @@ export default function Loans() {
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />}>
+    <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />} refreshing={loading} onRefresh={refresh}>
       {loading ? (
         <SkeletonLoanQueue />
       ) : error ? (

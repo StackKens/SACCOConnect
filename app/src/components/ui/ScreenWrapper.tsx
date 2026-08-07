@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, StyleSheet, ViewStyle, View, Text, Pressable } from "react-native";
+import { ScrollView, StyleSheet, ViewStyle, View, Text, Pressable, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 import { StatusBar } from "expo-status-bar";
@@ -11,6 +11,8 @@ interface ScreenWrapperProps {
   scroll?: boolean;
   style?: ViewStyle;
   header?: React.ReactNode;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
@@ -18,6 +20,8 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   scroll = true,
   style,
   header,
+  refreshing = false,
+  onRefresh,
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -25,6 +29,17 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
     <ScrollView
       contentContainerStyle={[styles.scrollContent, style]}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+            progressBackgroundColor={colors.surface}
+          />
+        ) : undefined
+      }
     >
       {children}
     </ScrollView>

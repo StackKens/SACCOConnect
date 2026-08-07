@@ -40,7 +40,7 @@ export default function LoanQueue() {
   );
 
   return (
-    <ScreenWrapper header={<PageHeader title="Loan Applications" subtitle="Review and action pending requests" />}>
+    <ScreenWrapper header={<PageHeader title="Loan Applications" subtitle="Review and action pending requests" />} refreshing={loading} onRefresh={refresh}>
       <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Search size={16} color={colors.textSecondary} />
         <TextInput
