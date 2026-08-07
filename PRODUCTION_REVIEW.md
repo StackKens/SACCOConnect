@@ -12,9 +12,9 @@ SACCOConnect has a solid feature foundation — Expo Router with role-based navi
 
 The highest-risk gaps are **authentication bypass paths left over from development**, **missing token lifecycle on the client**, **backend authorization boundary bugs (IDOR)**, and a **hybrid mock/API architecture** that can show incorrect financial data. There are also **no crash reporting** and **no E2E tests**.
 
-Since the original review: the mock login/OTP bypasses are flag-gated and unreachable in production (SEC-01/02), backend tenant-isolation gaps are closed with integration tests (SEC-03), JWT secrets fail fast (SEC-05), and a structured flag-gated mock layer with fixtures/handlers/delays/scenarios replaces ad-hoc mocks (§7). **Phase 0 is complete.**
+Since the original review: the mock login/OTP bypasses are flag-gated and unreachable in production (SEC-01/02), backend tenant-isolation gaps are closed with integration tests (SEC-03), JWT secrets fail fast (SEC-05), and a structured flag-gated mock layer with fixtures/handlers/delays/scenarios replaces ad-hoc mocks (§7). **Phase 0 is complete.** Phase 1 auth hardening is underway: refresh-token lifecycle with deduped 401 interceptor and logout revocation (SEC-04/13), and server-validated session restore with deactivated-member enforcement and persisted rules acceptance (SEC-11/12). **SEC-04, SEC-11, SEC-12, SEC-13 are resolved; SEC-06, SEC-09, ARCH-01 remain.**
 
-**Estimated effort to reach production confidence:** 3–4 weeks (1 senior engineer), starting from Phase 1 auth hardening.
+**Estimated effort to reach production confidence:** 2–3 weeks (1 senior engineer), starting from the remaining Phase 1 auth hardening.
 
 ---
 
@@ -221,6 +221,8 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### SEC-11 — Client route protection is UI-only; session not validated server-side on restore
 
+**Status:** ✅ Resolved (pending commit)
+
 **Issue:** `checkAuth()` restores session from local MMKV if `user` + `token` exist — no `/me` validation, no expiry check.
 
 **Risk:** Revoked/deactivated users retain app access until token expires. Role changes not reflected.
@@ -236,6 +238,8 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### SEC-12 — Rules acceptance bypass on session restore
 
+**Status:** ✅ Resolved (pending commit)
+
 **Issue:** `rules_accepted_${userId}` is written in `acceptRules()` but **never read** in `checkAuth()`, which always sets `rulesAccepted: true`.
 
 **Risk:** Legal/compliance gap — members skip mandatory rules acceptance after first login.
@@ -250,6 +254,8 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 ---
 
 ### SEC-13 — No 401 response interceptor / automatic logout
+
+**Status:** ✅ Resolved (`c38dfbb`, included in SEC-04)
 
 **Issue:** `api.ts` only attaches Bearer token on request; no response handling for expired tokens.
 
@@ -528,7 +534,7 @@ Backend: tenant-isolation integration tests with two-tenant fixtures (`backend/t
 | Phase | Items | Duration |
 |---|---|---|
 | **Phase 0 — Block release** | SEC-01, SEC-02, SEC-03, SEC-05, mock layer (§7) | 1 week — ✅ Done |
-| **Phase 1 — Auth hardening** | SEC-04, SEC-06, SEC-09, SEC-11, SEC-13, ARCH-01 | 1–2 weeks |
+| **Phase 1 — Auth hardening** | SEC-04, SEC-06, SEC-09, SEC-11, SEC-12, SEC-13, ARCH-01 | 1–2 weeks — SEC-04/11/12/13 ✅ |
 | **Phase 2 — Production ops** | Tests, Sentry, EAS config, CI, error boundaries, a11y basics | 1–2 weeks |
 | **Phase 3 — UX & features** | Push notifications, audit log, PDF statements, biometrics | Ongoing |
 
@@ -538,12 +544,12 @@ Backend: tenant-isolation integration tests with two-tenant fixtures (`backend/t
 
 | Dimension | Grade | Production Ready? |
 |---|---|---|
-| Security | C | No |
+| Security | C+ | No |
 | Architecture | B- | Partially |
 | Performance | B- | Yes for MVP scale |
 | UX | B- | Mostly |
 | Testing | D | No |
-| **Overall** | **Not ready** | Phase 0 done; Phase 1 auth hardening next |
+| **Overall** | **Not ready** | Phase 0 done; Phase 1 auth hardening underway (SEC-04/11/12/13 resolved) |
 
 ---
 

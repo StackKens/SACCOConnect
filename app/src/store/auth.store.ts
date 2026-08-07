@@ -177,7 +177,7 @@ interface AuthState {
   updateContributionDueDate: (date: string) => Promise<void>;
   refreshSacco: () => void;
   logout: () => void;
-  checkAuth: () => void;
+  checkAuth: () => Promise<void>;
   clearAppCache: () => void;
 }
 
@@ -351,23 +351,46 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user: null, sacco: null, rulesAccepted: false, isLoading: false });
   },
 
-  checkAuth: () => {
+  checkAuth: async () => {
     const storedUser = storage.getString("user");
     const token = storage.getString("token");
-    if (storedUser && token) {
-      const user = JSON.parse(storedUser);
-      const sessionSacco = storage.getString("sacco");
-      const sacco = sessionSacco ? JSON.parse(sessionSacco) : null;
-      if (user.role === "member") {
-        useMemberDataStore.getState().initForUser(user.id);
-        syncMemberData(user.id); // background refresh, falls back to cache if offline
-      } else {
-        useMemberDataStore.getState().resetSession();
-      }
-      set({ user, sacco, rulesAccepted: true, isLoading: false });
-    } else {
+    if (!storedUser || !token) {
       useMemberDataStore.getState().resetSession();
       set({ isLoading: false });
+      return;
+    }
+
+    const user = JSON.parse(storedUser);
+    const sessionSacco = storage.getString("sacco");
+    const sacco = sessionSacco ? JSON.parse(sessionSacco) : null;
+
+    // SEC-12: read persisted rules acceptance instead of forcing it true.
+    const rulesAccepted = storage.getBoolean(`rules_accepted_${user.id}`) ?? false;
+
+    // Restore cached session immediately so the UI isn't blocked offline.
+    if (user.role === "member") {
+      useMemberDataStore.getState().initForUser(user.id);
+      syncMemberData(user.id); // background refresh, falls back to cache if offline
+    } else {
+      useMemberDataStore.getState().resetSession();
+    }
+    set({ user, sacco, rulesAccepted, isLoading: false });
+
+    // SEC-11: validate the session server-side. The 401 response interceptor
+    // refreshes the access token and retries; only a definitive auth failure
+    // (or a token that can't be refreshed) reaches here and forces logout.
+    // Network errors keep the cached session (offline support).
+    try {
+      const res = await api.get<{ data?: { status?: string } }>("/api/members/me");
+      // SEC-11: deactivated/suspended members are logged out on restore.
+      if (res.data?.data?.status && res.data.data.status !== "ACTIVE") {
+        get().logout();
+      }
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401 || status === 403) {
+        get().logout();
+      }
     }
   },
 
