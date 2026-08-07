@@ -6,6 +6,7 @@ import { contributionSchema } from "../utils/validators";
 import { updateStreak } from "../services/streak.service";
 import { notifyContributionConfirmed } from "../services/notification.service";
 import { paramString } from "../utils/helpers";
+import { assertSameSacco } from "../middleware/tenant.middleware";
 
 export async function submitContribution(req: AuthRequest, res: Response) {
   const data = contributionSchema.parse(req.body);
@@ -153,6 +154,7 @@ export async function recordCashPayment(req: AuthRequest, res: Response) {
 
   const member = await prisma.member.findUnique({ where: { id: memberId } });
   if (!member) throw new AppError("Member not found", 404);
+  assertSameSacco(member.saccoId, req.user!.saccoId);
 
   const contribution = await prisma.contribution.create({
     data: {
@@ -182,8 +184,12 @@ export async function recordCashPayment(req: AuthRequest, res: Response) {
 export async function confirmContribution(req: AuthRequest, res: Response) {
   const id = paramString(req.params, "id");
 
-  const contribution = await prisma.contribution.findUnique({ where: { id } });
+  const contribution = await prisma.contribution.findUnique({
+    where: { id },
+    include: { member: { select: { saccoId: true } } },
+  });
   if (!contribution) throw new AppError("Contribution not found", 404);
+  assertSameSacco(contribution.member.saccoId, req.user!.saccoId);
   if (contribution.status !== "PENDING")
     throw new AppError("Contribution already processed", 400);
 
