@@ -5,6 +5,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
+import { PendingSyncBanner } from "./PendingSyncBanner";
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
@@ -53,6 +54,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
     >
       <StatusBar style={isDark ? "light" : "dark"} />
       {header}
+      <PendingSyncBanner />
       {content}
     </SafeAreaView>
   );

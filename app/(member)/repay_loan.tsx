@@ -43,6 +43,7 @@ export default function RepayLoan() {
   const { colors } = useTheme();
 
   const outstanding = loan ? loan.totalRepayable - loan.amountRepaid : 0;
+  const fullyRepaid = loan ? loan.amountRepaid >= loan.totalRepayable : false;
 
   const handlePayment = async () => {
     if (!loan) {
@@ -73,10 +74,14 @@ export default function RepayLoan() {
           method: "POST",
           body,
         });
+        setLoan((l) =>
+          l
+            ? { ...l, amountRepaid: Math.min(l.totalRepayable, l.amountRepaid + numAmount) }
+            : l,
+        );
         Alert.alert(
           "Saved Offline",
-          `Payment of ${formatCurrency(numAmount)} saved. It will be submitted automatically when you're back online.`,
-          [{ text: "OK", onPress: () => router.back() }],
+          `Payment of ${formatCurrency(numAmount)} queued. It will be submitted automatically when you're back online.`,
         );
         return;
       }
@@ -117,13 +122,19 @@ export default function RepayLoan() {
           </Text>
         )}
 
+        {fullyRepaid && (
+          <Text style={[styles.fullyRepaid, { color: colors.success }]}>
+            Loan fully repaid.
+          </Text>
+        )}
+
         {!loading && !loan && (
           <Text style={[styles.noLoan, { color: colors.textSecondary }]}>
             You have no active loan right now.
           </Text>
         )}
 
-        {loan && (
+        {loan && !fullyRepaid && (
           <>
             <Text style={[styles.methodLabel, { color: colors.textSecondary }]}>
               Payment Method
@@ -168,6 +179,7 @@ const styles = StyleSheet.create({
   outstanding: { fontSize: 32, fontWeight: "bold", marginBottom: 4 },
   detail: { fontSize: 13, marginBottom: 20 },
   noLoan: { fontSize: 14, marginBottom: 16 },
+  fullyRepaid: { fontSize: 14, fontWeight: "600", marginBottom: 16 },
   methodLabel: {
     fontSize: 14,
     fontWeight: "500",

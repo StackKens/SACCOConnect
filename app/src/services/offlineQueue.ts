@@ -37,10 +37,27 @@ export function enqueue(action: Omit<QueuedAction, "id" | "timestamp">): void {
     timestamp: Date.now(),
   });
   saveQueue(queue);
+  emit();
 }
 
 export function getQueueLength(): number {
   return loadQueue().length;
+}
+
+type QueueListener = (length: number) => void;
+const listeners = new Set<QueueListener>();
+
+function emit(): void {
+  const length = loadQueue().length;
+  listeners.forEach((listener) => listener(length));
+}
+
+export function subscribeQueue(listener: QueueListener): () => void {
+  listeners.add(listener);
+  listener(loadQueue().length);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export async function flushQueue(): Promise<{
@@ -73,6 +90,7 @@ export async function flushQueue(): Promise<{
   }
 
   saveQueue(remaining);
+  emit();
   return { success, failed };
 }
 
