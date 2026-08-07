@@ -193,7 +193,7 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### SEC-09 — Sensitive PII in unencrypted local storage
 
-**Status:** ✅ Resolved (pending commit)
+**Status:** ✅ Resolved (`1778279`)
 
 **Issue:** MMKV stores `user` (name, phone, nationalId), `sacco`, tokens, financial cache — no encryption at rest.
 
