@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { getApiErrorMessage } from "@/services/auth.service";
+import { normalizeUgandaPhone } from "@/utils/phone";
 
 interface OtpVerificationProps {
   phone: string;
@@ -28,14 +29,15 @@ export function OtpVerification({
   const [devHint, setDevHint] = useState<string | null>(null);
 
   const handleSend = async () => {
-    if (phone.trim().length < 10) {
+    const normalized = normalizeUgandaPhone(phone);
+    if (normalized.length < 10) {
       Alert.alert("Required", "Enter a valid phone number.");
       return;
     }
     setLoading(true);
     setDevHint(null);
     try {
-      const devOtp = await requestOtp(phone.trim());
+      const devOtp = await requestOtp(normalized);
       setSent(true);
       setOtp("");
       if (__DEV__ && devOtp) {
@@ -44,8 +46,8 @@ export function OtpVerification({
       Alert.alert(
         "Code sent",
         __DEV__ && devOtp
-          ? `Enter the 6-digit code sent to ${phone.trim()}. Development code: ${devOtp}`
-          : `Enter the 6-digit code sent to ${phone.trim()}.`,
+          ? `Enter the 6-digit code sent to ${normalized}. Development code: ${devOtp}`
+          : `Enter the 6-digit code sent to ${normalized}.`,
       );
     } catch (e) {
       Alert.alert("Could not send code", getApiErrorMessage(e));

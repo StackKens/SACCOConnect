@@ -9,6 +9,7 @@ import { TextArea } from "@/components/ui/TextArea";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { OtpVerification } from "@/components/features/OtpVerification";
 import { useAuthStore } from "@/store/auth.store";
+import { normalizeUgandaPhone } from "@/utils/phone";
 import { PRESET_RULES } from "@/constants/rules";
 
 type Step = "phone" | "otp" | "personal" | "sacco" | "review";
@@ -55,7 +56,7 @@ export default function RegisterAdmin() {
     setLoading(true);
     try {
       await registerAdmin({
-        phone: phone.trim(),
+        phone: normalizeUgandaPhone(phone),
         fullName: fullName.trim(),
         nationalId: nationalId.trim() || undefined,
         pin,
@@ -101,7 +102,7 @@ export default function RegisterAdmin() {
             keyboardType="phone-pad"
             placeholder="e.g. 0700123456"
           />
-          <Button title="Continue" onPress={() => setStep("otp")} disabled={phone.trim().length < 10} />
+          <Button title="Continue" onPress={() => setStep("otp")} disabled={normalizeUgandaPhone(phone).length < 10} />
         </View>
       )}
 

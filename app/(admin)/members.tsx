@@ -20,6 +20,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { ChevronRight, UserPlus, Search } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
+import { normalizeUgandaPhone } from "@/utils/phone";
 import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useAuthStore } from "@/store/auth.store";
@@ -54,13 +55,14 @@ export default function Members() {
   );
 
   const handleInvite = async () => {
-    if (invitePhone.trim().length < 10) {
+    const normalizedPhone = normalizeUgandaPhone(invitePhone);
+    if (normalizedPhone.length < 10) {
       Alert.alert("Required", "Enter a valid phone number.");
       return;
     }
     setInviteLoading(true);
     try {
-      const res = await api.post("/api/members/invite/send", { phoneNumber: invitePhone.trim() });
+      const res = await api.post("/api/members/invite/send", { phoneNumber: normalizedPhone });
       setInviteCode(res.data.data.inviteCode);
     } catch (e: any) {
       Alert.alert("Error", e?.response?.data?.message || "Could not send invite SMS.");
