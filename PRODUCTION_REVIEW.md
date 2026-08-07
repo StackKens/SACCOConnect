@@ -141,7 +141,7 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### SEC-06 — 4-digit PIN only; no lockout or rate limiting on auth
 
-**Status:** ✅ Resolved (pending commit)
+**Status:** ✅ Resolved (`260952d`)
 
 **Issue:** PIN is 4 digits (~10,000 combinations). Login/OTP endpoints share a global 200 req/15 min limit with no per-phone throttling. No failed-attempt counter or account lockout.
 
