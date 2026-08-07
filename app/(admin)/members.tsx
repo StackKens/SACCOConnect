@@ -7,19 +7,19 @@ import {
   Modal,
   Alert,
   TextInput,
+  FlatList,
 } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
-import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Divider } from "@/components/ui/Divider";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { MemberRow } from "@/components/features/MemberRow";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
-import { ChevronRight, UserPlus, Search } from "lucide-react-native";
-import { formatCurrency } from "@/utils/currency";
+import { UserPlus, Search } from "lucide-react-native";
 import { normalizeUgandaPhone } from "@/utils/phone";
 import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -78,7 +78,7 @@ export default function Members() {
   };
 
   return (
-    <ScreenWrapper refreshing={loading} onRefresh={refresh} header={
+    <ScreenWrapper scroll={false} header={
       <PageHeader
         title="Members"
         rightComponent={
@@ -107,46 +107,42 @@ export default function Members() {
         />
       </View>
 
-      <View style={styles.list}>
-        {error ? (
-          <ErrorState message={error} onRetry={refresh} />
-        ) : loading ? (
-          <SkeletonMemberList />
-        ) : filtered.length === 0 ? (
-          <EmptyState
-            title={members.length === 0 ? "No members yet" : "No results found"}
-            description={
-              members.length === 0
-                ? "Invite someone to get started."
-                : "Try a different name or phone number."
-            }
-            icon={<UserPlus size={32} color={colors.textSecondary} />}
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <MemberRow
+            member={item}
+            onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}
           />
-        ) : (
-          filtered.map((item) => (
-            <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)} accessibilityRole="button" accessibilityLabel={`View member ${item.fullName}`}>
-              <Card style={styles.card}>
-                <View style={styles.row}>
-                  <Avatar name={item.fullName} size={48} />
-                  <View style={styles.info}>
-                    <Text style={[styles.name, { color: colors.text }]}>{item.fullName}</Text>
-                    <Text style={[styles.phone, { color: colors.textSecondary }]}>{item.user.phoneNumber}</Text>
-                    <Text style={[styles.savings, { color: colors.success }]}>
-                      {formatCurrency(item.currentBalance)} saved
-                    </Text>
-                  </View>
-                  <View style={styles.right}>
-                    <Text style={[styles.status, { color: item.status === "ACTIVE" ? colors.success : colors.textSecondary }]}>
-                      {item.status.toLowerCase()}
-                    </Text>
-                    <ChevronRight size={18} color={colors.textSecondary} />
-                  </View>
-                </View>
-              </Card>
-            </TouchableOpacity>
-          ))
         )}
-      </View>
+        contentContainerStyle={styles.list}
+        style={styles.flatList}
+        refreshing={loading}
+        onRefresh={refresh}
+        initialNumToRender={12}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        removeClippedSubviews
+        keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={
+          loading ? (
+            <SkeletonMemberList />
+          ) : error ? (
+            <ErrorState message={error} onRetry={refresh} />
+          ) : (
+            <EmptyState
+              title={members.length === 0 ? "No members yet" : "No results found"}
+              description={
+                members.length === 0
+                  ? "Invite someone to get started."
+                  : "Try a different name or phone number."
+              }
+              icon={<UserPlus size={32} color={colors.textSecondary} />}
+            />
+          )
+        }
+      />
 
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
         <View style={styles.overlay}>
@@ -200,14 +196,7 @@ const styles = StyleSheet.create({
   inviteBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   inviteBtnText: { color: "#fff", fontSize: 14, fontWeight: "600" },
   list: { paddingBottom: 20 },
-  card: { marginBottom: 12 },
-  row: { flexDirection: "row", alignItems: "center" },
-  info: { flex: 1, marginLeft: 12 },
-  right: { alignItems: "flex-end", gap: 4 },
-  name: { fontSize: 15, fontWeight: "600" },
-  phone: { fontSize: 13, marginTop: 2 },
-  savings: { fontSize: 12, marginTop: 4 },
-  status: { fontSize: 11, fontWeight: "600", textTransform: "capitalize" },
+  flatList: { flex: 1 },
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 24 },
   modalCard: { borderRadius: 16, padding: 24 },
   modalTitle: { fontSize: 18, fontWeight: "700", marginBottom: 6 },
