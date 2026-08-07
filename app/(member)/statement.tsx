@@ -1,9 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
-import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
-import { formatCurrency } from "@/utils/currency";
-import { formatDate } from "@/utils/date";
 import { Download } from "lucide-react-native";
 import { api } from "@/services/api";
 import { useState } from "react";
@@ -11,15 +8,7 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
-
-interface TxItem {
-  id: string;
-  type: "CONTRIBUTION" | "LOAN_REPAYMENT" | "LOAN_DISBURSEMENT";
-  amount: number;
-  date: string;
-  reference: string | null;
-  status: string;
-}
+import { TransactionRow, TxItem } from "@/components/features/TransactionRow";
 
 export default function Statement() {
   const { colors } = useTheme();
@@ -67,12 +56,6 @@ export default function Statement() {
     setTransactions(all);
   });
 
-  const typeLabel = (type: TxItem["type"]) => {
-    if (type === "CONTRIBUTION") return "Contribution";
-    if (type === "LOAN_REPAYMENT") return "Loan Repayment";
-    return "Loan Disbursement";
-  };
-
   return (
     <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={
       <PageHeader
@@ -95,23 +78,7 @@ export default function Statement() {
       ) : (
         <View style={styles.list}>
           {transactions.map((item) => (
-            <Card key={item.id} style={styles.card}>
-              <View style={styles.row}>
-                <View style={styles.left}>
-                  <Text style={[styles.type, { color: colors.text }]}>{typeLabel(item.type)}</Text>
-                  {item.reference && (
-                    <Text style={[styles.reference, { color: colors.textSecondary }]}>{item.reference}</Text>
-                  )}
-                  <Text style={[styles.date, { color: colors.textSecondary }]}>{formatDate(item.date)}</Text>
-                  <Text style={[styles.status, { color: item.status === "CONFIRMED" ? colors.success : colors.warning }]}>
-                    {item.status.toLowerCase()}
-                  </Text>
-                </View>
-                <Text style={[styles.amount, { color: item.amount > 0 ? colors.success : colors.error }]}>
-                  {item.amount > 0 ? "+" : ""}{formatCurrency(Math.abs(item.amount))}
-                </Text>
-              </View>
-            </Card>
+            <TransactionRow key={item.id} item={item} />
           ))}
         </View>
       )}
@@ -122,12 +89,4 @@ export default function Statement() {
 const styles = StyleSheet.create({
   exportBtn: { flexDirection: "row", alignItems: "center", gap: 6 },
   list: { paddingBottom: 20 },
-  card: { marginBottom: 12 },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  left: { flex: 1 },
-  type: { fontSize: 15, fontWeight: "600" },
-  reference: { fontSize: 12, marginTop: 2 },
-  date: { fontSize: 12, marginTop: 2 },
-  status: { fontSize: 11, marginTop: 2, fontWeight: "500" },
-  amount: { fontSize: 16, fontWeight: "bold" },
 });
