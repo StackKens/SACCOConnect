@@ -4,6 +4,7 @@ import { AuthRequest } from "../middleware/auth.middleware";
 import { AppError } from "../middleware/error.middleware";
 import { announcementSchema } from "../utils/validators";
 import { paramString } from "../utils/helpers";
+import { assertSameSacco } from "../middleware/tenant.middleware";
 
 export async function getAnnouncements(req: AuthRequest, res: Response) {
   const saccoId = req.user!.saccoId;
@@ -38,6 +39,7 @@ export async function deleteAnnouncement(req: AuthRequest, res: Response) {
   const id = paramString(req.params, "id");
   const announcement = await prisma.announcement.findUnique({ where: { id } });
   if (!announcement) throw new AppError("Announcement not found", 404);
+  assertSameSacco(announcement.saccoId, req.user!.saccoId);
 
   await prisma.announcement.delete({ where: { id } });
   return res.json({ success: true, message: "Deleted" });
