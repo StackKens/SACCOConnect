@@ -192,6 +192,11 @@ export default function ApplyLoan() {
               data={members}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.memberList}
+              initialNumToRender={12}
+              maxToRenderPerBatch={10}
+              windowSize={7}
+              updateCellsBatchingPeriod={40}
+              keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => {
                 const selected = !!guarantors.find((g) => g.id === item.id);
                 return (
