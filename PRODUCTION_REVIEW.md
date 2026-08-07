@@ -340,7 +340,7 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### ARCH-01 — Hybrid mock/API architecture causes data inconsistency
 
-**Status:** ✅ Resolved (pending commit)
+**Status:** ✅ Resolved (`590c56f`)
 
 **Issue:** Some flows hit the API (`contributions.tsx`, admin screens); others use local Zustand stores (`member.store.ts`, `loan.store.ts`); `contribute.tsx` writes to **both** API and local store; `exportData.ts` reads **local mock helpers only**; notifications merge local loan store + API announcements.
 
