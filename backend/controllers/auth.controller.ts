@@ -230,6 +230,9 @@ export async function registerMember(req: Request, res: Response) {
   });
 }
 
+const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+
 export async function login(req: Request, res: Response) {
   const { phoneNumber, pin } = loginSchema.parse(req.body);
 
@@ -242,10 +245,43 @@ export async function login(req: Request, res: Response) {
   });
 
   if (!user) throw new AppError("Invalid phone number or PIN", 401);
+
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    const minutes = Math.ceil(
+      (user.lockedUntil.getTime() - Date.now()) / 60000,
+    );
+    throw new AppError(
+      `Account temporarily locked. Try again in ${minutes} minute(s).`,
+      429,
+    );
+  }
+
   if (!user.isActive) throw new AppError("Account is deactivated", 403);
 
   const isValid = await bcrypt.compare(pin, user.pinHash);
-  if (!isValid) throw new AppError("Invalid phone number or PIN", 401);
+  if (!isValid) {
+    const attempts = user.failedLoginAttempts + 1;
+    if (attempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginAttempts: 0,
+          lockedUntil: new Date(Date.now() + LOCKOUT_DURATION_MS),
+        },
+      });
+    } else {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts: attempts },
+      });
+    }
+    throw new AppError("Invalid phone number or PIN", 401);
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { failedLoginAttempts: 0, lockedUntil: null },
+  });
 
   const accessToken = generateAccessToken({
     userId: user.id,

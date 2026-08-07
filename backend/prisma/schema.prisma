@@ -45,14 +45,16 @@ enum GuarantorStatus {
 }
 
 model User {
-  id           String         @id @default(cuid())
-  phoneNumber  String         @unique
-  pinHash      String
-  role         UserRole
-  saccoId      String?
-  isActive     Boolean        @default(true)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id                  String         @id @default(cuid())
+  phoneNumber         String         @unique
+  pinHash             String
+  role                UserRole
+  saccoId             String?
+  isActive            Boolean        @default(true)
+  failedLoginAttempts Int            @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
   sacco        Sacco?         @relation(fields: [saccoId], references: [id])
   member       Member?
   refreshTokens RefreshToken[]
