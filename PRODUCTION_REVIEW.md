@@ -10,15 +10,19 @@
 
 SACCOConnect has a solid feature foundation — Expo Router with role-based navigation, Zustand + MMKV persistence, a reasonable backend with Prisma/Zod/Helmet, and partial offline support. **It is not production-ready as-is.**
 
-The highest-risk gaps are **authentication bypass paths left over from development**, **missing token lifecycle on the client**, **backend authorization boundary bugs (IDOR)**, and a **hybrid mock/API architecture** that can show incorrect financial data. There are also **zero automated tests**, **no crash reporting**, and **no structured mock layer** for safe offline development.
+The highest-risk gaps are **authentication bypass paths left over from development**, **missing token lifecycle on the client**, **backend authorization boundary bugs (IDOR)**, and a **hybrid mock/API architecture** that can show incorrect financial data. There are also **no crash reporting** and **no E2E tests**.
 
-**Estimated effort to reach production confidence:** 4–6 weeks (1 senior engineer), depending on how much of the mock/API split you refactor.
+Since the original review: the mock login/OTP bypasses are flag-gated and unreachable in production (SEC-01/02), backend tenant-isolation gaps are closed with integration tests (SEC-03), JWT secrets fail fast (SEC-05), and a structured flag-gated mock layer with fixtures/handlers/delays/scenarios replaces ad-hoc mocks (§7). **Phase 0 is complete.**
+
+**Estimated effort to reach production confidence:** 3–4 weeks (1 senior engineer), starting from Phase 1 auth hardening.
 
 ---
 
 ## 1. Security Findings
 
 ### SEC-01 — Mock login fallback bypasses real authentication
+
+**Status:** ✅ Resolved (`b1bee52`, `89e5375`, `131411a`)
 
 **Issue:** When the login API fails for any reason (network error, server down, wrong credentials returning network error), the app falls back to `mockLogin()` with hardcoded credentials in `app/src/store/auth.store.ts`.
 
@@ -41,6 +45,8 @@ The highest-risk gaps are **authentication bypass paths left over from developme
 
 ### SEC-02 — Client-side OTP bypass (hardcoded `123456`)
 
+**Status:** ✅ Resolved (`b1bee52`, `fd56c14`)
+
 **Issue:** `OtpVerification.tsx` auto-fills OTP `123456`, accepts it without server verification, and shows "Dev Mode" alerts — with no `__DEV__` guard.
 
 **Risk:** Anyone can register admin/member accounts without phone verification in any build, including production.
@@ -60,6 +66,8 @@ The highest-risk gaps are **authentication bypass paths left over from developme
 ---
 
 ### SEC-03 — Backend IDOR: cross-SACCO data access on admin/member endpoints
+
+**Status:** ✅ Resolved (`e4db6fc`, `8cdef0c`, `ecfd68f`, `adde5b3`, `0821eb6`)
 
 **Issue:** Several endpoints authenticate but do not verify the resource belongs to the caller's `saccoId`:
 
@@ -110,6 +118,8 @@ The highest-risk gaps are **authentication bypass paths left over from developme
 ---
 
 ### SEC-05 — JWT secrets have insecure defaults
+
+**Status:** ✅ Resolved (`4a11fc4`)
 
 **Issue:** `backend/config/jwt.ts` falls back to `"dev-access-secret-change-me"` and `"dev-refresh-secret-change-me"` when env vars are missing.
 
@@ -446,7 +456,7 @@ The highest-risk gaps are **authentication bypass paths left over from developme
 
 | Feature | Why | Priority | Est. Time |
 |---|---|---|---|
-| Structured mock API layer | Required for safe dev/test (see §7) | P0 | 3–5 days |
+| Structured mock API layer | Flag-gated adapter + handlers ✅ (see §7) | P0 | Done |
 | Crash reporting (Sentry/Bugsnag) | Production visibility | P0 | 1 day |
 | In-app support / feedback | Reduce support friction | P3 | 1–2 days |
 
@@ -463,14 +473,14 @@ The highest-risk gaps are **authentication bypass paths left over from developme
 | Validation | ⚠ Needs improvement | Backend Zod good; client inconsistent; rules acceptance broken |
 | Performance | ⚠ Needs improvement | OK for small SACCOs; list rendering needs work |
 | Offline support | ⚠ Needs improvement | Partial queue; no idempotency; data split |
-| Testing | ❌ Missing | Zero unit/integration/E2E tests |
+| Testing | ⚠ Needs improvement | App + backend vitest harnesses added; no E2E |
 | Logging | ⚠ Needs improvement | `console.error` only; OTP dev logs |
 | Crash reporting | ❌ Missing | No Sentry/Crashlytics |
 | Monitoring | ❌ Missing | No APM, no health check alerting |
 | Backups | ⚠ Needs improvement | Depends on Railway/Neon config (not in repo) |
 | Accessibility | ❌ Missing | No a11y props |
 | Error handling | ⚠ Needs improvement | Silent catches; no error boundaries |
-| Security | ❌ Missing | See SEC-01–SEC-17 |
+| Security | ⚠ Needs improvement | SEC-01/02/03/05 resolved; SEC-04/06/09/11/13 remain |
 | Code quality | ⚠ Needs improvement | TypeScript strict ✅; dead code; hybrid architecture |
 | Deployment readiness | ⚠ Needs improvement | No `eas.json`; production API URL in `app.json`; no CI |
 
@@ -480,27 +490,29 @@ The highest-risk gaps are **authentication bypass paths left over from developme
 
 ### Current State
 
-- `mockAuth.ts` with 4 hardcoded users — **dangerously wired into production login path**.
-- `member.store.ts` seeds demo financial data for mock user IDs.
-- No config flag to swap API implementations.
-- No simulated delays, errors, pagination, or expired-token scenarios.
-- `.env.example` points to local backend, but `app.json` hardcodes production Railway URL.
+- ✅ `mockAuth.ts` replaced by a flag-gated mock layer (`EXPO_PUBLIC_USE_MOCK_API=true`), never reachable in production (config throws if the flag is set in a release build).
+- ✅ Mock login/OTP/register/join/invite flows live in `app/src/mocks/` and are only invoked when the flag is on; `auth.store.ts` no longer falls back to mocks on API errors.
+- ✅ Dedicated `USE_MOCK_API` flag in `config.ts`; the `api` axios instance swaps in a mock adapter (`api.mock.ts`) when set.
+- ✅ Simulated delays, error/empty scenarios, and per-member fixtures in the mock handlers.
+- ✅ `.env.example` points to local backend.
 
-### Required Architecture (Not Yet Implemented)
+### Required Architecture (Implemented)
 
 ```
 app/src/
-  config.ts          → USE_MOCK_API flag
+  config.ts          → USE_MOCK_API flag ✅
   services/
-    api.ts           → real axios client
-    api.mock.ts      → mock implementation
-    index.ts         → export based on flag
+    api.ts           → real axios client ✅
+    api.mock.ts      → mock axios adapter ✅
   mocks/
-    data/            → JSON fixtures
-    handlers/        → auth, loans, contributions, errors
-    delays.ts        → simulate network latency
-    scenarios.ts     → expired token, 401, 500, empty data
+    data.ts          → typed fixtures (members, loans, contributions, announcements) ✅
+    handlers.ts      → auth, loans, contributions, members, announcements ✅
+    delays.ts        → simulated network latency ✅
+    scenarios.ts     → expired token, 401, 500, empty data ✅
+    auth.mock.ts     → mock logins/OTP (flag-gated) ✅
 ```
+
+Backend: tenant-isolation integration tests with two-tenant fixtures (`backend/test/*.tenant.test.ts`), app-side vitest harness for mock modules.
 
 **Issue:** Mocks are embedded in auth flow instead of isolated.  
 **Risk:** Production security breach + unreliable testing.  
@@ -515,7 +527,7 @@ app/src/
 
 | Phase | Items | Duration |
 |---|---|---|
-| **Phase 0 — Block release** | SEC-01, SEC-02, SEC-03, SEC-05, mock layer (§7) | 1 week |
+| **Phase 0 — Block release** | SEC-01, SEC-02, SEC-03, SEC-05, mock layer (§7) | 1 week — ✅ Done |
 | **Phase 1 — Auth hardening** | SEC-04, SEC-06, SEC-09, SEC-11, SEC-13, ARCH-01 | 1–2 weeks |
 | **Phase 2 — Production ops** | Tests, Sentry, EAS config, CI, error boundaries, a11y basics | 1–2 weeks |
 | **Phase 3 — UX & features** | Push notifications, audit log, PDF statements, biometrics | Ongoing |
@@ -526,12 +538,12 @@ app/src/
 
 | Dimension | Grade | Production Ready? |
 |---|---|---|
-| Security | D | No |
-| Architecture | C+ | Partially |
+| Security | C | No |
+| Architecture | B- | Partially |
 | Performance | B- | Yes for MVP scale |
 | UX | B- | Mostly |
-| Testing | F | No |
-| **Overall** | **Not ready** | Fix P0 security items first |
+| Testing | D | No |
+| **Overall** | **Not ready** | Phase 0 done; Phase 1 auth hardening next |
 
 ---
 
