@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Divider } from "@/components/ui/Divider";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { ChevronRight, UserPlus, Search } from "lucide-react-native";
@@ -108,9 +109,15 @@ export default function Members() {
         ) : loading ? (
           <SkeletonMemberList />
         ) : filtered.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No members found. Invite someone to get started.
-          </Text>
+          <EmptyState
+            title={members.length === 0 ? "No members yet" : "No results found"}
+            description={
+              members.length === 0
+                ? "Invite someone to get started."
+                : "Try a different name or phone number."
+            }
+            icon={<UserPlus size={32} color={colors.textSecondary} />}
+          />
         ) : (
           filtered.map((item) => (
             <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>
@@ -186,7 +193,6 @@ export default function Members() {
 const styles = StyleSheet.create({
   searchBar: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14 },
   searchInput: { flex: 1, fontSize: 14 },
-  emptyText: { textAlign: "center", fontSize: 14, marginTop: 32 },
   inviteBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   inviteBtnText: { color: "#fff", fontSize: 14, fontWeight: "600" },
   list: { paddingBottom: 20 },

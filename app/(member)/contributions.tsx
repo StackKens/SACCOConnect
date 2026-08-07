@@ -11,6 +11,7 @@ import { api } from "@/services/api";
 import { useState } from "react";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 
 interface Contribution {
@@ -61,7 +62,7 @@ export default function Contributions() {
       ) : (
         <View style={styles.list}>
           {contributions.length === 0 ? (
-            <Text style={[{ color: colors.textSecondary, textAlign: "center", marginTop: 20 }]}>No contributions yet</Text>
+            <EmptyState title="No contributions yet" />
           ) : contributions.map((item) => (
             <Card key={item.id} style={styles.card}>
               <View style={styles.row}>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Divider } from "@/components/ui/Divider";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
@@ -122,7 +123,7 @@ export default function MemberDetail() {
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Contributions</Text>
         {recentContributions.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No contributions yet</Text>
+          <EmptyState title="No contributions yet" />
         ) : (
           recentContributions.map((c, i) => (
             <View key={c.id}>
@@ -139,7 +140,7 @@ export default function MemberDetail() {
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Loan History</Text>
         {loanHistory.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No loans yet</Text>
+          <EmptyState title="No loans yet" />
         ) : (
           loanHistory.map((loan) => (
             <View key={loan.id} style={styles.loanRow}>
@@ -245,7 +246,6 @@ const styles = StyleSheet.create({
   loanInfo: { gap: 2 },
   loanAmount: { fontSize: 15, fontWeight: "600" },
   loanRepaid: { fontSize: 12 },
-  emptyText: { fontSize: 13, fontStyle: "italic" },
   actions: { flexDirection: "row", gap: 12, marginBottom: 24 },
   actionBtn: { flex: 1 },
 });

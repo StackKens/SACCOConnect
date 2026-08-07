@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
@@ -74,7 +75,7 @@ export default function AdminContributions() {
       {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonMemberList /> : (
         <View style={styles.list}>
           {contributions.length === 0 ? (
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No contributions yet.</Text>
+            <EmptyState title="No contributions yet" />
           ) : contributions.map((item) => (
             <Card key={item.id} style={styles.card}>
               <View style={styles.row}>
@@ -117,7 +118,6 @@ const styles = StyleSheet.create({
   summaryLabel: { fontSize: 14 },
   summaryAmount: { fontSize: 32, fontWeight: "bold", marginTop: 4 },
   list: { paddingBottom: 20 },
-  emptyText: { textAlign: "center", fontSize: 14, marginTop: 24 },
   card: { marginBottom: 12 },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   left: { flex: 1 },

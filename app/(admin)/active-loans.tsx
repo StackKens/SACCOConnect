@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Badge } from "@/components/ui/Badge";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
@@ -38,10 +39,11 @@ export default function ActiveLoans() {
       ) : loading ? (
         <SkeletonLoanQueue />
       ) : loans.length === 0 ? (
-        <View style={styles.empty}>
-          <Inbox size={32} color={colors.textSecondary} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No active loans yet</Text>
-        </View>
+        <EmptyState
+          title="No active loans yet"
+          description="Disbursed loans will appear here."
+          icon={<Inbox size={32} color={colors.textSecondary} />}
+        />
       ) : (
         <View style={styles.list}>
           {loans.map((item) => {
@@ -82,6 +84,4 @@ const styles = StyleSheet.create({
   progressLabels: { flexDirection: "row", justifyContent: "space-between" },
   label: { fontSize: 12, fontWeight: "600" },
   dueDate: { fontSize: 12, marginTop: 6 },
-  empty: { alignItems: "center", paddingTop: 60, gap: 10 },
-  emptyText: { fontSize: 14 },
 });

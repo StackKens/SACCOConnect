@@ -11,6 +11,7 @@ import { api } from "@/services/api";
 import { getSecureStorage } from "@/services/secureStorage";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const readStorage = getSecureStorage("read_notifications");
 
@@ -170,10 +171,11 @@ export default function Notifications() {
           </TouchableOpacity>
         ) : null}
         {items.length === 0 ? (
-          <View style={styles.empty}>
-            <BellOff size={32} color={colors.textSecondary} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No notifications yet</Text>
-          </View>
+          <EmptyState
+            title="No notifications yet"
+            description="Contribution, loan, and announcement updates will appear here."
+            icon={<BellOff size={32} color={colors.textSecondary} />}
+          />
         ) : (
           <FlatList
             data={items}
@@ -234,6 +236,4 @@ const styles = StyleSheet.create({
   date: { fontSize: 11 },
   unreadDot: { width: 8, height: 8, borderRadius: 4, marginTop: 4, flexShrink: 0 },
   markAll: { fontSize: 12, fontWeight: "600" },
-  empty: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10 },
-  emptyText: { fontSize: 14 },
 });

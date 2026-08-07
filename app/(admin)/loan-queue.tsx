@@ -4,6 +4,7 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { formatCurrency } from "@/utils/currency";
@@ -58,12 +59,15 @@ export default function LoanQueue() {
         ) : loading ? (
           <SkeletonLoanQueue />
         ) : filtered.length === 0 ? (
-          <View style={styles.empty}>
-            <Inbox size={32} color={colors.textSecondary} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              {loans.length === 0 ? "No pending applications" : "No results found"}
-            </Text>
-          </View>
+          <EmptyState
+            title={loans.length === 0 ? "No pending applications" : "No results found"}
+            description={
+              loans.length === 0
+                ? "Applications submitted by members will appear here."
+                : "Try a different name or purpose."
+            }
+            icon={<Inbox size={32} color={colors.textSecondary} />}
+          />
         ) : (
           filtered.map((item) => (
             <TouchableOpacity
@@ -101,6 +105,4 @@ const styles = StyleSheet.create({
   amount: { fontSize: 18, fontWeight: "bold", marginBottom: 4 },
   details: { fontSize: 14, marginBottom: 4 },
   date: { fontSize: 12 },
-  empty: { alignItems: "center", paddingTop: 48, gap: 10 },
-  emptyText: { fontSize: 14 },
 });

@@ -9,6 +9,7 @@ import { api } from "@/services/api";
 import { useState } from "react";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 
 interface TxItem {
@@ -90,7 +91,7 @@ export default function Statement() {
       {loading ? <SkeletonMemberList /> : error ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : transactions.length === 0 ? (
-        <Text style={[styles.empty, { color: colors.textSecondary }]}>No transactions yet.</Text>
+        <EmptyState title="No transactions yet" />
       ) : (
         <View style={styles.list}>
           {transactions.map((item) => (
@@ -129,5 +130,4 @@ const styles = StyleSheet.create({
   date: { fontSize: 12, marginTop: 2 },
   status: { fontSize: 11, marginTop: 2, fontWeight: "500" },
   amount: { fontSize: 16, fontWeight: "bold" },
-  empty: { textAlign: "center", marginTop: 40, fontSize: 14 },
 });

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Divider } from "@/components/ui/Divider";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { formatDate } from "@/utils/date";
@@ -89,7 +90,7 @@ export default function Announcements() {
       {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonMemberList /> : (
         <View style={styles.list}>
           {announcements.length === 0 ? (
-            <Text style={[styles.empty, { color: colors.textSecondary }]}>No announcements yet.</Text>
+            <EmptyState title="No announcements yet" />
           ) : announcements.map((item) => (
             <Card key={item.id} style={styles.card}>
               <View style={styles.cardHeader}>
@@ -123,5 +124,4 @@ const styles = StyleSheet.create({
   divider: { marginVertical: 10 },
   footer: { flexDirection: "row", justifyContent: "space-between" },
   meta: { fontSize: 12 },
-  empty: { textAlign: "center", fontSize: 14, marginTop: 8 },
 });
