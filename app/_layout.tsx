@@ -1,13 +1,19 @@
 import { Stack, useRouter, useSegments } from "expo-router";
+import type { ErrorBoundaryProps } from "expo-router";
 import { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { useAuthStore } from "./src/store/auth.store";
 import { useUIStore } from "./src/store/ui.store";
 import { LoadingSpinner } from "./src/components/ui/LoadingSpinner";
+import ErrorBoundaryFallback from "./src/components/ErrorBoundary";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { startQueueListener } from "./src/services/offlineQueue";
 import { initSecureStorage } from "./src/services/secureStorage";
+
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <ErrorBoundaryFallback error={error} retry={retry} />;
+}
 
 function ThemeUpdater() {
   const updateEffectiveTheme = useUIStore(

@@ -379,6 +379,8 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### ARCH-04 — No error boundaries
 
+**Status:** ✅ Resolved (pending commit)
+
 **Issue:** Unhandled render errors crash the entire app.
 
 **Recommendation:** Add root `ErrorBoundary` with recovery UI in `_layout.tsx`.
@@ -541,7 +543,7 @@ Backend: tenant-isolation integration tests with two-tenant fixtures (`backend/t
 |---|---|---|
 | **Phase 0 — Block release** | SEC-01, SEC-02, SEC-03, SEC-05, mock layer (§7) | 1 week — ✅ Done |
 | **Phase 1 — Auth hardening** | SEC-04, SEC-06, SEC-09, SEC-11, SEC-12, SEC-13, ARCH-01 | 1–2 weeks — ✅ Done |
-| **Phase 2 — Production ops** | Tests, Sentry, EAS config, CI, error boundaries, a11y basics | 1–2 weeks |
+| **Phase 2 — Production ops** | Tests, Sentry, EAS config, CI, error boundaries, a11y basics | 1–2 weeks — error boundaries ✅ |
 | **Phase 3 — UX & features** | Push notifications, audit log, PDF statements, biometrics | Ongoing |
 
 ---
