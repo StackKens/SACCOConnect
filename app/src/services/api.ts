@@ -2,6 +2,8 @@ import axios from "axios";
 import { Platform } from "react-native";
 import { MMKV } from "react-native-mmkv";
 import Constants from "expo-constants";
+import { USE_MOCK_API } from "../constants/config";
+import { mockAxiosAdapter } from "./api.mock";
 
 const tokenStorage = new MMKV({ id: "auth" });
 
@@ -14,6 +16,7 @@ export const api = axios.create({
   baseURL: defaultBaseUrl,
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
+  adapter: USE_MOCK_API ? mockAxiosAdapter : undefined,
 });
 
 api.interceptors.request.use((config) => {
