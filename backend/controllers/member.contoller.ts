@@ -5,6 +5,7 @@ import { AppError } from "../middleware/error.middleware";
 import { calculateEligibility } from "../services/eligibility.service";
 import { paramString } from "../utils/helpers";
 import { sendSMS } from "../services/sms.service";
+import { assertSameSacco } from "../middleware/tenant.middleware";
 
 export async function getSaccoMembers(req: AuthRequest, res: Response) {
   const member = await prisma.member.findUnique({
@@ -80,6 +81,7 @@ export async function getMemberById(req: AuthRequest, res: Response) {
     },
   });
   if (!member) throw new AppError("Member not found", 404);
+  assertSameSacco(member.saccoId, req.user!.saccoId);
   return res.json({ success: true, data: member });
 }
 
@@ -87,17 +89,22 @@ export async function updateMemberStatus(req: AuthRequest, res: Response) {
   const id = paramString(req.params, "id");
   const { status } = req.body;
 
-  const member = await prisma.member.update({
+  const member = await prisma.member.findUnique({ where: { id } });
+  if (!member) throw new AppError("Member not found", 404);
+  assertSameSacco(member.saccoId, req.user!.saccoId);
+
+  const updated = await prisma.member.update({
     where: { id },
     data: { status },
   });
-  return res.json({ success: true, data: member });
+  return res.json({ success: true, data: updated });
 }
 
 export async function deleteMember(req: AuthRequest, res: Response) {
   const id = paramString(req.params, "id");
   const member = await prisma.member.findUnique({ where: { id } });
   if (!member) throw new AppError("Member not found", 404);
+  assertSameSacco(member.saccoId, req.user!.saccoId);
   await prisma.user.delete({ where: { id: member.userId } });
   return res.json({ success: true, message: "Member deleted" });
 }
