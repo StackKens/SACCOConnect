@@ -379,7 +379,7 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### ARCH-04 — No error boundaries
 
-**Status:** ✅ Resolved (pending commit)
+**Status:** ✅ Resolved (`e69f11e`)
 
 **Issue:** Unhandled render errors crash the entire app.
 
