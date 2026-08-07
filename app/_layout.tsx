@@ -7,6 +7,7 @@ import { LoadingSpinner } from "./src/components/ui/LoadingSpinner";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { startQueueListener } from "./src/services/offlineQueue";
+import { initSecureStorage } from "./src/services/secureStorage";
 
 function ThemeUpdater() {
   const updateEffectiveTheme = useUIStore(
@@ -24,9 +25,13 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    checkAuth();
-    // start offline queue listener once at app boot
-    startQueueListener();
+    (async () => {
+      await initSecureStorage();
+      useUIStore.getState().hydrateTheme();
+      await checkAuth();
+      // start offline queue listener once at app boot
+      startQueueListener();
+    })();
   }, []);
 
   useEffect(() => {

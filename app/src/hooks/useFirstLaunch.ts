@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { MMKV } from "react-native-mmkv";
+import { getSecureStorage } from "../services/secureStorage";
 
-const storage = new MMKV({ id: "app" });
+const storage = getSecureStorage("app");
 
 export function useFirstLaunch() {
   const [isFirstLaunch, setIsFirstLaunch] = useState(false);

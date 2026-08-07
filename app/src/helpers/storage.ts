@@ -1,6 +1,6 @@
-import { MMKV } from "react-native-mmkv";
+import { getSecureStorage } from "../services/secureStorage";
 
-export const storage = new MMKV();
+export const storage = getSecureStorage("");
 
 export const getItem = <T>(key: string): T | null => {
   const value = storage.getString(key);

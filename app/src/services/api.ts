@@ -1,13 +1,13 @@
 import axios from "axios";
 import type { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
-import { MMKV } from "react-native-mmkv";
 import Constants from "expo-constants";
 import { USE_MOCK_API } from "../constants/config";
 import { mockAxiosAdapter } from "./api.mock";
 import { getRefreshToken, clearRefreshToken, setAccessToken } from "./tokenStorage";
+import { getSecureStorage } from "./secureStorage";
 
-const tokenStorage = new MMKV({ id: "auth" });
+const tokenStorage = getSecureStorage("auth");
 
 const defaultBaseUrl =
   process.env.EXPO_PUBLIC_API_URL ||

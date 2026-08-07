@@ -9,9 +9,9 @@ import { useMemberDataStore } from "@/store/member.store";
 import { useState, useCallback, useMemo } from "react";
 import { useFocusEffect } from "expo-router";
 import { api } from "@/services/api";
-import { MMKV } from "react-native-mmkv";
+import { getSecureStorage } from "@/services/secureStorage";
 
-const readStorage = new MMKV({ id: "read_notifications" });
+const readStorage = getSecureStorage("read_notifications");
 
 function getReadIds(userId: string): Set<string> {
   const stored = readStorage.getString(`read_${userId}`);

@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { MMKV } from "react-native-mmkv";
+import { getSecureStorage } from "../services/secureStorage";
 
-const storage = new MMKV({ id: "announcements" });
+const storage = getSecureStorage("announcements");
 
 export interface Announcement {
   id: string;

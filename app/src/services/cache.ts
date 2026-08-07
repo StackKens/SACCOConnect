@@ -1,6 +1,6 @@
-import { MMKV } from "react-native-mmkv";
+import { getSecureStorage } from "./secureStorage";
 
-const cache = new MMKV({ id: "api_cache" });
+const cache = getSecureStorage("api_cache");
 
 export function getCached<T>(key: string): T | null {
   const raw = cache.getString(key);

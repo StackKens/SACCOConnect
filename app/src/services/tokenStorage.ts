@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
-import { MMKV } from "react-native-mmkv";
+import { getSecureStorage } from "./secureStorage";
 
-const storage = new MMKV({ id: "auth" });
+const storage = getSecureStorage("auth");
 const REFRESH_TOKEN_KEY = "refresh_token";
 
 export function setAccessToken(token: string) {

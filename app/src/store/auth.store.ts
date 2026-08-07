@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { MMKV } from "react-native-mmkv";
 import { User, SACCO, InviteCode } from "../types";
 import { useMemberDataStore } from "./member.store";
 import { useLoanStore } from "./loan.store";
@@ -18,9 +17,10 @@ import {
 import { USE_MOCK_API } from "../constants/config";
 import { mockLogin, mockRequestOtp, mockVerifyOtp } from "../mocks";
 import { api, setOnAuthFailure } from "../services/api";
+import { getSecureStorage } from "../services/secureStorage";
 import { Contribution, MemberLoan, Transaction } from "./member.store";
 
-const storage = new MMKV({ id: "auth" });
+const storage = getSecureStorage("auth");
 
 function mapSacco(raw: AuthSessionResponse["sacco"]): SACCO | null {
   if (!raw) return null;
@@ -398,10 +398,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     clearAccessToken();
     clearRefreshToken();
     storage.clearAll();
-    new MMKV({ id: "member_data" }).clearAll();
-    new MMKV({ id: "loans" }).clearAll();
-    new MMKV({ id: "announcements" }).clearAll();
-    new MMKV({ id: "ui" }).clearAll();
+    getSecureStorage("member_data").clearAll();
+    getSecureStorage("loans").clearAll();
+    getSecureStorage("announcements").clearAll();
+    getSecureStorage("ui").clearAll();
     useMemberDataStore.getState().resetSession();
     useLoanStore.getState().resetLoans();
     useAnnouncementStore.getState().resetAnnouncements();

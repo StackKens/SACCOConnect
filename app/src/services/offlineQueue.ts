@@ -1,8 +1,8 @@
 import NetInfo from "@react-native-community/netinfo";
-import { MMKV } from "react-native-mmkv";
 import { api } from "./api";
+import { getSecureStorage } from "./secureStorage";
 
-const storage = new MMKV({ id: "offline_queue" });
+const storage = getSecureStorage("offline_queue");
 
 export interface QueuedAction {
   id: string;

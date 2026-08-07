@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { MMKV } from "react-native-mmkv";
 import { useLoanStore } from "./loan.store";
+import { getSecureStorage } from "../services/secureStorage";
 
-const storage = new MMKV({ id: "member_data" });
+const storage = getSecureStorage("member_data");
 
 export const DEMO_MEMBER_ID = "member_demo";
 const MOCK_MEMBER_IDS = new Set([

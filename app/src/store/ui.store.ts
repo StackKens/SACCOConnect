@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { MMKV } from "react-native-mmkv";
 import { Appearance, ColorSchemeName } from "react-native";
+import { getSecureStorage } from "../services/secureStorage";
 
-const storage = new MMKV({ id: "ui" });
+const storage = getSecureStorage("ui");
 
 type Theme = "light" | "dark" | "system";
 
@@ -11,11 +11,17 @@ interface UIState {
   setTheme: (theme: Theme) => void;
   effectiveTheme: ColorSchemeName;
   updateEffectiveTheme: () => void;
+  hydrateTheme: () => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
-  theme: (storage.getString("theme") as Theme) || "system",
+  theme: "system",
   effectiveTheme: Appearance.getColorScheme(),
+  hydrateTheme: () => {
+    const stored = storage.getString("theme") as Theme | null;
+    if (stored === "light" || stored === "dark") set({ theme: stored });
+    get().updateEffectiveTheme();
+  },
   setTheme: (theme) => {
     storage.set("theme", theme);
     set({ theme });
