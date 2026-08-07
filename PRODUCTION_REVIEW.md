@@ -221,7 +221,7 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### SEC-11 — Client route protection is UI-only; session not validated server-side on restore
 
-**Status:** ✅ Resolved (pending commit)
+**Status:** ✅ Resolved (`17ea23a`)
 
 **Issue:** `checkAuth()` restores session from local MMKV if `user` + `token` exist — no `/me` validation, no expiry check.
 
@@ -238,7 +238,7 @@ Since the original review: the mock login/OTP bypasses are flag-gated and unreac
 
 ### SEC-12 — Rules acceptance bypass on session restore
 
-**Status:** ✅ Resolved (pending commit)
+**Status:** ✅ Resolved (`17ea23a`)
 
 **Issue:** `rules_accepted_${userId}` is written in `acceptRules()` but **never read** in `checkAuth()`, which always sets `rulesAccepted: true`.
 
