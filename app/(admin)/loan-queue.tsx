@@ -73,6 +73,8 @@ export default function LoanQueue() {
             <TouchableOpacity
               key={item.id}
               onPress={() => router.push(`/(admin)/loan-review?id=${item.id}`)}
+              accessibilityRole="button"
+              accessibilityLabel={`Review loan application from ${item.member.fullName}`}
             >
               <Card style={styles.card}>
                 <View style={styles.header}>

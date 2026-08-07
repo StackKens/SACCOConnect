@@ -110,6 +110,8 @@ export default function Profile() {
         <TouchableOpacity
           style={styles.supportRow}
           onPress={() => router.push("/(member)/group_rules")}
+          accessibilityRole="button"
+          accessibilityLabel="View group rules"
         >
           <View style={styles.helpText}>
             <Text style={[styles.settingLabel, { color: colors.text }]}>Group Rules</Text>
@@ -154,6 +156,8 @@ export default function Profile() {
         <TouchableOpacity
           style={styles.supportRow}
           onPress={() => Linking.openURL("mailto:support@saccoconnect.ug")}
+          accessibilityRole="button"
+          accessibilityLabel="Email support"
         >
           <Text style={[styles.settingLabel, { color: colors.text }]}>Email Support</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
@@ -162,6 +166,8 @@ export default function Profile() {
         <TouchableOpacity
           style={styles.supportRow}
           onPress={() => Linking.openURL("tel:+256800100200")}
+          accessibilityRole="button"
+          accessibilityLabel="Call support line"
         >
           <Text style={[styles.settingLabel, { color: colors.text }]}>Call Support Line</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
@@ -175,12 +181,12 @@ export default function Profile() {
 
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Legal</Text>
-        <TouchableOpacity style={styles.supportRow} onPress={() => setLegalModal("privacy")}>
+        <TouchableOpacity style={styles.supportRow} onPress={() => setLegalModal("privacy")} accessibilityRole="button" accessibilityLabel="View privacy policy">
           <Text style={[styles.settingLabel, { color: colors.text }]}>Privacy Policy</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
-        <TouchableOpacity style={styles.supportRow} onPress={() => setLegalModal("terms")}>
+        <TouchableOpacity style={styles.supportRow} onPress={() => setLegalModal("terms")} accessibilityRole="button" accessibilityLabel="View terms of service">
           <Text style={[styles.settingLabel, { color: colors.text }]}>Terms of Service</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -193,7 +199,7 @@ export default function Profile() {
               <Text style={[styles.modalTitle, { color: colors.text }]}>
                 {legalModal === "privacy" ? "Privacy Policy" : "Terms of Service"}
               </Text>
-              <TouchableOpacity onPress={() => setLegalModal(null)}>
+              <TouchableOpacity onPress={() => setLegalModal(null)} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
                 <X size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>

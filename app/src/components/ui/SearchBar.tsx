@@ -45,9 +45,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         placeholderTextColor={colors.textSecondary}
         value={query}
         onChangeText={handleChange}
+        accessibilityLabel={placeholder}
       />
       {query.length > 0 && (
-        <TouchableOpacity onPress={handleClear}>
+        <TouchableOpacity onPress={handleClear} accessibilityRole="button" accessibilityLabel="Clear search" hitSlop={8}>
           <XCircle size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       )}

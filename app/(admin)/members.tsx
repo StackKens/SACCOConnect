@@ -83,6 +83,8 @@ export default function Members() {
           <TouchableOpacity
             style={[styles.inviteBtn, { backgroundColor: colors.secondary }]}
             onPress={() => setShowModal(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Invite member"
           >
             <UserPlus size={16} color="#fff" />
             <Text style={styles.inviteBtnText}>Invite</Text>
@@ -120,7 +122,7 @@ export default function Members() {
           />
         ) : (
           filtered.map((item) => (
-            <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}>
+            <TouchableOpacity key={item.id} onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)} accessibilityRole="button" accessibilityLabel={`View member ${item.fullName}`}>
               <Card style={styles.card}>
                 <View style={styles.row}>
                   <Avatar name={item.fullName} size={48} />

@@ -95,7 +95,7 @@ export default function Announcements() {
             <Card key={item.id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={[styles.announceTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
-                <TouchableOpacity onPress={() => handleDelete(item.id, item.title)} hitSlop={8}>
+                <TouchableOpacity onPress={() => handleDelete(item.id, item.title)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Delete announcement: ${item.title}`}>
                   <Trash2 size={16} color={colors.error} />
                 </TouchableOpacity>
               </View>

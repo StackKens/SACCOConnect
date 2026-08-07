@@ -74,22 +74,22 @@ export default function AdminSettings() {
           <Settings2 size={16} color={colors.primary} />
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Group Settings</Text>
         </View>
-        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/edit-rules")}>
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/edit-rules")} accessibilityRole="button" accessibilityLabel="Edit group rules">
           <Text style={[styles.settingLabel, { color: colors.text }]}>Edit Group Rules</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
-        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contribution-schedule")}>
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contribution-schedule")} accessibilityRole="button" accessibilityLabel="Set contribution due date">
           <Text style={[styles.settingLabel, { color: colors.text }]}>Contribution Due Date</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
-        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contributions")}>
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contributions")} accessibilityRole="button" accessibilityLabel="View all contributions">
           <Text style={[styles.settingLabel, { color: colors.text }]}>All Contributions</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
-        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/active-loans")}>
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/active-loans")} accessibilityRole="button" accessibilityLabel="View active loans">
           <Text style={[styles.settingLabel, { color: colors.text }]}>Active Loans</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -187,7 +187,7 @@ export default function AdminSettings() {
 
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
-        <TouchableOpacity style={styles.supportRow} onPress={() => Linking.openURL("mailto:admin@saccoconnect.ug")}>
+        <TouchableOpacity style={styles.supportRow} onPress={() => Linking.openURL("mailto:admin@saccoconnect.ug")} accessibilityRole="button" accessibilityLabel="Email admin support">
           <Text style={[styles.settingLabel, { color: colors.text }]}>Email Support</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>

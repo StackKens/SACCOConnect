@@ -81,7 +81,7 @@ export default function Loans() {
             const amount = item.amountApproved ?? item.amountRequested;
             const remaining = amount - item.amountRepaid;
             return (
-              <TouchableOpacity key={item.id} onPress={() => item.status === "ACTIVE" && router.push("/(member)/repay_loan")}>
+              <TouchableOpacity key={item.id} onPress={() => item.status === "ACTIVE" && router.push("/(member)/repay_loan")} accessibilityRole="button" accessibilityLabel={item.status === "ACTIVE" ? "Make a repayment" : `${item.status} loan`}>
                 <Card style={styles.card}>
                   <View style={styles.header}>
                     <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(amount)}</Text>

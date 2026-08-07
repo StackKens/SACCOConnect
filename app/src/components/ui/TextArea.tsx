@@ -40,6 +40,8 @@ export const TextArea: React.FC<TextAreaProps> = ({
           style,
         ]}
         placeholderTextColor={colors.textSecondary}
+        accessibilityLabel={label}
+        accessibilityState={error ? { invalid: true } : undefined}
         multiline
         textAlignVertical="top"
         {...props}

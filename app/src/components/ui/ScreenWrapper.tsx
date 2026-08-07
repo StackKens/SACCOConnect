@@ -75,6 +75,8 @@ export const PageHeader: React.FC<{
           <Pressable
             onPress={handleBack}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.5 }]}
           >
             <ArrowLeft size={20} color={colors.text} strokeWidth={2} />

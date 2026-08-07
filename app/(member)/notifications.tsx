@@ -189,7 +189,7 @@ export default function Notifications() {
               const iconColor = meta.color(colors);
               const Icon = meta.icon;
               return (
-                <TouchableOpacity onPress={() => markAsRead(item.id)} activeOpacity={0.7}>
+                <TouchableOpacity onPress={() => markAsRead(item.id)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={`Mark ${item.title} as read`}>
                   <Card style={[styles.card, !isRead && { backgroundColor: colors.primary + "08" }]}>
                     <View style={styles.row}>
                       <View style={[styles.iconWrap, { backgroundColor: iconColor + "18" }]}>
