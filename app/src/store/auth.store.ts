@@ -63,7 +63,7 @@ function persistSession(data: AuthSessionResponse) {
   return { user, sacco };
 }
 
-async function syncMemberData(userId: string) {
+export async function syncMemberData(userId: string) {
   try {
     const [contribRes, loanRes] = await Promise.all([
       api.get("/api/contributions/my"),

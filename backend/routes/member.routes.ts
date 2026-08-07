@@ -5,6 +5,7 @@ import {
   updateMyProfile,
   getMyEligibility,
   getAllMembers,
+  getMembersExport,
   getMemberById,
   updateMemberStatus,
   generateInviteLink,
@@ -23,6 +24,7 @@ router.get("/sacco-members", authenticate, requireMember, getSaccoMembers);
 
 // Admin routes
 router.get("/", authenticate, requireAdmin, getAllMembers);
+router.get("/export", authenticate, requireAdmin, getMembersExport);
 router.get("/invite", authenticate, requireAdmin, generateInviteLink);
 router.post("/invite/send", authenticate, requireAdmin, sendInviteSms);
 router.get("/:id", authenticate, requireAdmin, getMemberById);

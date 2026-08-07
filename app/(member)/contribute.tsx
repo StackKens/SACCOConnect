@@ -9,6 +9,7 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { useMemberDataStore } from "@/store/member.store";
+import { syncMemberData } from "@/store/auth.store";
 import { dueDateLabel, formatDate } from "@/utils/date";
 import { api } from "@/services/api";
 import { getApiErrorMessage } from "@/services/auth.service";
@@ -70,8 +71,9 @@ export default function Contribute() {
       const net = await NetInfo.fetch();
 
       if (!net.isConnected) {
-        // offline — queue it
+        // offline — queue it and reflect optimistically in the local store.
         enqueue({ endpoint: "/api/contributions", method: "POST", body });
+        addContribution(numAmount, selectedMethod.label);
         Alert.alert(
           "Saved Offline",
           `UGX ${numAmount.toLocaleString()} contribution saved. It will be submitted automatically when you're back online.`,
@@ -81,7 +83,10 @@ export default function Contribute() {
       }
 
       await api.post("/api/contributions", body);
-      addContribution(numAmount, selectedMethod.label);
+      // Hydrate from the API (single source of truth) rather than a
+      // separate local mutation that can drift from server data.
+      const userId = useAuthStore.getState().user?.id;
+      if (userId) await syncMemberData(userId);
 
       Alert.alert(
         isMobile ? "Payment Request Sent" : "Contribution Recorded",

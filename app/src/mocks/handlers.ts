@@ -214,6 +214,35 @@ export function handleMockRequest(req: MockRequest): MockResponse {
     );
   }
 
+  if (req.path === "/api/members/export" && method === "GET") {
+    return ok({
+      members: MOCK_MEMBERS.map((m) => ({
+        id: m.id,
+        name: m.fullName,
+        phone: m.phoneNumber,
+        nationalId: m.nationalId ?? "",
+        savings: m.currentBalance,
+        activeLoan: activeLoanForMember(m.id)
+          ? (activeLoanForMember(m.id)!.amountApproved ?? activeLoanForMember(m.id)!.amountRequested)
+          : 0,
+      })),
+      contributions: MOCK_CONTRIBUTIONS.map((c) => ({
+        memberName: c.memberName,
+        amount: c.amount,
+        date: c.createdAt?.split("T")[0] ?? "",
+        status: c.status,
+        method: c.method,
+      })),
+      loans: MOCK_LOANS.map((l) => ({
+        memberName: l.memberName,
+        amount: l.amountApproved ?? l.amountRequested,
+        status: l.status,
+        purpose: l.purpose,
+        date: l.createdAt?.split("T")[0] ?? "",
+      })),
+    });
+  }
+
   if (req.path.startsWith("/api/members/") && method === "GET") {
     const id = req.path.split("/").pop() ?? "";
     const m = memberById(id);

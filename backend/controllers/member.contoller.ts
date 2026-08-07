@@ -69,6 +69,67 @@ export async function getAllMembers(req: AuthRequest, res: Response) {
   return res.json({ success: true, data: members });
 }
 
+export async function getMembersExport(req: AuthRequest, res: Response) {
+  const saccoId = req.user!.saccoId;
+  if (!saccoId) throw new AppError("No SACCO assigned", 400);
+
+  const members = await prisma.member.findMany({
+    where: { saccoId },
+    include: {
+      user: { select: { phoneNumber: true } },
+      contributions: { orderBy: { createdAt: "asc" } },
+      loans: true,
+    },
+    orderBy: { fullName: "asc" },
+  });
+
+  const memberRows = members.map((m) => {
+    const savings = m.contributions
+      .filter((c) => c.status === "CONFIRMED")
+      .reduce((sum, c) => sum + c.amount, 0);
+    const activeLoan = m.loans
+      .filter((l) => l.status === "ACTIVE")
+      .reduce(
+        (sum, l) =>
+          sum + (l.amountApproved ?? l.amountRequested) - l.amountRepaid,
+        0,
+      );
+    return {
+      id: m.id,
+      name: m.fullName,
+      phone: m.user?.phoneNumber ?? "",
+      nationalId: m.nationalId ?? "",
+      savings,
+      activeLoan,
+    };
+  });
+
+  const contributionRows = members.flatMap((m) =>
+    m.contributions.map((c) => ({
+      memberName: m.fullName,
+      amount: c.amount,
+      date: c.createdAt.toISOString().split("T")[0],
+      status: c.status,
+      method: c.method,
+    })),
+  );
+
+  const loanRows = members.flatMap((m) =>
+    m.loans.map((l) => ({
+      memberName: m.fullName,
+      amount: l.amountApproved ?? l.amountRequested,
+      status: l.status,
+      purpose: l.purpose,
+      date: l.createdAt.toISOString().split("T")[0],
+    })),
+  );
+
+  return res.json({
+    success: true,
+    data: { members: memberRows, contributions: contributionRows, loans: loanRows },
+  });
+}
+
 export async function getMemberById(req: AuthRequest, res: Response) {
   const id = paramString(req.params, "id");
   const member = await prisma.member.findUnique({

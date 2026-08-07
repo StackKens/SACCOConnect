@@ -140,4 +140,17 @@ describe("mockAxiosAdapter", () => {
     expect(res.status).toBe(200);
     expect((res.data.data as any).message).toBe("Logged out");
   });
+
+  it("returns aggregated export data for the admin dashboard", async () => {
+    const res = await mockAxiosAdapter(
+      cfg("/api/members/export", "get", undefined, "mock_token_admin_001"),
+    );
+    expect(res.status).toBe(200);
+    const { members, contributions, loans } = res.data.data;
+    expect(members.length).toBeGreaterThan(0);
+    expect(members[0]).toHaveProperty("name");
+    expect(members[0]).toHaveProperty("savings");
+    expect(Array.isArray(contributions)).toBe(true);
+    expect(Array.isArray(loans)).toBe(true);
+  });
 });
