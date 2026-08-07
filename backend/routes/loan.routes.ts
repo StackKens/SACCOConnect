@@ -23,7 +23,7 @@ router.post("/:id/repay", authenticate, requireMember, makeRepayment);
 // Admin routes
 router.get("/queue", authenticate, requireAdmin, getLoanQueue);
 router.get("/active", authenticate, requireAdmin, getActiveLoans);
-router.get("/:id", authenticate, authenticate, getLoanById);
+router.get("/:id", authenticate, getLoanById);
 router.post("/:id/approve", authenticate, requireAdmin, approveLoan);
 router.post("/:id/reject", authenticate, requireAdmin, rejectLoan);
 

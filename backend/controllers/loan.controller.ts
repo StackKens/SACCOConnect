@@ -19,6 +19,7 @@ import {
   scheduleRepaymentReminders,
 } from "../services/notification.service";
 import { paramString } from "../utils/helpers";
+import { assertSameSacco } from "../middleware/tenant.middleware";
 
 export async function applyForLoan(req: AuthRequest, res: Response) {
   const data = loanApplicationSchema.parse(req.body);
@@ -152,6 +153,7 @@ export async function getLoanById(req: AuthRequest, res: Response) {
     },
   });
   if (!loan) throw new AppError("Loan not found", 404);
+  assertSameSacco(loan.member.saccoId, req.user!.saccoId);
   return res.json({ success: true, data: loan });
 }
 
@@ -164,6 +166,7 @@ export async function approveLoan(req: AuthRequest, res: Response) {
     include: { member: true },
   });
   if (!loan) throw new AppError("Loan not found", 404);
+  assertSameSacco(loan.member.saccoId, req.user!.saccoId);
   if (
     !["UNDER_REVIEW", "AWAITING_GUARANTORS", "PENDING"].includes(loan.status)
   ) {
@@ -221,6 +224,7 @@ export async function rejectLoan(req: AuthRequest, res: Response) {
     include: { member: true },
   });
   if (!loan) throw new AppError("Loan not found", 404);
+  assertSameSacco(loan.member.saccoId, req.user!.saccoId);
 
   const updated = await prisma.loan.update({
     where: { id },
