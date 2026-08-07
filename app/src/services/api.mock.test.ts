@@ -70,4 +70,52 @@ describe("mockAxiosAdapter", () => {
       response: { status: 404 },
     });
   });
+
+  it("registers an admin (create SACCO)", async () => {
+    const res = await mockAxiosAdapter(
+      cfg("/api/auth/register/admin", "post", {
+        fullName: "Test Admin",
+        phoneNumber: "0700999999",
+        saccoName: "My SACCO",
+      }),
+    );
+    expect(res.status).toBe(201);
+    expect(res.data.data.user.role).toBe("ADMIN");
+    expect(res.data.data.sacco.name).toBe("My SACCO");
+  });
+
+  it("registers a member with a valid invite code", async () => {
+    const res = await mockAxiosAdapter(
+      cfg("/api/auth/register/member", "post", {
+        fullName: "New Member",
+        phoneNumber: "0700888888",
+        inviteCode: "UNITY6",
+      }),
+    );
+    expect(res.status).toBe(201);
+    expect(res.data.data.user.role).toBe("MEMBER");
+    expect(res.data.data.sacco.inviteCode).toBe("UNITY6");
+  });
+
+  it("rejects a member registration with a bad invite code", async () => {
+    await expect(
+      mockAxiosAdapter(
+        cfg("/api/auth/register/member", "post", {
+          fullName: "Bad",
+          phoneNumber: "0700777777",
+          inviteCode: "WRONG1",
+        }),
+      ),
+    ).rejects.toMatchObject({ response: { status: 400 } });
+  });
+
+  it("returns invite preview for a valid code and 404 otherwise", async () => {
+    const ok = await mockAxiosAdapter(cfg("/api/auth/invite/UNITY6"));
+    expect(ok.data.data.inviteCode).toBe("UNITY6");
+    expect(ok.data.data.adminName).toBe("Daniel Ssekandi");
+
+    await expect(mockAxiosAdapter(cfg("/api/auth/invite/BOGUS"))).rejects.toMatchObject({
+      response: { status: 404 },
+    });
+  });
 });

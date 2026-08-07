@@ -98,6 +98,74 @@ export function handleMockRequest(req: MockRequest): MockResponse {
     });
   }
 
+  // ---- register admin (create SACCO) ----
+  if (req.path === "/api/auth/register/admin" && method === "POST") {
+    const body = (req.body ?? {}) as {
+      fullName?: string;
+      phoneNumber?: string;
+      saccoName?: string;
+      contributionAmount?: number;
+      interestRate?: number;
+      maxLoanMultiplier?: number;
+      loanTermMonths?: number;
+      meetingDay?: string;
+      nationalId?: string;
+    };
+    return created({
+      accessToken: "mock_token_new_admin",
+      refreshToken: "mock_refresh_new_admin",
+      user: {
+        id: `user_new_admin_${Date.now()}`,
+        role: "ADMIN",
+        phoneNumber: body.phoneNumber ?? "",
+      },
+      member: {
+        id: `member_new_admin_${Date.now()}`,
+        fullName: body.fullName ?? "New Admin",
+        nationalId: body.nationalId ?? null,
+      },
+      sacco: {
+        id: MOCK_SACCO.id,
+        name: body.saccoName ?? MOCK_SACCO.name,
+        contributionAmount: body.contributionAmount ?? MOCK_SACCO.contributionAmount,
+        interestRate: body.interestRate ?? MOCK_SACCO.interestRate,
+        maxLoanMultiplier: body.maxLoanMultiplier ?? 3,
+        loanTermMonths: body.loanTermMonths ?? MOCK_SACCO.loanTermMonths,
+        meetingDay: body.meetingDay ?? MOCK_SACCO.meetingDay,
+        inviteCode: MOCK_SACCO.inviteCode,
+      },
+    });
+  }
+
+  // ---- register member (join via invite) ----
+  if (req.path === "/api/auth/register/member" && method === "POST") {
+    const body = (req.body ?? {}) as {
+      fullName?: string;
+      phoneNumber?: string;
+      nationalId?: string;
+      inviteCode?: string;
+    };
+    const code = body.inviteCode?.toUpperCase();
+    if (code && code !== MOCK_SACCO.inviteCode) {
+      return { status: 400, data: { success: false, message: "Invalid invite code" } };
+    }
+    return created({
+      accessToken: `mock_token_new_member_${Date.now()}`,
+      refreshToken: "mock_refresh_new_member",
+      user: {
+        id: `user_new_member_${Date.now()}`,
+        role: "MEMBER",
+        phoneNumber: body.phoneNumber ?? "",
+      },
+      member: {
+        id: `member_new_member_${Date.now()}`,
+        fullName: body.fullName ?? "New Member",
+        nationalId: body.nationalId ?? null,
+      },
+      sacco: MOCK_SACCO,
+    });
+  }
+
   // ---- members ----
   if (req.path === "/api/members/me") {
     return ok({
