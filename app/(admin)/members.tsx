@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,19 @@ import {
   Alert,
   TextInput,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Divider } from "@/components/ui/Divider";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { ChevronRight, UserPlus, Search } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { useAuthStore } from "@/store/auth.store";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 
@@ -40,18 +41,10 @@ export default function Members() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [members, setMembers] = useState<MemberRow[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      api.get("/api/members").then((res) => {
-        if (active) setMembers(res.data.data);
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/members");
+    setMembers(res.data.data);
+  });
 
   const filtered = members.filter(
     (m) =>
@@ -110,7 +103,9 @@ export default function Members() {
       </View>
 
       <View style={styles.list}>
-        {loading ? (
+        {error ? (
+          <ErrorState message={error} onRetry={refresh} />
+        ) : loading ? (
           <SkeletonMemberList />
         ) : filtered.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>

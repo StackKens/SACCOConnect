@@ -6,10 +6,11 @@ import { getRelativeTime } from "@/utils/date";
 import { Info, BellOff, PiggyBank, CreditCard, CheckCircle, XCircle } from "lucide-react-native";
 import { useAuthStore } from "@/store/auth.store";
 import { useMemberDataStore } from "@/store/member.store";
-import { useState, useCallback, useMemo } from "react";
-import { useFocusEffect } from "expo-router";
+import { useState, useMemo } from "react";
 import { api } from "@/services/api";
 import { getSecureStorage } from "@/services/secureStorage";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { ErrorState } from "@/components/ui/ErrorState";
 
 const readStorage = getSecureStorage("read_notifications");
 
@@ -91,16 +92,10 @@ export default function Notifications() {
   const { contributions, loans, transactions } = useMemberDataStore();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds(userId));
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      api.get("/api/announcements")
-        .then((res) => { if (active) setAnnouncements(res.data.data); })
-        .catch(() => {});
-      return () => { active = false; };
-    }, []),
-  );
+  const { error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/announcements");
+    setAnnouncements(res.data.data);
+  });
 
   const items = useMemo<NotifItem[]>(() => {
     const announcementItems: NotifItem[] = announcements.map((a) => ({
@@ -164,6 +159,16 @@ export default function Notifications() {
       }
     >
       <View style={{ flex: 1 }}>
+        {error ? (
+          <TouchableOpacity
+            style={[styles.errorBanner, { backgroundColor: colors.error + "12" }]}
+            onPress={refresh}
+          >
+            <Text style={[styles.errorText, { color: colors.error }]}>
+              Couldn't load announcements. Tap to retry.
+            </Text>
+          </TouchableOpacity>
+        ) : null}
         {items.length === 0 ? (
           <View style={styles.empty}>
             <BellOff size={32} color={colors.textSecondary} />
@@ -212,6 +217,14 @@ export default function Notifications() {
 
 const styles = StyleSheet.create({
   list: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 },
+  errorBanner: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  errorText: { fontSize: 13, fontWeight: "600", textAlign: "center" },
   card: { marginBottom: 12 },
   row: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   iconWrap: { width: 36, height: 36, borderRadius: 8, alignItems: "center", justifyContent: "center", flexShrink: 0 },

@@ -1,17 +1,19 @@
 import { View, Text, StyleSheet, Alert } from "react-native";
-import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Divider } from "@/components/ui/Divider";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { Wallet, Banknote, Phone, Calendar } from "lucide-react-native";
 import { api } from "@/services/api";
-import { useState, useCallback } from "react";
+import { useState } from "react";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonMemberDetail } from "@/components/ui/Skeleton";
 
 interface MemberDetailData {
@@ -31,24 +33,25 @@ export default function MemberDetail() {
   const memberId = Array.isArray(id) ? id[0] : id;
   const { colors } = useTheme();
   const [member, setMember] = useState<MemberDetailData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-
-  const fetchMember = useCallback(() => {
+  const { loading, error, refresh } = useApiFetch(async () => {
     if (!memberId) return;
-    let active = true;
-    api.get(`/api/members/${memberId}`).then((res) => {
-      if (active) setMember(res.data.data);
-    }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [memberId]);
-
-  useFocusEffect(fetchMember);
+    const res = await api.get(`/api/members/${memberId}`);
+    setMember(res.data.data);
+  });
+  const [actionLoading, setActionLoading] = useState(false);
 
   if (loading) {
     return (
       <ScreenWrapper scroll header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
         <SkeletonMemberDetail />
+      </ScreenWrapper>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenWrapper header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
+        <ErrorState message={error} onRetry={refresh} />
       </ScreenWrapper>
     );
   }

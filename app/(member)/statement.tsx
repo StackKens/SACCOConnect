@@ -6,8 +6,9 @@ import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { Download } from "lucide-react-native";
 import { api } from "@/services/api";
-import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
+import { useState } from "react";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 
 interface TxItem {
@@ -22,57 +23,48 @@ interface TxItem {
 export default function Statement() {
   const { colors } = useTheme();
   const [transactions, setTransactions] = useState<TxItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const [contribRes, loansRes] = await Promise.all([
+      api.get("/api/contributions/my"),
+      api.get("/api/loans/my"),
+    ]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      Promise.all([
-        api.get("/api/contributions/my"),
-        api.get("/api/loans/my"),
-      ]).then(([contribRes, loansRes]) => {
-        if (!active) return;
+    const contributions: TxItem[] = contribRes.data.data.map((c: any) => ({
+      id: c.id,
+      type: "CONTRIBUTION",
+      amount: c.amount,
+      date: c.createdAt,
+      reference: c.transactionRef ?? null,
+      status: c.status,
+    }));
 
-        const contributions: TxItem[] = contribRes.data.data.map((c: any) => ({
-          id: c.id,
-          type: "CONTRIBUTION",
-          amount: c.amount,
-          date: c.createdAt,
-          reference: c.transactionRef ?? null,
-          status: c.status,
-        }));
+    const repayments: TxItem[] = loansRes.data.data.flatMap((loan: any) =>
+      (loan.repayments ?? []).map((r: any) => ({
+        id: r.id,
+        type: "LOAN_REPAYMENT",
+        amount: -r.amountPaid,
+        date: r.paymentDate,
+        reference: r.transactionRef ?? null,
+        status: "CONFIRMED",
+      })),
+    );
 
-        const repayments: TxItem[] = loansRes.data.data.flatMap((loan: any) =>
-          (loan.repayments ?? []).map((r: any) => ({
-            id: r.id,
-            type: "LOAN_REPAYMENT",
-            amount: -r.amountPaid,
-            date: r.paymentDate,
-            reference: r.transactionRef ?? null,
-            status: "CONFIRMED",
-          }))
-        );
+    const disbursements: TxItem[] = loansRes.data.data
+      .filter((l: any) => l.status === "ACTIVE" || l.status === "REPAID")
+      .map((l: any) => ({
+        id: `disb_${l.id}`,
+        type: "LOAN_DISBURSEMENT",
+        amount: l.amountApproved ?? l.amountRequested,
+        date: l.disbursementDate ?? l.createdAt,
+        reference: null,
+        status: "CONFIRMED",
+      }));
 
-        const disbursements: TxItem[] = loansRes.data.data
-          .filter((l: any) => l.status === "ACTIVE" || l.status === "REPAID")
-          .map((l: any) => ({
-            id: `disb_${l.id}`,
-            type: "LOAN_DISBURSEMENT",
-            amount: l.amountApproved ?? l.amountRequested,
-            date: l.disbursementDate ?? l.createdAt,
-            reference: null,
-            status: "CONFIRMED",
-          }));
+    const all = [...contributions, ...repayments, ...disbursements]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        const all = [...contributions, ...repayments, ...disbursements]
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        setTransactions(all);
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
+    setTransactions(all);
+  });
 
   const typeLabel = (type: TxItem["type"]) => {
     if (type === "CONTRIBUTION") return "Contribution";
@@ -95,7 +87,9 @@ export default function Statement() {
         }
       />
     }>
-      {loading ? <SkeletonMemberList /> : transactions.length === 0 ? (
+      {loading ? <SkeletonMemberList /> : error ? (
+        <ErrorState message={error} onRetry={refresh} />
+      ) : transactions.length === 0 ? (
         <Text style={[styles.empty, { color: colors.textSecondary }]}>No transactions yet.</Text>
       ) : (
         <View style={styles.list}>

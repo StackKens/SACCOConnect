@@ -2,13 +2,15 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { Banknote, PlusCircle, ShieldCheck, Clock } from "lucide-react-native";
 import { api } from "@/services/api";
-import { useState, useCallback } from "react";
+import { useState } from "react";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonLoanQueue } from "@/components/ui/Skeleton";
 
 interface Loan {
@@ -27,19 +29,10 @@ interface Loan {
 export default function Loans() {
   const { colors } = useTheme();
   const [loans, setLoans] = useState<Loan[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      api.get("/api/loans/my")
-        .then((res) => { if (active) setLoans(res.data.data); })
-        .catch(() => {})
-        .finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/loans/my");
+    setLoans(res.data.data);
+  });
 
   const statusVariant = (status: string) => {
     if (status === "ACTIVE") return "warning";
@@ -52,6 +45,8 @@ export default function Loans() {
     <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />}>
       {loading ? (
         <SkeletonLoanQueue />
+      ) : error ? (
+        <ErrorState message={error} onRetry={refresh} />
       ) : loans.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={[styles.emptyIconWrap, { backgroundColor: colors.primary + "12" }]}>

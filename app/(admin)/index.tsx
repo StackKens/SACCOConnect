@@ -3,12 +3,14 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/Button";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { Users, Wallet, Banknote, Clock } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonDashboard } from "@/components/ui/Skeleton";
 
 export default function AdminDashboard() {
@@ -19,35 +21,19 @@ export default function AdminDashboard() {
     activeLoans: 0,
     pendingApplications: 0,
   });
-  const [loading, setLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      Promise.all([
-        api.get("/api/members"),
-        api.get("/api/contributions/treasury"),
-        api.get("/api/loans/queue"),
-      ])
-        .then(([membersRes, treasuryRes, queueRes]) => {
-          if (!active) return;
-          setStats({
-            totalMembers: membersRes.data.data.length,
-            totalSavings: treasuryRes.data.data.totalSavings,
-            activeLoans: treasuryRes.data.data.outstanding,
-            pendingApplications: queueRes.data.data.length,
-          });
-        })
-        .catch(() => {})
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-      return () => {
-        active = false;
-      };
-    }, []),
-  );
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const [membersRes, treasuryRes, queueRes] = await Promise.all([
+      api.get("/api/members"),
+      api.get("/api/contributions/treasury"),
+      api.get("/api/loans/queue"),
+    ]);
+    setStats({
+      totalMembers: membersRes.data.data.length,
+      totalSavings: treasuryRes.data.data.totalSavings,
+      activeLoans: treasuryRes.data.data.outstanding,
+      pendingApplications: queueRes.data.data.length,
+    });
+  });
 
   return (
     <ScreenWrapper
@@ -60,7 +46,9 @@ export default function AdminDashboard() {
       }
     >
       <View style={styles.statsGrid}>
-        {loading ? (
+        {error ? (
+          <ErrorState message={error} onRetry={refresh} />
+        ) : loading ? (
           <SkeletonDashboard />
         ) : (
           <>

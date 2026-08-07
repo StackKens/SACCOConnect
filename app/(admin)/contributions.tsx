@@ -3,12 +3,14 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { router } from "expo-router";
+import { useState } from "react";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 
@@ -25,20 +27,11 @@ interface Contribution {
 export default function AdminContributions() {
   const { colors } = useTheme();
   const [contributions, setContributions] = useState<Contribution[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/contributions");
+    setContributions(res.data.data);
+  });
   const [confirming, setConfirming] = useState<string | null>(null);
-
-  const fetch = useCallback(() => {
-    let active = true;
-    setLoading(true);
-    api.get("/api/contributions")
-      .then((res) => { if (active) setContributions(res.data.data); })
-      .catch(() => {})
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, []);
-
-  useFocusEffect(fetch);
 
   const handleConfirm = (id: string, memberName: string, amount: number) => {
     Alert.alert(
@@ -78,7 +71,7 @@ export default function AdminContributions() {
         <Text style={[styles.summaryAmount, { color: colors.text }]}>{formatCurrency(total)}</Text>
       </Card>
 
-      {loading ? <SkeletonMemberList /> : (
+      {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonMemberList /> : (
         <View style={styles.list}>
           {contributions.length === 0 ? (
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No contributions yet.</Text>

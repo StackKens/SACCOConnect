@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { dueDateLabel, formatDate } from "@/utils/date";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { useAuthStore } from "@/store/auth.store";
 import { api } from "@/services/api";
-import { useState, useCallback } from "react";
+import { useState } from "react";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 
 interface Contribution {
@@ -24,26 +26,17 @@ export default function Contributions() {
   const sacco = useAuthStore((state) => state.sacco);
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [totalSavings, setTotalSavings] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const [contribRes, profileRes] = await Promise.all([
+      api.get("/api/contributions/my"),
+      api.get("/api/members/me"),
+    ]);
+    setContributions(contribRes.data.data);
+    setTotalSavings(profileRes.data.data.currentBalance ?? 0);
+  });
   const dueDate = sacco?.contributionDueDate;
   const dueLabel = dueDate ? dueDateLabel(dueDate) : null;
   const isOverdue = dueLabel?.startsWith("Overdue");
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      Promise.all([
-        api.get("/api/contributions/my"),
-        api.get("/api/members/me"),
-      ]).then(([contribRes, profileRes]) => {
-        if (!active) return;
-        setContributions(contribRes.data.data);
-        setTotalSavings(profileRes.data.data.currentBalance ?? 0);
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
 
   return (
     <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" />}>
@@ -63,7 +56,9 @@ export default function Contributions() {
         </Card>
       )}
 
-      {loading ? <SkeletonMemberList /> : (
+      {loading ? <SkeletonMemberList /> : error ? (
+        <ErrorState message={error} onRetry={refresh} />
+      ) : (
         <View style={styles.list}>
           {contributions.length === 0 ? (
             <Text style={[{ color: colors.textSecondary, textAlign: "center", marginTop: 20 }]}>No contributions yet</Text>

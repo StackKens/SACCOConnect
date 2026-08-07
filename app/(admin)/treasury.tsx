@@ -2,14 +2,15 @@ import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { getRelativeTime } from "@/utils/date";
 import { Wallet, Banknote, RefreshCw, AlertCircle, TrendingUp, TrendingDown } from "lucide-react-native";
 import Svg, { Polyline, Line, Text as SvgText, Polygon } from "react-native-svg";
-import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonTreasury } from "@/components/ui/Skeleton";
 
 const SCREEN_W = Dimensions.get("window").width;
@@ -136,17 +137,10 @@ const EMPTY: TreasuryData = {
 export default function Treasury() {
   const { colors } = useTheme();
   const [data, setData] = useState<TreasuryData>(EMPTY);
-  const [loading, setLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      api.get("/api/contributions/treasury").then((res) => {
-        if (active) setData(res.data.data);
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/contributions/treasury");
+    setData(res.data.data);
+  });
 
   const { totalSavings, totalDisbursed, totalRepaid, outstanding, collectionRate, monthlyData, recentTransactions } = data;
 
@@ -159,7 +153,7 @@ export default function Treasury() {
   return (
     <ScreenWrapper scroll header={<PageHeader title="Treasury" subtitle="Financial summary and collections" />}>
 
-      {loading ? <SkeletonTreasury /> : (
+      {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonTreasury /> : (
         <>
       <View style={styles.statsGrid}>
         <StatCard title="Total Savings" value={formatCurrency(totalSavings)} icon={<Wallet size={22} color={colors.secondary} />} />

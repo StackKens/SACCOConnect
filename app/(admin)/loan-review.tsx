@@ -1,14 +1,16 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { View, Text, StyleSheet, Alert, TextInput } from "react-native";
-import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Divider } from "@/components/ui/Divider";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 interface LoanDetail {
   id: string;
@@ -34,30 +36,14 @@ export default function LoanReview() {
   const loanId = Array.isArray(id) ? id[0] : id;
   const { colors } = useTheme();
   const [loan, setLoan] = useState<LoanDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { loading, error, refresh } = useApiFetch(async () => {
+    if (!loanId) return;
+    const res = await api.get(`/api/loans/${loanId}`);
+    setLoan(res.data.data);
+  });
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!loanId) return;
-      let active = true;
-      setLoading(true);
-      api
-        .get(`/api/loans/${loanId}`)
-        .then((res) => {
-          if (active) setLoan(res.data.data);
-        })
-        .catch(() => {})
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-      return () => {
-        active = false;
-      };
-    }, [loanId]),
-  );
 
   const handleApprove = () => {
     if (!loan) return;
@@ -160,6 +146,22 @@ export default function LoanReview() {
         >
           Loading...
         </Text>
+      </ScreenWrapper>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenWrapper
+        header={
+          <PageHeader
+            title="Loan Review"
+            showBack
+            onBack={() => router.push("/(admin)/loan-queue")}
+          />
+        }
+      >
+        <ErrorState message={error} onRetry={refresh} />
       </ScreenWrapper>
     );
   }

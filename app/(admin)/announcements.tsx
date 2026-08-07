@@ -1,17 +1,18 @@
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Divider } from "@/components/ui/Divider";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { formatDate } from "@/utils/date";
 import { Trash2 } from "lucide-react-native";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { getApiErrorMessage } from "@/services/auth.service";
-import { useFocusEffect } from "expo-router";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 
 interface Announcement {
@@ -27,20 +28,12 @@ export default function Announcements() {
   const [content, setContent] = useState("");
   const [posting, setPosting] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/announcements");
+    setAnnouncements(res.data.data);
+  });
   const { colors } = useTheme();
   const user = useAuthStore((s) => s.user);
-
-  const fetchAnnouncements = useCallback(() => {
-    let active = true;
-    api.get("/api/announcements")
-      .then((res) => { if (active) setAnnouncements(res.data.data); })
-      .catch(() => {})
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, []);
-
-  useFocusEffect(fetchAnnouncements);
 
   const handlePost = async () => {
     if (!title.trim() || !content.trim()) {
@@ -56,7 +49,7 @@ export default function Announcements() {
       });
       setTitle("");
       setContent("");
-      fetchAnnouncements();
+      refresh();
     } catch (e) {
       Alert.alert("Error", getApiErrorMessage(e));
     } finally {
@@ -93,7 +86,7 @@ export default function Announcements() {
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Posted ({announcements.length})</Text>
 
-      {loading ? <SkeletonMemberList /> : (
+      {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonMemberList /> : (
         <View style={styles.list}>
           {announcements.length === 0 ? (
             <Text style={[styles.empty, { color: colors.textSecondary }]}>No announcements yet.</Text>

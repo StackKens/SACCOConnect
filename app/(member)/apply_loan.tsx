@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { View, Text, StyleSheet, Alert, TouchableOpacity, FlatList, Modal } from "react-native";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -6,9 +6,11 @@ import { Card } from "@/components/ui/Card";
 import { Divider } from "@/components/ui/Divider";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Avatar } from "@/components/ui/Avatar";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { formatCurrency } from "@/utils/currency";
 import { CheckCircle, Circle } from "lucide-react-native";
@@ -30,7 +32,14 @@ export default function ApplyLoan() {
   const { colors } = useTheme();
   const [eligibility, setEligibility] = useState<Eligibility | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const [eligRes, membersRes] = await Promise.all([
+      api.get("/api/members/me/eligibility"),
+      api.get("/api/members/sacco-members"),
+    ]);
+    setEligibility(eligRes.data.data);
+    setMembers(membersRes.data.data);
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const [amount, setAmount] = useState("");
@@ -38,22 +47,6 @@ export default function ApplyLoan() {
   const [term, setTerm] = useState("");
   const [guarantors, setGuarantors] = useState<Member[]>([]);
   const [showPicker, setShowPicker] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      Promise.all([
-        api.get("/api/members/me/eligibility"),
-      api.get("/api/members/sacco-members"),
-      ]).then(([eligRes, membersRes]) => {
-        if (!active) return;
-        setEligibility(eligRes.data.data);
-        setMembers(membersRes.data.data);
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
 
   const toggleGuarantor = (member: Member) => {
     setGuarantors((prev) => {
@@ -115,6 +108,14 @@ export default function ApplyLoan() {
     return (
       <ScreenWrapper header={<PageHeader title="Apply for a Loan" showBack onBack={() => router.back()} />}>
         <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>Checking eligibility...</Text>
+      </ScreenWrapper>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenWrapper header={<PageHeader title="Apply for a Loan" showBack onBack={() => router.back()} />}>
+        <ErrorState message={error} onRetry={refresh} />
       </ScreenWrapper>
     );
   }

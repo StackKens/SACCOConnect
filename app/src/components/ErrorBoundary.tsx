@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Button } from "./Button";
+import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 
 interface Props {

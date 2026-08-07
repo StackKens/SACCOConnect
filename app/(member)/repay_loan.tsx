@@ -1,13 +1,15 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { enqueue } from "@/services/offlineQueue";
 
@@ -33,28 +35,12 @@ export default function RepayLoan() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<RepayMethod>("MOBILE_MONEY");
   const [loan, setLoan] = useState<ActiveLoan | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/loans/my/active");
+    setLoan(res.data.data);
+  });
   const [submitting, setSubmitting] = useState(false);
   const { colors } = useTheme();
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      api
-        .get("/api/loans/my/active")
-        .then((res) => {
-          if (active) setLoan(res.data.data);
-        })
-        .catch(() => {})
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-      return () => {
-        active = false;
-      };
-    }, []),
-  );
 
   const outstanding = loan ? loan.totalRepayable - loan.amountRepaid : 0;
 
@@ -112,6 +98,10 @@ export default function RepayLoan() {
 
   return (
     <ScreenWrapper header={<PageHeader title="Repay Loan" />}>
+      {error ? (
+        <ErrorState message={error} onRetry={refresh} />
+      ) : (
+        <>
       <Card style={styles.card}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>
           Outstanding Balance
@@ -166,6 +156,8 @@ export default function RepayLoan() {
           </>
         )}
       </Card>
+        </>
+      )}
     </ScreenWrapper>
   );
 }

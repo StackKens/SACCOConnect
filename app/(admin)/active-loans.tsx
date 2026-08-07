@@ -3,13 +3,14 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Badge } from "@/components/ui/Badge";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { Inbox } from "lucide-react-native";
 import { api } from "@/services/api";
-import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useState } from "react";
 import { SkeletonLoanQueue } from "@/components/ui/Skeleton";
 
 interface ActiveLoan {
@@ -25,23 +26,16 @@ interface ActiveLoan {
 export default function ActiveLoans() {
   const { colors } = useTheme();
   const [loans, setLoans] = useState<ActiveLoan[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      api.get("/api/loans/active")
-        .then((res) => { if (active) setLoans(res.data.data); })
-        .catch(() => {})
-        .finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/loans/active");
+    setLoans(res.data.data);
+  });
 
   return (
     <ScreenWrapper header={<PageHeader title="Active Loans" subtitle="Monitor all disbursed loans" />}>
-      {loading ? (
+      {error ? (
+        <ErrorState message={error} onRetry={refresh} />
+      ) : loading ? (
         <SkeletonLoanQueue />
       ) : loans.length === 0 ? (
         <View style={styles.empty}>

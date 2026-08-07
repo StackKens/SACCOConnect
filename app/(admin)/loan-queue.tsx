@@ -1,14 +1,16 @@
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { Search, Inbox } from "lucide-react-native";
 import { api } from "@/services/api";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonLoanQueue } from "@/components/ui/Skeleton";
 
 interface LoanQueueItem {
@@ -24,19 +26,11 @@ interface LoanQueueItem {
 export default function LoanQueue() {
   const { colors } = useTheme();
   const [loans, setLoans] = useState<LoanQueueItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { loading, error, refresh } = useApiFetch(async () => {
+    const res = await api.get("/api/loans/queue");
+    setLoans(res.data.data);
+  });
   const [query, setQuery] = useState("");
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      api.get("/api/loans/queue").then((res) => {
-        if (active) setLoans(res.data.data);
-      }).catch(() => {}).finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, []),
-  );
 
   const filtered = loans.filter(
     (l) =>
@@ -59,7 +53,9 @@ export default function LoanQueue() {
       </View>
 
       <View style={styles.list}>
-        {loading ? (
+        {error ? (
+          <ErrorState message={error} onRetry={refresh} />
+        ) : loading ? (
           <SkeletonLoanQueue />
         ) : filtered.length === 0 ? (
           <View style={styles.empty}>
