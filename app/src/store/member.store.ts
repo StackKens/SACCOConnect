@@ -5,7 +5,13 @@ import { useLoanStore } from "./loan.store";
 const storage = new MMKV({ id: "member_data" });
 
 export const DEMO_MEMBER_ID = "member_demo";
-const MOCK_MEMBER_IDS = new Set(["member_alice_002", "member_bob_003", "member_cathy_004"]);
+const MOCK_MEMBER_IDS = new Set([
+  "member_alice_002",
+  "member_bob_003",
+  "member_cathy_004",
+  "member_james_005",
+  "member_grace_006",
+]);
 
 export type ContributionStatus = "completed" | "pending";
 export type LoanStatus = "active" | "pending" | "repaid" | "rejected";

@@ -21,19 +21,19 @@ export async function requestOTP(req: Request, res: Response) {
   const { phoneNumber } = sendOTPSchema.parse(req.body);
 
   const isDev = process.env.NODE_ENV !== "production";
-  const otp = isDev ? "123456" : generateOTP();
+  const otp = generateOTP();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   await prisma.otpCode.deleteMany({ where: { phoneNumber } });
   await prisma.otpCode.create({
-    data: { phoneNumber, code: otp, expiresAt, used: isDev },
+    data: { phoneNumber, code: otp, expiresAt, used: false },
   });
 
-  if (!isDev) await sendOTP(phoneNumber, otp);
+  await sendOTP(phoneNumber, otp);
 
   return res.json({
     success: true,
-    message: isDev ? "Dev mode: OTP auto-verified" : "OTP sent successfully",
+    message: "OTP sent successfully",
     ...(isDev && { dev_otp: otp }),
   });
 }
@@ -64,12 +64,10 @@ export async function registerAdmin(req: Request, res: Response) {
   });
   if (existing) throw new AppError("Phone number already registered", 409);
 
-  if (process.env.NODE_ENV === "production") {
-    const otpUsed = await prisma.otpCode.findFirst({
-      where: { phoneNumber: data.phoneNumber, used: true },
-    });
-    if (!otpUsed) throw new AppError("Phone number not verified", 400);
-  }
+  const otpUsed = await prisma.otpCode.findFirst({
+    where: { phoneNumber: data.phoneNumber, used: true },
+  });
+  if (!otpUsed) throw new AppError("Phone number not verified", 400);
 
   const pinHash = await bcrypt.hash(data.pin, 12);
   const inviteCode = generateInviteCode();
@@ -163,12 +161,10 @@ export async function registerMember(req: Request, res: Response) {
   });
   if (existing) throw new AppError("Phone number already registered", 409);
 
-  if (process.env.NODE_ENV === "production") {
-    const otpUsed = await prisma.otpCode.findFirst({
-      where: { phoneNumber: data.phoneNumber, used: true },
-    });
-    if (!otpUsed) throw new AppError("Phone number not verified", 400);
-  }
+  const otpUsed = await prisma.otpCode.findFirst({
+    where: { phoneNumber: data.phoneNumber, used: true },
+  });
+  if (!otpUsed) throw new AppError("Phone number not verified", 400);
 
   const pinHash = await bcrypt.hash(data.pin, 12);
 

@@ -1,6 +1,15 @@
-import { AuthSessionResponse } from "./auth.service";
+import { AuthSessionResponse } from "../services/auth.service";
 
-// Mirror of seed.ts — for offline/local dev login
+// Offline mock logins (USE_MOCK_API=true). PIN for all: 1234
+//
+// Admin:  0700000001 — Daniel Ssekandi
+// Members:
+//   0700000002 — Alice Wanjiku
+//   0700000003 — Bob Omondi
+//   0700000004 — Catherine Muthoni
+//   0700000005 — James Mukasa
+//   0700000006 — Grace Nakato
+
 const MOCK_SACCO = {
   id: "sacco_mock_001",
   name: "Kampala Unity SACCO",
@@ -24,7 +33,11 @@ const MOCK_USERS: Record<
       accessToken: "mock_token_admin",
       refreshToken: "mock_refresh_admin",
       user: { id: "user_admin_001", role: "ADMIN", phoneNumber: "0700000001" },
-      member: { id: "member_admin_001", fullName: "Daniel Ssekandi", nationalId: "CM900123456SSEK" },
+      member: {
+        id: "member_admin_001",
+        fullName: "Daniel Ssekandi",
+        nationalId: "CM900123456SSEK",
+      },
       sacco: MOCK_SACCO,
     },
   },
@@ -34,7 +47,11 @@ const MOCK_USERS: Record<
       accessToken: "mock_token_alice",
       refreshToken: "mock_refresh_alice",
       user: { id: "user_alice_002", role: "MEMBER", phoneNumber: "0700000002" },
-      member: { id: "member_alice_002", fullName: "Alice Wanjiku", nationalId: "CM870234567WANJ" },
+      member: {
+        id: "member_alice_002",
+        fullName: "Alice Wanjiku",
+        nationalId: "CM870234567WANJ",
+      },
       sacco: MOCK_SACCO,
     },
   },
@@ -44,7 +61,11 @@ const MOCK_USERS: Record<
       accessToken: "mock_token_bob",
       refreshToken: "mock_refresh_bob",
       user: { id: "user_bob_003", role: "MEMBER", phoneNumber: "0700000003" },
-      member: { id: "member_bob_003", fullName: "Bob Omondi", nationalId: "CM910345678OMON" },
+      member: {
+        id: "member_bob_003",
+        fullName: "Bob Omondi",
+        nationalId: "CM910345678OMON",
+      },
       sacco: MOCK_SACCO,
     },
   },
@@ -54,13 +75,48 @@ const MOCK_USERS: Record<
       accessToken: "mock_token_cathy",
       refreshToken: "mock_refresh_cathy",
       user: { id: "user_cathy_004", role: "MEMBER", phoneNumber: "0700000004" },
-      member: { id: "member_cathy_004", fullName: "Catherine Muthoni", nationalId: "CM930456789MUTH" },
+      member: {
+        id: "member_cathy_004",
+        fullName: "Catherine Muthoni",
+        nationalId: "CM930456789MUTH",
+      },
+      sacco: MOCK_SACCO,
+    },
+  },
+  "0700000005": {
+    pin: "1234",
+    response: {
+      accessToken: "mock_token_james",
+      refreshToken: "mock_refresh_james",
+      user: { id: "user_james_005", role: "MEMBER", phoneNumber: "0700000005" },
+      member: {
+        id: "member_james_005",
+        fullName: "James Mukasa",
+        nationalId: "CM950567890MUKA",
+      },
+      sacco: MOCK_SACCO,
+    },
+  },
+  "0700000006": {
+    pin: "1234",
+    response: {
+      accessToken: "mock_token_grace",
+      refreshToken: "mock_refresh_grace",
+      user: { id: "user_grace_006", role: "MEMBER", phoneNumber: "0700000006" },
+      member: {
+        id: "member_grace_006",
+        fullName: "Grace Nakato",
+        nationalId: "CM960678901NAKA",
+      },
       sacco: MOCK_SACCO,
     },
   },
 };
 
-export function mockLogin(phoneNumber: string, pin: string): AuthSessionResponse {
+export function mockLogin(
+  phoneNumber: string,
+  pin: string,
+): AuthSessionResponse {
   const entry = MOCK_USERS[phoneNumber.trim()];
   if (!entry || entry.pin !== pin) {
     throw new Error("Invalid phone number or PIN");

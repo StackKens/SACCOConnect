@@ -12,7 +12,8 @@ import {
   getApiErrorMessage,
   setAccessToken,
 } from "../services/auth.service";
-import { mockLogin } from "../services/mockAuth";
+import { USE_MOCK_API } from "../constants/config";
+import { mockLogin, mockRequestOtp, mockVerifyOtp } from "../mocks";
 import { api } from "../services/api";
 import { Contribution, MemberLoan, Transaction } from "./member.store";
 
@@ -184,14 +185,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (phone, pin) => {
     let sessionData: AuthSessionResponse;
-    try {
-      const res = await authApi.login(phone.trim(), pin);
-      sessionData = res.data.data;
-    } catch (apiError) {
-      // API unreachable — fall back to mock (local dev / offline)
+    if (USE_MOCK_API) {
+      sessionData = mockLogin(phone.trim(), pin);
+    } else {
       try {
-        sessionData = mockLogin(phone.trim(), pin);
-      } catch {
+        const res = await authApi.login(phone.trim(), pin);
+        sessionData = res.data.data;
+      } catch (apiError) {
         throw new Error(getApiErrorMessage(apiError));
       }
     }
@@ -206,11 +206,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   requestOtp: async (phone) => {
+    if (USE_MOCK_API) {
+      return mockRequestOtp(phone.trim());
+    }
     const res = await authApi.requestOtp(phone.trim());
     return res.data.dev_otp;
   },
 
   verifyOtp: async (phone, code) => {
+    if (USE_MOCK_API) {
+      mockVerifyOtp(phone.trim(), code);
+      return;
+    }
     await authApi.verifyOtp(phone.trim(), code);
   },
 

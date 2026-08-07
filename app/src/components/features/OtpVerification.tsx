@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Alert } from "react-native";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
-import { authApi, getApiErrorMessage } from "@/services/auth.service";
+import { useAuthStore } from "@/store/auth.store";
+import { getApiErrorMessage } from "@/services/auth.service";
 
 interface OtpVerificationProps {
   phone: string;
@@ -19,9 +20,12 @@ export function OtpVerification({
   onVerified,
 }: OtpVerificationProps) {
   const { colors } = useTheme();
+  const requestOtp = useAuthStore((s) => s.requestOtp);
+  const verifyOtp = useAuthStore((s) => s.verifyOtp);
   const [otp, setOtp] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [devHint, setDevHint] = useState<string | null>(null);
 
   const handleSend = async () => {
     if (phone.trim().length < 10) {
@@ -29,16 +33,25 @@ export function OtpVerification({
       return;
     }
     setLoading(true);
+    setDevHint(null);
     try {
-      await authApi.requestOtp(phone.trim());
-    } catch {
-      // SMS provider unavailable — fall through to dev bypass
+      const devOtp = await requestOtp(phone.trim());
+      setSent(true);
+      setOtp("");
+      if (__DEV__ && devOtp) {
+        setDevHint(devOtp);
+      }
+      Alert.alert(
+        "Code sent",
+        __DEV__ && devOtp
+          ? `Enter the 6-digit code sent to ${phone.trim()}. Development code: ${devOtp}`
+          : `Enter the 6-digit code sent to ${phone.trim()}.`,
+      );
+    } catch (e) {
+      Alert.alert("Could not send code", getApiErrorMessage(e));
     } finally {
       setLoading(false);
     }
-    setSent(true);
-    setOtp("123456");
-    Alert.alert("Dev Mode", "OTP auto-filled: 123456");
   };
 
   const handleVerify = async () => {
@@ -48,11 +61,7 @@ export function OtpVerification({
     }
     setLoading(true);
     try {
-      if (otp === "123456") {
-        onVerified();
-        return;
-      }
-      await authApi.verifyOtp(phone.trim(), otp);
+      await verifyOtp(phone.trim(), otp);
       onVerified();
     } catch (e) {
       Alert.alert("Verification failed", getApiErrorMessage(e));
@@ -81,6 +90,11 @@ export function OtpVerification({
         <Button title="Send OTP" onPress={handleSend} loading={loading} />
       ) : (
         <>
+          {__DEV__ && devHint ? (
+            <Text style={[styles.devHint, { color: colors.textSecondary }]}>
+              Development code: {devHint}
+            </Text>
+          ) : null}
           <Input
             label="6-Digit OTP"
             value={otp}
@@ -109,4 +123,5 @@ export function OtpVerification({
 
 const styles = StyleSheet.create({
   phoneLabel: { fontSize: 14, marginBottom: 16 },
+  devHint: { fontSize: 12, marginBottom: 12, fontWeight: "600" },
 });
