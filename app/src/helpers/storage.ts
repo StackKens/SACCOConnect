@@ -1,6 +1,6 @@
 import { getSecureStorage } from "../services/secureStorage";
 
-export const storage = getSecureStorage("");
+export const storage = getSecureStorage("sacco-storage");
 
 export const getItem = <T>(key: string): T | null => {
   const value = storage.getString(key);
