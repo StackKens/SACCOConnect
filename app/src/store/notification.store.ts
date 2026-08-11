@@ -103,18 +103,21 @@ export function buildNotifications(
 interface NotificationState {
   items: NotifItem[];
   unreadCount: number;
+  enabled: boolean;
   loading: boolean;
   error: string | null;
   hydrated: boolean;
   refresh: () => Promise<void>;
   markRead: (id: string) => void;
   markAllRead: () => void;
+  setEnabled: (enabled: boolean) => void;
   reset: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   items: [],
   unreadCount: 0,
+  enabled: readStorage.getBoolean("enabled") ?? true,
   loading: false,
   error: null,
   hydrated: false,
@@ -154,6 +157,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     const ids = new Set(get().items.map((n) => n.id));
     persistReadIds(userId, ids);
     set({ unreadCount: 0 });
+  },
+
+  setEnabled: (enabled) => {
+    readStorage.set("enabled", enabled);
+    set({ enabled, unreadCount: enabled ? get().unreadCount : 0 });
   },
 
   reset: () => set({ items: [], unreadCount: 0, loading: false, error: null, hydrated: false }),

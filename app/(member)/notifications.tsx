@@ -14,7 +14,7 @@ export default function Notifications() {
   const { colors } = useTheme();
   const user = useAuthStore((s) => s.user);
   const userId = user?.id ?? "guest";
-  const { items, loading, error, refresh, markRead, markAllRead } = useNotificationStore();
+  const { items, loading, error, refresh, markRead, markAllRead, enabled } = useNotificationStore();
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds(userId));
 
   useEffect(() => {
@@ -70,10 +70,14 @@ export default function Notifications() {
             </Text>
           </TouchableOpacity>
         ) : null}
-        {items.length === 0 ? (
+        {items.length === 0 || !enabled ? (
           <EmptyState
-            title="No notifications yet"
-            description="Contribution, loan, and announcement updates will appear here."
+            title={enabled ? "No notifications yet" : "Notifications are paused"}
+            description={
+              enabled
+                ? "Contribution, loan, and announcement updates will appear here."
+                : "Turn notifications back on in Profile → Notifications."
+            }
             icon={<BellOff size={32} color={colors.textSecondary} />}
           />
         ) : (

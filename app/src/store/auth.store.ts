@@ -174,6 +174,7 @@ interface AuthState {
     logoColor: string;
   }) => Promise<void>;
   acceptRules: () => void;
+  updateProfile: (patch: { name?: string; nationalId?: string }) => void;
   updateSACCORules: (rules: string[]) => Promise<void>;
   updateContributionDueDate: (date: string) => Promise<void>;
   refreshSacco: () => void;
@@ -333,6 +334,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get();
     if (user) storage.set(`rules_accepted_${user.id}`, true);
     set({ rulesAccepted: true });
+  },
+
+  updateProfile: (patch) => {
+    const { user } = get();
+    if (!user) return;
+    const updated: User = {
+      ...user,
+      name: patch.name?.trim() ?? user.name,
+      nationalId: patch.nationalId?.trim() || undefined,
+    };
+    storage.set("user", JSON.stringify(updated));
+    set({ user: updated });
   },
 
   logout: async () => {

@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Divider } from "@/components/ui/Divider";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
+import { useNotificationStore } from "@/store/notification.store";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { ChevronRight, X, ShieldCheck, UserCog, Fingerprint, Bell, BookOpen, Headphones, Info, Users, AlertCircle, Moon, MonitorSmartphone } from "lucide-react-native";
@@ -120,10 +121,12 @@ export default function Profile() {
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
   const { theme, setTheme } = useUIStore();
+  const notificationsEnabled = useNotificationStore((state) => state.enabled);
+  const setNotificationsEnabled = useNotificationStore((state) => state.setEnabled);
   const { colors, isDark, spacing, radius, typography } = useTheme();
   const [darkMode, setDarkMode] = useState(isDark);
   const [useSystem, setUseSystem] = useState(theme === "system");
-  const [legalModal, setLegalModal] = useState<"privacy" | "terms" | null>(null);
+  const [legalModal, setLegalModal] = useState<"privacy" | "terms" | "about" | null>(null);
 
   useEffect(() => { setDarkMode(isDark); }, [isDark]);
 
@@ -138,8 +141,6 @@ export default function Profile() {
     setTheme(val ? "system" : isDark ? "dark" : "light");
   };
 
-  const comingSoon = () => Alert.alert("Coming soon", "This feature will be available in a future release.");
-
   return (
     <ScreenWrapper header={<PageHeader title="Profile" subtitle="Manage your account & preferences" rightComponent={<NotificationsButton />} />}>
 
@@ -147,7 +148,7 @@ export default function Profile() {
         <Avatar name={user?.name} size={80} />
         <Text style={[typography.h2, { color: colors.text, marginTop: spacing.md }]}>{user?.name}</Text>
         <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
-          {user?.nationalId ? `Member ID: ${user.id ?? user.nationalId}` : `Member ID: ${user?.id ?? "—"}`}
+          {user?.id ? `Member ID: ${user.id}` : user?.nationalId ? `National ID: ${user.nationalId}` : ""}
         </Text>
         {sacco && (
           <Text style={[typography.captionMedium, { color: colors.primary, marginTop: spacing.sm }]}>{sacco.name}</Text>
@@ -156,21 +157,27 @@ export default function Profile() {
 
       <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.xl }}>
         <SectionLabel>Account</SectionLabel>
-        <SettingRow icon={<UserCog size={18} color={colors.primary} />} label="Personal Information" sublabel={user?.phone} onPress={comingSoon} />
-        <SettingRow icon={<Fingerprint size={18} color={colors.primary} />} label="Security & PIN" sublabel="Change your security PIN" onPress={comingSoon} />
-        <SettingRow icon={<Bell size={18} color={colors.primary} />} label="Notifications" sublabel="Manage alerts" onPress={() => router.push("/(member)/notifications")} last />
+        <SettingRow icon={<UserCog size={18} color={colors.primary} />} label="Personal Information" sublabel={user?.phone} onPress={() => router.push("/(member)/personal-info")} />
+        <SettingRow icon={<Fingerprint size={18} color={colors.primary} />} label="Security & PIN" sublabel="Change your security PIN" onPress={() => router.push("/(member)/security")} />
+        <SettingRow
+          icon={<Bell size={18} color={colors.primary} />}
+          label="Notifications"
+          sublabel={notificationsEnabled ? "Alerts are on" : "Alerts are paused"}
+          onPress={() => router.push("/(member)/notifications")}
+          right={<Switch value={notificationsEnabled} onValueChange={setNotificationsEnabled} />}
+        />
 
         <SectionLabel>My SACCO</SectionLabel>
         <SettingRow icon={<Users size={18} color={colors.primary} />} label={sacco?.name ?? "Your SACCO"} sublabel={sacco ? `UGX ${sacco.contributionAmount?.toLocaleString() ?? "—"} / month` : undefined} />
         <SettingRow icon={<ShieldCheck size={18} color={colors.primary} />} label="Group Rules" sublabel="Read the rules and terms" onPress={() => router.push("/(member)/group_rules")} />
-        <SettingRow icon={<BookOpen size={18} color={colors.primary} />} label="Membership Details" onPress={comingSoon} last />
+        <SettingRow icon={<BookOpen size={18} color={colors.primary} />} label="Membership Details" onPress={() => router.push("/(member)/membership-details")} last />
 
         <SectionLabel>Preferences</SectionLabel>
         <SettingRow icon={<Moon size={18} color={colors.primary} />} label="Dark Mode" right={<Switch value={darkMode} onValueChange={handleDarkModeToggle} disabled={useSystem} />} />
         <SettingRow icon={<MonitorSmartphone size={18} color={colors.primary} />} label="Use System Theme" right={<Switch value={useSystem} onValueChange={handleSystemToggle} />} last />
 
         <SectionLabel>Support</SectionLabel>
-        <SettingRow icon={<Headphones size={18} color={colors.primary} />} label="Help Center" sublabel="How to use SACCOConnect" onPress={comingSoon} />
+        <SettingRow icon={<Headphones size={18} color={colors.primary} />} label="Help Center" sublabel="How to use SACCOConnect" onPress={() => router.push("/(member)/help")} />
         <SettingRow icon={<AlertCircle size={18} color={colors.primary} />} label="Contact SACCO" sublabel="support@saccoconnect.ug" onPress={() => Linking.openURL("mailto:support@saccoconnect.ug")} />
         <SettingRow icon={<Info size={18} color={colors.primary} />} label="About SACCOConnect" sublabel="Version 1.0.0" onPress={() => setLegalModal("about")} last />
       </View>

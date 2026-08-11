@@ -17,6 +17,10 @@ const phoneSchema = z
 export const sendOTPSchema = z.object({ phoneNumber: phoneSchema });
 export const verifyOTPSchema = z.object({ phoneNumber: phoneSchema, code: z.string().length(6) });
 export const loginSchema = z.object({ phoneNumber: phoneSchema, pin: z.string().length(4) });
+export const changePinSchema = z.object({
+  currentPin: z.string().length(4),
+  newPin: z.string().length(4),
+});
 
 export const registerAdminSchema = z.object({
   phoneNumber: phoneSchema,

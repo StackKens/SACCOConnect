@@ -7,14 +7,16 @@ import {
   verifyRefreshToken,
 } from "../config/jwt";
 import { generateOTP, sendOTP } from "../services/sms.service";
-import { AppError } from "../middleware/error.middleware";
 import { generateInviteCode, paramString } from "../utils/helpers";
+import { AppError } from "../middleware/error.middleware";
+import { AuthRequest } from "../middleware/auth.middleware";
 import {
   sendOTPSchema,
   verifyOTPSchema,
   registerAdminSchema,
   registerMemberSchema,
   loginSchema,
+  changePinSchema,
 } from "../utils/validators";
 
 export async function requestOTP(req: Request, res: Response) {
@@ -368,5 +370,26 @@ export async function logout(req: Request, res: Response) {
     await prisma.refreshToken.deleteMany({ where: { token } });
   }
   return res.json({ success: true, message: "Logged out" });
+}
+
+export async function changePin(req: AuthRequest, res: Response) {
+  const { currentPin, newPin } = changePinSchema.parse(req.body);
+  if (!req.user) throw new AppError("Not authenticated", 401);
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.userId },
+  });
+  if (!user) throw new AppError("User not found", 404);
+
+  const isValid = await bcrypt.compare(currentPin, user.pinHash);
+  if (!isValid) throw new AppError("Current PIN is incorrect", 400);
+
+  const pinHash = await bcrypt.hash(newPin, 12);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { pinHash, failedLoginAttempts: 0, lockedUntil: null },
+  });
+
+  return res.json({ success: true, message: "PIN updated successfully" });
 }
 

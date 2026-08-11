@@ -119,6 +119,11 @@ export default function MemberLayout() {
       <Tabs.Screen name="contribute" options={{ href: null }} />
       <Tabs.Screen name="statement" options={{ href: null }} />
       <Tabs.Screen name="group_rules" options={{ href: null }} />
+      <Tabs.Screen name="personal-info" options={{ href: null }} />
+      <Tabs.Screen name="security" options={{ href: null }} />
+      <Tabs.Screen name="membership-details" options={{ href: null }} />
+      <Tabs.Screen name="help" options={{ href: null }} />
+      <Tabs.Screen name="faq" options={{ href: null }} />
     </Tabs>
   );
 }
