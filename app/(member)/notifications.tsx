@@ -41,6 +41,7 @@ export default function Notifications() {
   return (
     <ScreenWrapper
       scroll={false}
+      style={styles.wrapper}
       header={
         <PageHeader
           title="Notifications"
@@ -85,7 +86,6 @@ export default function Notifications() {
             initialNumToRender={12}
             maxToRenderPerBatch={10}
             windowSize={7}
-            removeClippedSubviews
             renderItem={({ item }) => (
               <NotificationRow
                 item={item}
@@ -102,6 +102,7 @@ export default function Notifications() {
 
 const styles = StyleSheet.create({
   list: { paddingTop: 12, paddingBottom: 24 },
+  wrapper: { paddingHorizontal: 0 },
   errorBanner: {
     marginHorizontal: 20,
     marginTop: 12,

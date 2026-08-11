@@ -92,7 +92,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 12,
-    marginHorizontal: -20,
     paddingHorizontal: 20,
     paddingVertical: 14,
     marginBottom: 12,
