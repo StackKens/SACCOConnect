@@ -12,7 +12,7 @@ import { useTheme } from "../../hooks/useTheme";
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: "primary" | "secondary" | "outline" | "danger";
+  variant?: "primary" | "secondary" | "accent" | "outline" | "ghost" | "danger";
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
@@ -38,6 +38,7 @@ export const Button: React.FC<ButtonProps> = ({
       case "primary":
         return colors.primary;
       case "secondary":
+      case "accent":
         return colors.secondary;
       case "danger":
         return colors.error;
@@ -47,8 +48,9 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const getTextColor = () => {
-    if (disabled) return colors.textSecondary;
+    if (disabled) return colors.textMuted;
     if (variant === "outline") return colors.primary;
+    if (variant === "ghost") return colors.primary;
     return "#FFFFFF";
   };
 
@@ -61,11 +63,9 @@ export const Button: React.FC<ButtonProps> = ({
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
       style={[
         styles.button,
-        { backgroundColor: getBackgroundColor(), borderColor: colors.primary },
-        variant === "outline" && {
-          borderWidth: 1,
-          backgroundColor: "transparent",
-        },
+        { backgroundColor: getBackgroundColor(), minHeight: 48 },
+        variant === "outline" && { borderWidth: 1, borderColor: colors.border, backgroundColor: "transparent" },
+        variant === "ghost" && { backgroundColor: colors.surfaceAlt },
         style,
       ]}
     >
@@ -84,12 +84,12 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   text: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
   },
 });
