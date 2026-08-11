@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Card } from "../ui/Card";
 import { useTheme } from "../../hooks/useTheme";
 import { getRelativeTime } from "../../utils/date";
 import { Info, PiggyBank, CreditCard, CheckCircle, XCircle } from "lucide-react-native";
@@ -50,46 +49,54 @@ export const NotificationRow: React.FC<NotificationRowProps> = React.memo(
         accessibilityRole="button"
         accessibilityLabel={`Mark ${item.title} as read`}
       >
-        <Card
-          style={[styles.card, !isRead && { backgroundColor: colors.primary + "08" }]}
+        <View
+          style={[
+            styles.row,
+            { backgroundColor: isRead ? colors.surface : colors.primary + "08" },
+          ]}
         >
-          <View style={styles.row}>
-            <View style={[styles.iconWrap, { backgroundColor: iconColor + "18" }]}>
-              <Icon size={18} color={iconColor} />
-            </View>
-            <View style={styles.content}>
-              <Text
-                style={[
-                  styles.title,
-                  { color: colors.text },
-                  !isRead && { fontWeight: "700" },
-                ]}
-              >
-                {item.title}
-              </Text>
-              <Text
-                style={[styles.message, { color: colors.textSecondary }]}
-                numberOfLines={2}
-              >
-                {item.message}
-              </Text>
-              <Text style={[styles.date, { color: colors.textSecondary }]}>
-                {getRelativeTime(item.date)}
-              </Text>
-            </View>
-            {!isRead && (
-              <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />
-            )}
+          <View style={[styles.iconWrap, { backgroundColor: iconColor + "18" }]}>
+            <Icon size={18} color={iconColor} />
           </View>
-        </Card>
+          <View style={styles.content}>
+            <Text
+              style={[
+                styles.title,
+                { color: colors.text },
+                !isRead && { fontWeight: "700" },
+              ]}
+            >
+              {item.title}
+            </Text>
+            <Text
+              style={[styles.message, { color: colors.textSecondary }]}
+              numberOfLines={2}
+            >
+              {item.message}
+            </Text>
+            <Text style={[styles.date, { color: colors.textSecondary }]}>
+              {getRelativeTime(item.date)}
+            </Text>
+          </View>
+          {!isRead && (
+            <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />
+          )}
+        </View>
       </TouchableOpacity>
     );
   },
 );
 
 const styles = StyleSheet.create({
-  card: { marginBottom: 12 },
-  row: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  row: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    marginBottom: 12,
+  },
   iconWrap: {
     width: 36,
     height: 36,

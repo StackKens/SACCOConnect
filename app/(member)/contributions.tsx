@@ -125,7 +125,7 @@ export default function Contributions() {
 
           <SectionHeader title="Contribution History" subtitle="Your most recent contributions" />
 
-          <View style={{ paddingHorizontal: spacing.xl, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border }}>
+          <View style={{ marginHorizontal: -spacing.xl, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, backgroundColor: colors.surface }}>
             {contributions.slice(0, 10).map((item, i) => (
               <TransactionRow
                 key={item.id}

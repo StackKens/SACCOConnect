@@ -101,7 +101,7 @@ export default function Notifications() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 },
+  list: { paddingTop: 12, paddingBottom: 24 },
   errorBanner: {
     marginHorizontal: 20,
     marginTop: 12,
