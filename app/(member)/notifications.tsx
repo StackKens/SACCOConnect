@@ -4,125 +4,37 @@ import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { BellOff } from "lucide-react-native";
 import { useAuthStore } from "@/store/auth.store";
-import { useMemberDataStore } from "@/store/member.store";
-import { useState, useMemo, useCallback } from "react";
-import { api } from "@/services/api";
-import { getSecureStorage } from "@/services/secureStorage";
-import { useApiFetch } from "@/hooks/useApiFetch";
+import { useNotificationStore } from "@/store/notification.store";
+import { getReadIds } from "@/store/notification.store";
+import { useState, useCallback, useEffect } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { NotificationRow, NotifItem } from "@/components/features/NotificationRow";
-
-const readStorage = getSecureStorage("read_notifications");
-
-function getReadIds(userId: string): Set<string> {
-  const stored = readStorage.getString(`read_${userId}`);
-  return stored ? new Set(JSON.parse(stored)) : new Set();
-}
-
-function markReadInStorage(userId: string, id: string) {
-  const ids = getReadIds(userId);
-  ids.add(id);
-  readStorage.set(`read_${userId}`, JSON.stringify([...ids]));
-}
-
-interface Announcement {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  createdAt: string;
-}
-
-function loanNotifications(loans: ReturnType<typeof useMemberDataStore.getState>["loans"]): NotifItem[] {
-  return loans.flatMap((l) => {
-    const items: NotifItem[] = [
-      {
-        id: `loan_applied_${l.id}`,
-        type: "loan_applied",
-        title: "Loan Application Submitted",
-        message: `Your application for UGX ${l.amount.toLocaleString()} (${l.purpose}) is under review.`,
-        date: l.dueDate ?? new Date().toISOString(),
-      },
-    ];
-    if (l.status === "active") {
-      items.push({
-        id: `loan_approved_${l.id}`,
-        type: "loan_approved",
-        title: "Loan Approved",
-        message: `Your loan of UGX ${l.amount.toLocaleString()} has been approved. Due: ${l.dueDate ?? "TBD"}.`,
-        date: l.dueDate ?? new Date().toISOString(),
-      });
-    }
-    if (l.status === "rejected") {
-      items.push({
-        id: `loan_rejected_${l.id}`,
-        type: "loan_rejected",
-        title: "Loan Rejected",
-        message: l.rejectNote ? `Your loan was rejected: ${l.rejectNote}` : "Your loan application was not approved.",
-        date: new Date().toISOString(),
-      });
-    }
-    return items;
-  });
-}
+import { NotificationRow } from "@/components/features/NotificationRow";
 
 export default function Notifications() {
   const { colors } = useTheme();
   const user = useAuthStore((s) => s.user);
   const userId = user?.id ?? "guest";
-  const { contributions, loans, transactions } = useMemberDataStore();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const { items, loading, error, refresh, markRead, markAllRead } = useNotificationStore();
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds(userId));
-  const { loading, error, refresh } = useApiFetch(async () => {
-    const res = await api.get("/api/announcements");
-    setAnnouncements(res.data.data);
-  });
 
-  const items = useMemo<NotifItem[]>(() => {
-    const announcementItems: NotifItem[] = announcements.map((a) => ({
-      id: `ann_${a.id}`,
-      type: "announcement",
-      title: a.title,
-      message: a.content,
-      date: a.createdAt,
-    }));
+  useEffect(() => {
+    if (!useNotificationStore.getState().hydrated) {
+      useNotificationStore.getState().refresh();
+    }
+  }, []);
 
-    const contributionItems: NotifItem[] = contributions.map((c) => ({
-      id: `contrib_${c.id}`,
-      type: "contribution",
-      title: "Contribution Recorded",
-      message: `UGX ${c.amount.toLocaleString()} via ${c.method} has been recorded.`,
-      date: c.date,
-    }));
-
-    const repaymentItems: NotifItem[] = transactions
-      .filter((t) => t.type === "loan_repayment")
-      .map((t) => ({
-        id: `repay_${t.id}`,
-        type: "loan_repayment",
-        title: "Loan Repayment Made",
-        message: `UGX ${Math.abs(t.amount).toLocaleString()} repayment recorded (ref: ${t.reference}).`,
-        date: t.date,
-      }));
-
-    const loanItems = loanNotifications(loans);
-
-    return [...announcementItems, ...contributionItems, ...repaymentItems, ...loanItems]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [announcements, contributions, loans, transactions]);
-
-  const markAsRead = useCallback(
+  const handleRead = useCallback(
     (id: string) => {
-      markReadInStorage(userId, id);
+      markRead(id);
       setReadIds((prev) => new Set([...prev, id]));
     },
-    [userId],
+    [markRead],
   );
 
-  const markAllRead = useCallback(() => {
-    items.forEach((n) => markReadInStorage(userId, n.id));
+  const handleMarkAll = useCallback(() => {
+    markAllRead();
     setReadIds(new Set(items.map((n) => n.id)));
-  }, [items, userId]);
+  }, [markAllRead, items]);
 
   const unreadCount = items.filter((n) => !readIds.has(n.id)).length;
 
@@ -136,7 +48,7 @@ export default function Notifications() {
           onBack={() => router.back()}
           rightComponent={
             unreadCount > 0 ? (
-              <TouchableOpacity onPress={markAllRead}>
+              <TouchableOpacity onPress={handleMarkAll} accessibilityRole="button" accessibilityLabel="Mark all notifications as read">
                 <Text style={[styles.markAll, { color: colors.primary }]}>Mark all read</Text>
               </TouchableOpacity>
             ) : undefined
@@ -149,6 +61,8 @@ export default function Notifications() {
           <TouchableOpacity
             style={[styles.errorBanner, { backgroundColor: colors.error + "12" }]}
             onPress={refresh}
+            accessibilityRole="button"
+            accessibilityLabel="Retry loading announcements"
           >
             <Text style={[styles.errorText, { color: colors.error }]}>
               Couldn't load announcements. Tap to retry.
@@ -176,7 +90,7 @@ export default function Notifications() {
               <NotificationRow
                 item={item}
                 isRead={readIds.has(item.id)}
-                onRead={markAsRead}
+                onRead={handleRead}
               />
             )}
           />
