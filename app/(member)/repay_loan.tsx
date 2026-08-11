@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, Alert } from "react-native";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { BalanceCard } from "@/components/ui/BalanceCard";
+import { PaymentMethodRow } from "@/components/ui/PaymentMethodRow";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
@@ -12,6 +13,7 @@ import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { enqueue } from "@/services/offlineQueue";
+import { Smartphone, Landmark, Banknote } from "lucide-react-native";
 
 interface ActiveLoan {
   id: string;
@@ -25,10 +27,10 @@ interface ActiveLoan {
 
 type RepayMethod = "MOBILE_MONEY" | "BANK_TRANSFER" | "CASH";
 
-const METHODS: { key: RepayMethod; label: string }[] = [
-  { key: "MOBILE_MONEY", label: "Mobile Money" },
-  { key: "BANK_TRANSFER", label: "Bank Transfer" },
-  { key: "CASH", label: "Cash" },
+const METHODS: { key: RepayMethod; label: string; icon: React.ReactNode }[] = [
+  { key: "MOBILE_MONEY", label: "Mobile Money", icon: <Smartphone size={22} color="#64748B" /> },
+  { key: "BANK_TRANSFER", label: "Bank Transfer", icon: <Landmark size={22} color="#64748B" /> },
+  { key: "CASH", label: "Cash", icon: <Banknote size={22} color="#64748B" /> },
 ];
 
 export default function RepayLoan() {
@@ -40,7 +42,7 @@ export default function RepayLoan() {
     setLoan(res.data.data);
   });
   const [submitting, setSubmitting] = useState(false);
-  const { colors } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
 
   const outstanding = loan ? loan.totalRepayable - loan.amountRepaid : 0;
   const fullyRepaid = loan ? loan.amountRepaid >= loan.totalRepayable : false;
@@ -56,10 +58,7 @@ export default function RepayLoan() {
       return;
     }
     if (numAmount > outstanding) {
-      Alert.alert(
-        "Error",
-        `Amount exceeds outstanding balance of ${formatCurrency(outstanding)}.`,
-      );
+      Alert.alert("Error", `Amount exceeds outstanding balance of ${formatCurrency(outstanding)}.`);
       return;
     }
 
@@ -69,16 +68,8 @@ export default function RepayLoan() {
       const NetInfo = require("@react-native-community/netinfo").default;
       const net = await NetInfo.fetch();
       if (!net.isConnected) {
-        enqueue({
-          endpoint: `/api/loans/${loan.id}/repay`,
-          method: "POST",
-          body,
-        });
-        setLoan((l) =>
-          l
-            ? { ...l, amountRepaid: Math.min(l.totalRepayable, l.amountRepaid + numAmount) }
-            : l,
-        );
+        enqueue({ endpoint: `/api/loans/${loan.id}/repay`, method: "POST", body });
+        setLoan((l) => (l ? { ...l, amountRepaid: Math.min(l.totalRepayable, l.amountRepaid + numAmount) } : l));
         Alert.alert(
           "Saved Offline",
           `Payment of ${formatCurrency(numAmount)} queued. It will be submitted automatically when you're back online.`,
@@ -86,10 +77,10 @@ export default function RepayLoan() {
         return;
       }
       const res = await api.post(`/api/loans/${loan.id}/repay`, body);
-      const fullyRepaid = res.data.fullyRepaid;
+      const repaid = res.data.fullyRepaid;
       Alert.alert(
-        fullyRepaid ? "Loan Fully Repaid" : "Payment Recorded",
-        fullyRepaid
+        repaid ? "Loan Fully Repaid" : "Payment Recorded",
+        repaid
           ? `Congratulations! You have fully repaid your loan of ${formatCurrency(loan.amountApproved)}.`
           : `Payment of ${formatCurrency(numAmount)} recorded. Remaining: ${formatCurrency(outstanding - numAmount)}.`,
         [{ text: "OK", onPress: () => router.back() }],
@@ -104,88 +95,59 @@ export default function RepayLoan() {
   return (
     <ScreenWrapper header={<PageHeader title="Repay Loan" showBack onBack={() => router.back()} />}>
       {error ? (
-        <ErrorState message={error} onRetry={refresh} />
+        <ErrorState title="Unable to load loan" message={error} onRetry={refresh} />
       ) : (
-        <>
-      <Card style={styles.card}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          Outstanding Balance
-        </Text>
-        <Text style={[styles.outstanding, { color: colors.text }]}>
-          {loading ? "Loading..." : formatCurrency(outstanding)}
-        </Text>
+        <View style={{ paddingBottom: spacing.huge }}>
+          <BalanceCard
+            label="Outstanding Balance"
+            amount={loading ? 0 : outstanding}
+            hint={loan ? `${loan.purpose} · ${loan.repaymentMonths} months · ${loan.interestRate}% p.a.` : undefined}
+            icon={<Banknote size={18} color={colors.primary} />}
+          />
 
-        {loan && (
-          <Text style={[styles.detail, { color: colors.textSecondary }]}>
-            {loan.purpose} · {loan.repaymentMonths} months · {loan.interestRate}
-            % p.a.
-          </Text>
-        )}
-
-        {fullyRepaid && (
-          <Text style={[styles.fullyRepaid, { color: colors.success }]}>
-            Loan fully repaid.
-          </Text>
-        )}
-
-        {!loading && !loan && (
-          <Text style={[styles.noLoan, { color: colors.textSecondary }]}>
-            You have no active loan right now.
-          </Text>
-        )}
-
-        {loan && !fullyRepaid && (
-          <>
-            <Text style={[styles.methodLabel, { color: colors.textSecondary }]}>
-              Payment Method
+          {!loading && !loan && (
+            <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.xl }]}>
+              You have no active loan right now.
             </Text>
-            <View style={styles.methods}>
-              {METHODS.map((m) => (
-                <Button
-                  key={m.key}
-                  title={m.label}
-                  onPress={() => setMethod(m.key)}
-                  variant={method === m.key ? "primary" : "outline"}
-                  style={styles.methodBtn}
-                />
-              ))}
-            </View>
+          )}
 
-            <Input
-              label="Payment Amount (UGX)"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
-              placeholder={`Max ${formatCurrency(outstanding)}`}
-            />
-            <Button
-              title="Make Payment"
-              onPress={handlePayment}
-              loading={submitting}
-              disabled={!loan}
-            />
-          </>
-        )}
-      </Card>
-        </>
+          {fullyRepaid && (
+            <View style={{ marginTop: spacing.xl, backgroundColor: colors.successSoft as string, borderRadius: radius.md, padding: spacing.lg }}>
+              <Text style={[typography.bodyMedium, { color: colors.success }]}>Loan fully repaid.</Text>
+            </View>
+          )}
+
+          {loan && !fullyRepaid && (
+            <>
+              <Text style={[typography.captionMedium, { color: colors.text, marginTop: spacing.xxl, marginBottom: spacing.md }]}>
+                Payment Method
+              </Text>
+              <View style={{ gap: spacing.md }}>
+                {METHODS.map((m) => (
+                  <PaymentMethodRow
+                    key={m.key}
+                    label={m.label}
+                    icon={m.icon}
+                    selected={method === m.key}
+                    onPress={() => setMethod(m.key)}
+                  />
+                ))}
+              </View>
+
+              <Input
+                label="Payment Amount (UGX)"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="numeric"
+                placeholder={`Max ${formatCurrency(outstanding)}`}
+                containerStyle={{ marginTop: spacing.xl }}
+              />
+
+              <Button title="Make Payment" onPress={handlePayment} loading={submitting} style={{ marginTop: spacing.xl }} />
+            </>
+          )}
+        </View>
       )}
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  card: { marginBottom: 20 },
-  label: { fontSize: 14, marginBottom: 4 },
-  outstanding: { fontSize: 32, fontWeight: "bold", marginBottom: 4 },
-  detail: { fontSize: 13, marginBottom: 20 },
-  noLoan: { fontSize: 14, marginBottom: 16 },
-  fullyRepaid: { fontSize: 14, fontWeight: "600", marginBottom: 16 },
-  methodLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 10,
-    marginTop: 8,
-  },
-  methods: { gap: 8, marginBottom: 16 },
-  methodBtn: {},
-});
