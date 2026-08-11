@@ -20,15 +20,16 @@ export const QuickActionGrid: React.FC<QuickActionGridProps> = ({ actions, colum
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
       {actions.map((action) => {
-        const filled = !!action.primary;
+        const { icon, label, primary, onPress } = action;
+        const filled = !!primary;
         const bg = filled ? colors.primary : colors.surface;
         const fg = filled ? "#FFFFFF" : colors.text;
         return (
           <Pressable
             key={action.key}
-            onPress={action.onPress}
+            onPress={onPress}
             accessibilityRole="button"
-            accessibilityLabel={action.label}
+            accessibilityLabel={label}
             style={({ pressed }) => [
               {
                 width: columns === 2 ? "48%" : "31%",
@@ -47,7 +48,7 @@ export const QuickActionGrid: React.FC<QuickActionGridProps> = ({ actions, colum
             ]}
           >
             {icon && <View style={{ width: 22, alignItems: "center" }}>{icon}</View>}
-            <Text style={[typography.bodyMedium, { color: fg }]}>{action.label}</Text>
+            <Text style={[typography.bodyMedium, { color: fg }]} numberOfLines={1}>{label}</Text>
           </Pressable>
         );
       })}
