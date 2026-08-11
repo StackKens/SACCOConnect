@@ -1,18 +1,19 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { NotificationsButton } from "@/components/ui/NotificationsButton";
-import { Card } from "@/components/ui/Card";
-import { StatCard } from "@/components/ui/StatCard";
+import { BalanceCard } from "@/components/ui/BalanceCard";
+import { QuickActionGrid } from "@/components/ui/QuickActionGrid";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { router } from "expo-router";
-import { Wallet, AlertCircle, Flame } from "lucide-react-native";
+import { Wallet, Scale, Flame, HandCoins, FileText, Handshake, CreditCard } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate, dueDateLabel } from "@/utils/date";
 import { api } from "@/services/api";
 import { useState, useCallback } from "react";
-import { SkeletonDashboard } from "@/components/ui/Skeleton";
+import { SkeletonHome } from "@/components/ui/Skeleton";
 import { useOfflineApi } from "@/hooks/useOfflineApi";
 
 interface MemberProfile {
@@ -26,103 +27,173 @@ interface ActiveLoan {
   amountRepaid: number;
 }
 
+interface ContributionItem {
+  id: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
+
 export default function MemberDashboard() {
-  const { colors } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
   const { data: profile, loading: profileLoading, refresh: refreshProfile } = useOfflineApi<MemberProfile>("/api/members/me");
   const { data: activeLoan, loading: loanLoading, refresh: refreshLoan } = useOfflineApi<ActiveLoan | null>("/api/loans/my/active");
+  const [thisMonthSavings, setThisMonthSavings] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+
+  const loadThisMonth = useCallback(async () => {
+    try {
+      const res = await api.get("/api/contributions/my");
+      const list = (res.data?.data ?? []) as ContributionItem[];
+      const now = new Date();
+      const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const sum = list
+        .filter((c) => c.status === "CONFIRMED" && (c.createdAt ?? "").startsWith(monthKey))
+        .reduce((acc, c) => acc + (c.amount ?? 0), 0);
+      setThisMonthSavings(sum);
+    } catch {
+      setThisMonthSavings(0);
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refreshProfile(), refreshLoan()]);
+    await Promise.all([refreshProfile(), refreshLoan(), loadThisMonth()]);
     setRefreshing(false);
-  }, [refreshProfile, refreshLoan]);
+  }, [refreshProfile, refreshLoan, loadThisMonth]);
+
   const loading = profileLoading && loanLoading;
 
   const totalSavings = profile?.currentBalance ?? 0;
-  const activeLoanBalance = activeLoan ? (activeLoan.amountApproved - activeLoan.amountRepaid) : 0;
+  const activeLoanBalance = activeLoan ? activeLoan.amountApproved - activeLoan.amountRepaid : 0;
   const streak = profile?.streak?.currentStreak ?? 0;
   const nextContribution = sacco?.contributionDueDate;
   const dueLabel = nextContribution ? dueDateLabel(nextContribution) : null;
   const isOverdue = dueLabel?.startsWith("Overdue");
-  const logoColor = sacco?.logoColor ?? colors.primary;
-  const saccoInitials = (sacco?.name ?? "SC").split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join("");
+  const firstName = user?.name?.split(" ")[0] || "Member";
 
   return (
-    <ScreenWrapper scroll header={<PageHeader title={`Welcome, ${user?.name?.split(" ")[0] || "Member"}`} rightComponent={<NotificationsButton />} />} refreshing={refreshing} onRefresh={refresh}>
-
-      {sacco && (
-        <View style={[styles.saccoStrip, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.saccoAvatar, { backgroundColor: logoColor }]}>
-            <Text style={styles.saccoAvatarText}>{saccoInitials}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.saccoName, { color: colors.text }]}>{sacco.name}</Text>
-            <Text style={[styles.saccoMeta, { color: colors.textSecondary }]}>
-              UGX {sacco.contributionAmount?.toLocaleString()} / month
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {loading ? <SkeletonDashboard /> : (
-        <>
-          <View style={styles.statsRow}>
-            <StatCard title="Total Savings" value={formatCurrency(totalSavings)} icon={<Wallet size={24} color={colors.secondary} />} />
-            <StatCard title="Loan Balance" value={formatCurrency(activeLoanBalance)} icon={<AlertCircle size={24} color={colors.warning} />} />
-          </View>
-
-          <Card style={styles.streakCard}>
-            <View style={styles.streakRow}>
-              <Flame size={28} color={colors.warning} />
-              <Text style={[styles.streakText, { color: colors.text }]}> {streak} month streak!</Text>
-            </View>
-            <Text style={[styles.streakSubtext, { color: colors.textSecondary }]}>
-              Keep contributing to maintain your streak
-            </Text>
-          </Card>
-        </>
-      )}
-
-      <Card style={styles.nextContribution}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Next Contribution</Text>
-        <Text style={[styles.contributionDate, { color: isOverdue ? colors.error : colors.secondary }]}>
-          {nextContribution ? formatDate(nextContribution) : "Not set yet"}
-        </Text>
-        {dueLabel && (
-          <Text style={[styles.dueHint, { color: isOverdue ? colors.error : colors.textSecondary }]}>
-            {dueLabel} · UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"}
+    <ScreenWrapper scroll header={<PageHeader title="Home" rightComponent={<NotificationsButton />} />} refreshing={refreshing} onRefresh={refresh}>
+      <View>
+        <Text style={[typography.caption, { color: colors.textSecondary }]}>Welcome back,</Text>
+        <Text style={[typography.h1, { color: colors.text }]}>{firstName}</Text>
+        {sacco && (
+          <Text style={[typography.caption, { color: colors.textMuted, marginTop: spacing.xs }]}>
+            {sacco.name}
           </Text>
         )}
-        <Button title="Make Contribution" onPress={() => router.push("/(member)/contribute")} variant="secondary" style={{ marginTop: 12 }} />
-      </Card>
-
-      <View style={styles.actions}>
-        <Button title="Apply for Loan" onPress={() => router.push("/(member)/apply_loan")} style={styles.actionButton} />
-        <Button title="Repay Loan" onPress={() => router.push("/(member)/repay_loan")} variant="outline" style={styles.actionButton} />
       </View>
 
-      <Button title="View Statement" onPress={() => router.push("/(member)/statement")} variant="outline" style={{ marginTop: 18, marginBottom: 20 }} />
+      {loading ? (
+        <View style={{ marginTop: spacing.xl }}>
+          <SkeletonHome />
+        </View>
+      ) : (
+        <View>
+          <View style={{ gap: spacing.md, marginTop: spacing.xl }}>
+            <BalanceCard
+              label="Total Savings"
+              amount={totalSavings}
+              delta={thisMonthSavings > 0 ? `+${formatCurrency(thisMonthSavings)} this month` : undefined}
+              deltaTone="positive"
+              icon={<Wallet size={18} color={colors.secondary} />}
+            />
+
+            <BalanceCard
+              label="Loan Balance"
+              amount={activeLoanBalance}
+              hint={activeLoan ? undefined : "No active loan"}
+              deltaTone="negative"
+              icon={<Scale size={18} color={activeLoanBalance > 0 ? colors.warning : colors.textMuted} />}
+            />
+          </View>
+
+          {nextContribution && (
+            <View
+              style={{
+                marginTop: spacing.xl,
+                backgroundColor: isOverdue ? (colors.errorSoft as string) : (colors.successSoft as string),
+                borderRadius: radius.lg,
+                padding: spacing.xl,
+                borderWidth: 1,
+                borderColor: isOverdue ? colors.error + "40" : colors.success + "40",
+              }}
+            >
+              <Text style={[typography.micro, { color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4 }]}>
+                Next Contribution
+              </Text>
+              <Text style={[typography.h2, { color: isOverdue ? colors.error : colors.text, marginTop: spacing.xs }]}>
+                {formatDate(nextContribution)}
+              </Text>
+              <Text style={[typography.body, { color: colors.textSecondary, marginTop: 2 }]}>
+                {dueLabel?.startsWith("Overdue") ? "Overdue" : dueLabel} · {formatCurrency(sacco?.contributionAmount ?? 0)}
+              </Text>
+              <Button
+                title="Make Contribution"
+                onPress={() => router.push("/(member)/contribute")}
+                style={{ marginTop: spacing.lg }}
+              />
+            </View>
+          )}
+
+          <SectionHeader title="Quick Actions" />
+
+          <QuickActionGrid
+            actions={[
+              {
+                key: "contribute",
+                label: "Contribution",
+                primary: true,
+                icon: <HandCoins size={20} color="#FFFFFF" />,
+                onPress: () => router.push("/(member)/contribute"),
+              },
+              {
+                key: "loan",
+                label: "Apply Loan",
+                icon: <Handshake size={20} color={colors.primary} />,
+                onPress: () => router.push("/(member)/apply_loan"),
+              },
+              {
+                key: "repay",
+                label: "Repay Loan",
+                icon: <CreditCard size={20} color={colors.primary} />,
+                onPress: () => router.push("/(member)/repay_loan"),
+              },
+              {
+                key: "statement",
+                label: "Statement",
+                icon: <FileText size={20} color={colors.primary} />,
+                onPress: () => router.push("/(member)/statement"),
+              },
+            ]}
+          />
+
+          {streak > 0 && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.md,
+                marginTop: spacing.xxl,
+                paddingVertical: spacing.lg,
+                paddingHorizontal: spacing.lg,
+                backgroundColor: colors.warningSoft as string,
+                borderRadius: radius.md,
+              }}
+            >
+              <Flame size={24} color={colors.warning} />
+              <View style={{ flex: 1 }}>
+                <Text style={[typography.bodyMedium, { color: colors.text }]}>{streak} month streak</Text>
+                <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                  Keep contributing to maintain your streak
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+      )}
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  saccoStrip: { flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 20 },
-  saccoAvatar: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  saccoAvatarText: { color: "#fff", fontSize: 14, fontWeight: "800" },
-  saccoName: { fontSize: 14, fontWeight: "700" },
-  saccoMeta: { fontSize: 12, marginTop: 1 },
-  statsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 24 },
-  streakCard: { marginBottom: 20, alignItems: "center" },
-  streakRow: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-  streakText: { fontSize: 18, fontWeight: "bold" },
-  streakSubtext: { fontSize: 12 },
-  nextContribution: { marginBottom: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
-  contributionDate: { fontSize: 20, fontWeight: "bold" },
-  dueHint: { fontSize: 13, marginTop: 6 },
-  actions: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
-  actionButton: { flex: 1 },
-});

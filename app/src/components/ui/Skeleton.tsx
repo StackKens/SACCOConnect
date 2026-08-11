@@ -172,6 +172,36 @@ export function SkeletonDashboard() {
   );
 }
 
+export function SkeletonHome() {
+  return (
+    <View>
+      <Skeleton width="40%" height={16} style={sk.mb8} />
+      <Skeleton width="55%" height={12} style={sk.mb20} />
+      <View style={[sk.cardWrap, sk.mb16]}>
+        <Skeleton width={80} height={11} style={sk.mb10} />
+        <Skeleton width="70%" height={36} style={sk.mb10} />
+        <Skeleton width="40%" height={12} />
+      </View>
+      <View style={[sk.cardWrap, sk.mb16]}>
+        <Skeleton width={80} height={11} style={sk.mb10} />
+        <Skeleton width="50%" height={28} style={sk.mb8} />
+        <Skeleton width="35%" height={12} />
+      </View>
+      <View style={[sk.cardWrap, sk.mb16]}>
+        <Skeleton width="45%" height={13} style={sk.mb14} />
+        <Skeleton width="55%" height={24} style={sk.mb8} />
+        <Skeleton width="35%" height={12} style={sk.mb14} />
+        <Skeleton height={48} radius={12} />
+      </View>
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        <Skeleton height={56} radius={12} style={{ flex: 1 }} />
+        <Skeleton height={56} radius={12} style={{ flex: 1 }} />
+      </View>
+      <Skeleton height={56} radius={12} style={[sk.mt12, { alignSelf: "stretch" }]} />
+    </View>
+  );
+}
+
 const sk = StyleSheet.create({
   card: { flexDirection: "row", alignItems: "center", gap: 12 },
   cardWrap: { backgroundColor: "transparent", borderRadius: 12, padding: 16, borderWidth: 1, borderColor: "transparent" },
@@ -182,4 +212,6 @@ const sk = StyleSheet.create({
   mb12: { marginBottom: 12 },
   mb14: { marginBottom: 14 },
   mb16: { marginBottom: 16 },
+  mb20: { marginBottom: 20 },
+  mt12: { marginTop: 12 },
 });
