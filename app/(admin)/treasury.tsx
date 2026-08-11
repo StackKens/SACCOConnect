@@ -201,7 +201,7 @@ export default function Treasury() {
         </View>
       </Card>
 
-      <Card style={styles.section}>
+      <View style={[styles.txSection, { backgroundColor: colors.surface }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
         {recentTransactions.length === 0 ? (
           <Text style={{ color: colors.textSecondary }}>No transactions yet</Text>
@@ -226,7 +226,7 @@ export default function Treasury() {
           </View>
           ))
         )}
-      </Card>
+      </View>
         </>
       )}
 
@@ -238,6 +238,7 @@ const styles = StyleSheet.create({
   statsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 16 },
   section: { marginBottom: 16 },
   sectionTitle: { fontSize: 15, fontWeight: "700", marginBottom: 16 },
+  txSection: { marginHorizontal: -20, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 16 },
   healthRow: { flexDirection: "row", alignItems: "center" },
   healthItem: { flex: 1, gap: 6 },
   healthDivider: { width: 1, height: 60, marginHorizontal: 16 },

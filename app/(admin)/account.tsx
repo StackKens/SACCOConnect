@@ -51,11 +51,11 @@ export default function AdminAccount() {
     <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title="Account" subtitle="Your profile & savings" />}>
       <View style={[styles.profileCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
         <View style={[styles.avatar, { backgroundColor: sacco?.logoColor ?? colors.primary }]}>
-          <User size={24} color="#FFFFFF" />
+          <User size={32} color="#FFFFFF" />
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={[typography.h2, { color: colors.text }]}>{user?.name}</Text>
-          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>{user?.phone}</Text>
+        <View style={styles.profileInfo}>
+          <Text style={[styles.adminName, { color: colors.text }]}>{user?.name}</Text>
+          <Text style={[styles.adminPhone, { color: colors.textSecondary }]}>{user?.phone}</Text>
           <Text style={[styles.adminBadge, { color: colors.secondary }]}>ADMINISTRATOR</Text>
         </View>
       </View>
@@ -98,7 +98,7 @@ export default function AdminAccount() {
               description="Your contributions will appear here once you make your first one."
             />
           ) : (
-            <View style={{ paddingHorizontal: spacing.xl, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border }}>
+            <View style={[styles.contribList, { backgroundColor: colors.surface }]}>
               {contributions.slice(0, 10).map((item, i) => (
                 <TransactionRow
                   key={item.id}
@@ -123,18 +123,24 @@ export default function AdminAccount() {
 
 const styles = StyleSheet.create({
   profileCard: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 14,
-    padding: 20,
+    padding: 24,
     borderWidth: 1,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 12,
   },
-  adminBadge: { fontSize: 11, fontWeight: "700", letterSpacing: 1, marginTop: 6 },
+  profileInfo: { alignItems: "center" },
+  adminName: { fontSize: 17, fontWeight: "700" },
+  adminPhone: { fontSize: 13, marginTop: 2 },
+  adminBadge: { fontSize: 11, fontWeight: "700", letterSpacing: 1, marginTop: 8 },
+  contribList: {
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
+  },
 });
