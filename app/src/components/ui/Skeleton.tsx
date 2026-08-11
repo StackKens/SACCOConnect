@@ -10,7 +10,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ width = "100%", height = 16, radius = 8, style }: SkeletonProps) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function Skeleton({ width = "100%", height = 16, radius = 8, style }: Ske
     return () => anim.stop();
   }, [opacity]);
 
-  const base = isDark ? "#2a2a2a" : "#e0e0e0";
+  const base = colors.skeleton;
 
   return (
     <Animated.View

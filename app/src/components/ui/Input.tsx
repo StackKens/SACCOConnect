@@ -45,7 +45,7 @@ export const Input: React.FC<InputProps> = ({
           style={[
             styles.input,
             {
-              backgroundColor: colors.surface,
+              backgroundColor: colors.input,
               borderColor: error ? colors.error : colors.border,
               color: colors.text,
             },

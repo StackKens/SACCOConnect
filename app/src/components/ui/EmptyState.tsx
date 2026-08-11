@@ -1,40 +1,50 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { useTheme } from "../../hooks/useTheme";
+import { Button } from "./Button";
 
 interface EmptyStateProps {
   title: string;
   description?: string;
   icon?: React.ReactNode;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   description,
   icon,
+  actionLabel,
+  onAction,
 }) => {
-  const { colors } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
   return (
-    <View style={styles.container}>
-      {icon && <View style={styles.icon}>{icon}</View>}
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+    <View style={{ alignItems: "center", paddingVertical: spacing.huge, paddingHorizontal: spacing.xl }}>
+      {icon && (
+        <View
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 36,
+            backgroundColor: colors.surfaceAlt as string,
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: spacing.xl,
+          }}
+        >
+          {icon}
+        </View>
+      )}
+      <Text style={[typography.h2, { color: colors.text, textAlign: "center" }]}>{title}</Text>
       {description && (
-        <Text style={[styles.description, { color: colors.textSecondary }]}>
+        <Text style={[typography.body, { color: colors.textSecondary, textAlign: "center", marginTop: spacing.sm, lineHeight: 24 }]}>
           {description}
         </Text>
+      )}
+      {actionLabel && onAction && (
+        <Button title={actionLabel} onPress={onAction} style={{ alignSelf: "stretch", marginTop: spacing.xxl }} />
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { alignItems: "center", justifyContent: "center", padding: 32 },
-  icon: { marginBottom: 16 },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  description: { fontSize: 14, textAlign: "center" },
-});

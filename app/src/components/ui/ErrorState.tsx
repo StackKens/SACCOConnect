@@ -1,32 +1,42 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
+import { AlertCircle } from "lucide-react-native";
 import { useTheme } from "../../hooks/useTheme";
 import { Button } from "./Button";
 
 interface ErrorStateProps {
+  title?: string;
   message?: string;
   onRetry?: () => void;
 }
 
-export function ErrorState({ message, onRetry }: ErrorStateProps) {
-  const { colors } = useTheme();
+export function ErrorState({ title, message, onRetry }: ErrorStateProps) {
+  const { colors, spacing, radius, typography } = useTheme();
   return (
-    <View style={styles.container}>
-      <Text style={[styles.title, { color: colors.text }]}>Something went wrong</Text>
+    <View style={{ alignItems: "center", paddingVertical: spacing.huge, paddingHorizontal: spacing.xl }}>
+      <View
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: 36,
+          backgroundColor: colors.errorSoft as string,
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: spacing.xl,
+        }}
+      >
+        <AlertCircle size={34} color={colors.error} strokeWidth={2} />
+      </View>
+      <Text style={[typography.h2, { color: colors.text, textAlign: "center" }]}>
+        {title ?? "Something went wrong"}
+      </Text>
       {message ? (
-        <Text style={[styles.message, { color: colors.textSecondary }]}>
+        <Text style={[typography.body, { color: colors.textSecondary, textAlign: "center", marginTop: spacing.sm, lineHeight: 24 }]}>
           {message}
         </Text>
       ) : null}
       {onRetry ? (
-        <Button title="Retry" onPress={onRetry} style={styles.retry} />
+        <Button title="Try Again" onPress={onRetry} style={{ alignSelf: "stretch", marginTop: spacing.xxl }} />
       ) : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { alignItems: "center", justifyContent: "center", padding: 32 },
-  title: { fontSize: 18, fontWeight: "600", marginBottom: 8, textAlign: "center" },
-  message: { fontSize: 14, textAlign: "center", marginBottom: 20 },
-  retry: { alignSelf: "stretch" },
-});
