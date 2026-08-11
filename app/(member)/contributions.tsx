@@ -1,8 +1,13 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { NotificationsButton } from "@/components/ui/NotificationsButton";
-import { Card } from "@/components/ui/Card";
+import { BalanceCard } from "@/components/ui/BalanceCard";
+import { GrowthChart } from "@/components/ui/GrowthChart";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { Button } from "@/components/ui/Button";
+import { Wallet, CalendarClock } from "lucide-react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { dueDateLabel, formatDate } from "@/utils/date";
@@ -11,9 +16,8 @@ import { useAuthStore } from "@/store/auth.store";
 import { api } from "@/services/api";
 import { useState } from "react";
 import { useApiFetch } from "@/hooks/useApiFetch";
-import { ErrorState } from "@/components/ui/ErrorState";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
+import { TransactionRow } from "@/components/features/TransactionRow";
 
 interface Contribution {
   id: string;
@@ -23,8 +27,25 @@ interface Contribution {
   createdAt: string;
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function buildGrowth(contributions: Contribution[]): { label: string; value: number }[] {
+  const map = new Map<string, number>();
+  for (const c of contributions) {
+    if (c.status !== "CONFIRMED") continue;
+    const key = (c.createdAt ?? "").slice(0, 7);
+    if (!key) continue;
+    map.set(key, (map.get(key) ?? 0) + (c.amount ?? 0));
+  }
+  const keys = [...map.keys()].sort();
+  return keys.slice(-6).map((k) => {
+    const [, m] = k.split("-");
+    return { label: MONTHS[parseInt(m, 10) - 1] ?? k, value: map.get(k) ?? 0 };
+  });
+}
+
 export default function Contributions() {
-  const { colors } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
   const sacco = useAuthStore((state) => state.sacco);
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [totalSavings, setTotalSavings] = useState(0);
@@ -39,68 +60,95 @@ export default function Contributions() {
   const dueDate = sacco?.contributionDueDate;
   const dueLabel = dueDate ? dueDateLabel(dueDate) : null;
   const isOverdue = dueLabel?.startsWith("Overdue");
+  const growth = buildGrowth(contributions);
 
   return (
-    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh}>
-      <Card style={styles.totalCard}>
-        <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total Saved</Text>
-        <Text style={[styles.totalAmount, { color: colors.text }]}>{formatCurrency(totalSavings)}</Text>
-        <Button title="Make Contribution" onPress={() => router.push("/(member)/contribute")} variant="secondary" style={styles.contributeBtn} />
-      </Card>
+    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contributions at a glance" rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh}>
+      <BalanceCard
+        label="Total Savings"
+        amount={totalSavings}
+        delta={dueLabel && dueDate ? `Due ${formatDate(dueDate)}` : undefined}
+        deltaTone={isOverdue ? "negative" : "neutral"}
+        icon={<Wallet size={18} color={colors.secondary} />}
+      />
 
       {dueDate && (
-        <Card style={[styles.dueCard, isOverdue && { borderColor: colors.error + "55", borderWidth: 1 }]}>
-          <Text style={[styles.dueTitle, { color: colors.text }]}>Monthly due date</Text>
-          <Text style={[styles.dueDate, { color: isOverdue ? colors.error : colors.primary }]}>{formatDate(dueDate)}</Text>
-          <Text style={[styles.dueSub, { color: colors.textSecondary }]}>
-            {dueLabel} · Pay UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"} by this date
-          </Text>
-        </Card>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.md,
+            marginTop: spacing.xl,
+            padding: spacing.lg,
+            backgroundColor: isOverdue ? (colors.errorSoft as string) : (colors.infoSoft as string),
+            borderRadius: radius.md,
+          }}
+        >
+          <CalendarClock size={22} color={isOverdue ? colors.error : colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={[typography.captionMedium, { color: colors.text }]}>
+              {isOverdue ? "Monthly contribution overdue" : "Monthly due date"}
+            </Text>
+            <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
+              {formatCurrency(sacco?.contributionAmount ?? 0)} by {formatDate(dueDate)}
+            </Text>
+          </View>
+        </View>
       )}
 
-      {loading ? <SkeletonMemberList /> : error ? (
-        <ErrorState message={error} onRetry={refresh} />
+      {loading ? (
+        <View style={{ marginTop: spacing.xl }}>
+          <SkeletonMemberList />
+        </View>
+      ) : error ? (
+        <ErrorState title="Unable to load savings" message="We couldn't retrieve your savings information." onRetry={refresh} />
+      ) : contributions.length === 0 ? (
+        <View style={{ marginTop: spacing.xxl }}>
+          <EmptyState
+            icon={<Wallet size={30} color={colors.primary} />}
+            title="No contributions yet"
+            description="Your contributions will appear here once you make your first one."
+            actionLabel="Make Contribution"
+            onAction={() => router.push("/(member)/contribute")}
+          />
+        </View>
       ) : (
-        <View style={styles.list}>
-          {contributions.length === 0 ? (
-            <EmptyState title="No contributions yet" />
-          ) : contributions.map((item) => (
-            <Card key={item.id} style={styles.card}>
-              <View style={styles.row}>
-                <View>
-                  <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(item.amount)}</Text>
-                  <Text style={[styles.date, { color: colors.textSecondary }]}>{formatDate(item.createdAt)}</Text>
-                  <Text style={[styles.method, { color: colors.textSecondary }]}>{item.method.replace(/_/g, " ")}</Text>
-                </View>
-                <View style={[styles.status, { backgroundColor: item.status === "CONFIRMED" ? colors.success + "20" : colors.warning + "20" }]}>
-                  <Text style={[styles.statusText, { color: item.status === "CONFIRMED" ? colors.success : colors.warning }]}>
-                    {item.status.toLowerCase()}
-                  </Text>
-                </View>
+        <View>
+          {growth.length > 1 && (
+            <>
+              <SectionHeader title="Savings Growth" />
+              <View style={{ padding: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border }}>
+                <GrowthChart data={growth} />
               </View>
-            </Card>
-          ))}
+            </>
+          )}
+
+          <SectionHeader title="Contribution History" subtitle="Your most recent contributions" />
+
+          <View style={{ paddingHorizontal: spacing.xl, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border }}>
+            {contributions.slice(0, 10).map((item, i) => (
+              <TransactionRow
+                key={item.id}
+                item={{
+                  id: item.id,
+                  type: "CONTRIBUTION",
+                  amount: item.amount,
+                  date: item.createdAt,
+                  reference: item.method?.replace(/_/g, " "),
+                  status: item.status,
+                }}
+                last={i === Math.min(contributions.length, 10) - 1}
+              />
+            ))}
+          </View>
+
+          <Button
+            title="Make Contribution"
+            onPress={() => router.push("/(member)/contribute")}
+            style={{ marginTop: spacing.xl, marginBottom: spacing.xxl }}
+          />
         </View>
       )}
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  totalCard: { marginBottom: 20, alignItems: "center" },
-  totalLabel: { fontSize: 14 },
-  totalAmount: { fontSize: 32, fontWeight: "bold", marginTop: 8 },
-  contributeBtn: { marginTop: 16, alignSelf: "stretch" },
-  dueCard: { marginBottom: 16 },
-  dueTitle: { fontSize: 13, fontWeight: "600", marginBottom: 4 },
-  dueDate: { fontSize: 22, fontWeight: "800", marginBottom: 4 },
-  dueSub: { fontSize: 13, lineHeight: 18 },
-  list: { paddingBottom: 20 },
-  card: { marginBottom: 12 },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  amount: { fontSize: 16, fontWeight: "600" },
-  date: { fontSize: 14, marginTop: 4 },
-  method: { fontSize: 12, marginTop: 2 },
-  status: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  statusText: { fontSize: 12, fontWeight: "600" },
-});
