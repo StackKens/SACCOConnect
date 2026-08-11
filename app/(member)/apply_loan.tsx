@@ -157,8 +157,9 @@ export default function ApplyLoan() {
         <Button title={submitLabel} onPress={handleSubmit} loading={submitting} style={{ flex: 2 }} />
       ) : (
         <Button title="Continue" onPress={next} style={{ flex: 2 }} />
-      </View>
-    );
+      )}
+    </View>
+  );
 
   if (loading) {
     return (
