@@ -27,10 +27,10 @@ interface ActiveLoan {
 
 type RepayMethod = "MOBILE_MONEY" | "BANK_TRANSFER" | "CASH";
 
-const METHODS: { key: RepayMethod; label: string; icon: React.ReactNode }[] = [
-  { key: "MOBILE_MONEY", label: "Mobile Money", icon: <Smartphone size={22} color="#64748B" /> },
-  { key: "BANK_TRANSFER", label: "Bank Transfer", icon: <Landmark size={22} color="#64748B" /> },
-  { key: "CASH", label: "Cash", icon: <Banknote size={22} color="#64748B" /> },
+const METHODS: { key: RepayMethod; label: string }[] = [
+  { key: "MOBILE_MONEY", label: "Mobile Money" },
+  { key: "BANK_TRANSFER", label: "Bank Transfer" },
+  { key: "CASH", label: "Cash" },
 ];
 
 export default function RepayLoan() {
@@ -127,7 +127,13 @@ export default function RepayLoan() {
                   <PaymentMethodRow
                     key={m.key}
                     label={m.label}
-                    icon={m.icon}
+                    icon={
+                      m.key === "MOBILE_MONEY"
+                        ? <Smartphone size={22} color={method === m.key ? colors.secondary : colors.textMuted} />
+                        : m.key === "BANK_TRANSFER"
+                          ? <Landmark size={22} color={method === m.key ? colors.secondary : colors.textMuted} />
+                          : <Banknote size={22} color={method === m.key ? colors.secondary : colors.textMuted} />
+                    }
                     selected={method === m.key}
                     onPress={() => setMethod(m.key)}
                   />
