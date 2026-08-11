@@ -37,6 +37,7 @@ interface MemberRow {
 export default function Members() {
   const { colors } = useTheme();
   const sacco = useAuthStore((state) => state.sacco);
+  const me = useAuthStore((state) => state.user);
   const [showModal, setShowModal] = useState(false);
   const [invitePhone, setInvitePhone] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -113,6 +114,7 @@ export default function Members() {
         renderItem={({ item }) => (
           <MemberRow
             member={item}
+            isYou={item.user.phoneNumber === me?.phone}
             onPress={() => router.push(`/(admin)/member-detail?id=${item.id}`)}
           />
         )}

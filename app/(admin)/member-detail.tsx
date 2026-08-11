@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Divider } from "@/components/ui/Divider";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { useAuthStore } from "@/store/auth.store";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
@@ -33,6 +34,7 @@ export default function MemberDetail() {
   const { id } = useLocalSearchParams<{ id: string | string[] }>();
   const memberId = Array.isArray(id) ? id[0] : id;
   const { colors } = useTheme();
+  const me = useAuthStore((state) => state.user);
   const [member, setMember] = useState<MemberDetailData | null>(null);
   const { loading, error, refresh } = useApiFetch(async () => {
     if (!memberId) return;
@@ -71,6 +73,7 @@ export default function MemberDetail() {
   const recentContributions = confirmedContributions.slice(0, 5);
   const loanHistory = member.loans.filter((l) => l.status !== "AWAITING_GUARANTORS");
   const pendingLoan = member.loans.find((l) => ["PENDING", "AWAITING_GUARANTORS", "UNDER_REVIEW"].includes(l.status));
+  const isYou = member.user.phoneNumber === me?.phone;
 
   return (
     <ScreenWrapper
@@ -161,58 +164,68 @@ export default function MemberDetail() {
 
       <Card style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Manage Member</Text>
-        <Button
-          title={member.status === "ACTIVE" ? "Deactivate Member" : "Activate Member"}
-          variant={member.status === "ACTIVE" ? "outline" : "primary"}
-          loading={actionLoading}
-          style={{ marginBottom: 10 }}
-          onPress={() => {
-            const next = member.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-            const label = next === "INACTIVE" ? "Deactivate" : "Activate";
-            Alert.alert(`${label} Member`, `Are you sure you want to ${label.toLowerCase()} ${member.fullName}?`, [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: label,
-                onPress: async () => {
-                  setActionLoading(true);
-                  try {
-                    await api.patch(`/api/members/${memberId}/status`, { status: next });
-                    setMember((m) => m ? { ...m, status: next } : m);
-                  } catch {
-                    Alert.alert("Error", "Could not update member status.");
-                  } finally {
-                    setActionLoading(false);
-                  }
-                },
-              },
-            ]);
-          }}
-        />
-        <Button
-          title="Delete Member"
-          variant="danger"
-          loading={actionLoading}
-          onPress={() => {
-            Alert.alert("Delete Member", `This will permanently delete ${member.fullName} and all their data. This cannot be undone.`, [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: async () => {
-                  setActionLoading(true);
-                  try {
-                    await api.delete(`/api/members/${memberId}`);
-                    router.replace("/(admin)/members");
-                  } catch {
-                    Alert.alert("Error", "Could not delete member.");
-                  } finally {
-                    setActionLoading(false);
-                  }
-                },
-              },
-            ]);
-          }}
-        />
+        {isYou ? (
+          <View style={[styles.selfNote, { backgroundColor: colors.primary + "12" }]}>
+            <Text style={[styles.selfNoteText, { color: colors.primary }]}>
+              This is your own member record. Deactivate and Delete are disabled for your account.
+            </Text>
+          </View>
+        ) : (
+          <>
+            <Button
+              title={member.status === "ACTIVE" ? "Deactivate Member" : "Activate Member"}
+              variant={member.status === "ACTIVE" ? "outline" : "primary"}
+              loading={actionLoading}
+              style={{ marginBottom: 10 }}
+              onPress={() => {
+                const next = member.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+                const label = next === "INACTIVE" ? "Deactivate" : "Activate";
+                Alert.alert(`${label} Member`, `Are you sure you want to ${label.toLowerCase()} ${member.fullName}?`, [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: label,
+                    onPress: async () => {
+                      setActionLoading(true);
+                      try {
+                        await api.patch(`/api/members/${memberId}/status`, { status: next });
+                        setMember((m) => m ? { ...m, status: next } : m);
+                      } catch {
+                        Alert.alert("Error", "Could not update member status.");
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    },
+                  },
+                ]);
+              }}
+            />
+            <Button
+              title="Delete Member"
+              variant="danger"
+              loading={actionLoading}
+              onPress={() => {
+                Alert.alert("Delete Member", `This will permanently delete ${member.fullName} and all their data. This cannot be undone.`, [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                      setActionLoading(true);
+                      try {
+                        await api.delete(`/api/members/${memberId}`);
+                        router.replace("/(admin)/members");
+                      } catch {
+                        Alert.alert("Error", "Could not delete member.");
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    },
+                  },
+                ]);
+              }}
+            />
+          </>
+        )}
       </Card>
 
       <View style={styles.actions}>
@@ -248,6 +261,8 @@ const styles = StyleSheet.create({
   loanInfo: { gap: 2 },
   loanAmount: { fontSize: 15, fontWeight: "600" },
   loanRepaid: { fontSize: 12 },
+  selfNote: { borderRadius: 10, padding: 16 },
+  selfNoteText: { fontSize: 14, lineHeight: 20, fontWeight: "600" },
   actions: { flexDirection: "row", gap: 12, marginBottom: 24 },
   actionBtn: { flex: 1 },
 });
