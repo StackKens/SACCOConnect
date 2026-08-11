@@ -102,7 +102,7 @@ export default function RepayLoan() {
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="Repay Loan" />}>
+    <ScreenWrapper header={<PageHeader title="Repay Loan" showBack onBack={() => router.back()} />}>
       {error ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : (

@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { Download } from "lucide-react-native";
 import { api } from "@/services/api";
@@ -60,6 +61,8 @@ export default function Statement() {
     <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={
       <PageHeader
         title="Statement"
+        showBack
+        onBack={() => router.back()}
         rightComponent={
           <TouchableOpacity
             style={styles.exportBtn}

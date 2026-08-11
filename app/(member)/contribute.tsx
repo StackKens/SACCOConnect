@@ -108,6 +108,8 @@ export default function Contribute() {
         <PageHeader
           title="Make Contribution"
           subtitle="Choose your payment method"
+          showBack
+          onBack={() => router.back()}
         />
       }
     >

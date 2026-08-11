@@ -1,5 +1,6 @@
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { BellOff } from "lucide-react-native";
 import { useAuthStore } from "@/store/auth.store";
@@ -131,6 +132,8 @@ export default function Notifications() {
       header={
         <PageHeader
           title="Notifications"
+          showBack
+          onBack={() => router.back()}
           rightComponent={
             unreadCount > 0 ? (
               <TouchableOpacity onPress={markAllRead}>

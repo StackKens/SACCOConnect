@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { router } from "expo-router";
 import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
@@ -38,7 +39,7 @@ export default function GroupRules() {
   return (
     <ScreenWrapper
       scroll
-      header={<PageHeader title="Group Rules" subtitle="Rules and terms for your SACCO" />}
+      header={<PageHeader title="Group Rules" subtitle="Rules and terms for your SACCO" showBack onBack={() => router.back()} />}
     >
       <View style={styles.identity}>
         <GroupAvatar name={sacco?.name ?? "SACCO"} color={logoColor} />
