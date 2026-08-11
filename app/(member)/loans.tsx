@@ -43,7 +43,11 @@ export default function Loans() {
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh}>
+    <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh} floating={loans.length > 0 ? (
+      <TouchableOpacity style={[styles.fab, { backgroundColor: colors.primary }]} onPress={() => router.push("/(member)/apply_loan")}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
+    ) : undefined}>
       {loading ? (
         <SkeletonLoanQueue />
       ) : error ? (
@@ -113,9 +117,6 @@ export default function Loans() {
               </TouchableOpacity>
             );
           })}
-          <TouchableOpacity style={[styles.fab, { backgroundColor: colors.primary }]} onPress={() => router.push("/(member)/apply_loan")}>
-            <Text style={styles.fabText}>+</Text>
-          </TouchableOpacity>
         </View>
       )}
     </ScreenWrapper>

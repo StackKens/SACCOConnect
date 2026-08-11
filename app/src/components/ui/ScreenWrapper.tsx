@@ -14,6 +14,7 @@ interface ScreenWrapperProps {
   header?: React.ReactNode;
   refreshing?: boolean;
   onRefresh?: () => void;
+  floating?: React.ReactNode;
 }
 
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
@@ -23,6 +24,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   header,
   refreshing = false,
   onRefresh,
+  floating,
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -56,6 +58,11 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       {header}
       <PendingSyncBanner />
       {content}
+      {floating && (
+        <View pointerEvents="box-none" style={styles.floatingWrap}>
+          {floating}
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -107,6 +114,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingBottom: 24,
+  },
+  floatingWrap: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   scrollContent: {
     flexGrow: 1,
