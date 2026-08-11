@@ -40,7 +40,7 @@ export default function LoanReview() {
     if (!loanId) return;
     const res = await api.get(`/api/loans/${loanId}`);
     setLoan(res.data.data);
-  });
+  }, [loanId]);
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
@@ -126,7 +126,7 @@ export default function LoanReview() {
     );
   };
 
-  if (loading) {
+  if (loading || (loan && loan.id !== loanId)) {
     return (
       <ScreenWrapper
         header={

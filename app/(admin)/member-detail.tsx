@@ -38,10 +38,10 @@ export default function MemberDetail() {
     if (!memberId) return;
     const res = await api.get(`/api/members/${memberId}`);
     setMember(res.data.data);
-  });
+  }, [memberId]);
   const [actionLoading, setActionLoading] = useState(false);
 
-  if (loading) {
+  if (loading || (member && member.id !== memberId)) {
     return (
       <ScreenWrapper scroll header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
         <SkeletonMemberDetail />
