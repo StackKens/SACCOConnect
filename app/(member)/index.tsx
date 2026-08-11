@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { NotificationsButton } from "@/components/ui/NotificationsButton";
 import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/Button";
@@ -49,7 +50,7 @@ export default function MemberDashboard() {
   const saccoInitials = (sacco?.name ?? "SC").split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join("");
 
   return (
-    <ScreenWrapper scroll header={<PageHeader title={`Welcome, ${user?.name?.split(" ")[0] || "Member"}`} />} refreshing={refreshing} onRefresh={refresh}>
+    <ScreenWrapper scroll header={<PageHeader title={`Welcome, ${user?.name?.split(" ")[0] || "Member"}`} rightComponent={<NotificationsButton />} />} refreshing={refreshing} onRefresh={refresh}>
 
       {sacco && (
         <View style={[styles.saccoStrip, { backgroundColor: colors.card, borderColor: colors.border }]}>

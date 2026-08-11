@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { NotificationsButton } from "@/components/ui/NotificationsButton";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -42,7 +43,7 @@ export default function Loans() {
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" />} refreshing={loading} onRefresh={refresh}>
+    <ScreenWrapper header={<PageHeader title="My Loans" subtitle="Track and manage your loan portfolio" rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh}>
       {loading ? (
         <SkeletonLoanQueue />
       ) : error ? (

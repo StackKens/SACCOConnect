@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { NotificationsButton } from "@/components/ui/NotificationsButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
@@ -40,7 +41,7 @@ export default function Contributions() {
   const isOverdue = dueLabel?.startsWith("Overdue");
 
   return (
-    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" />} refreshing={loading} onRefresh={refresh}>
+    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contribution history" rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh}>
       <Card style={styles.totalCard}>
         <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total Saved</Text>
         <Text style={[styles.totalAmount, { color: colors.text }]}>{formatCurrency(totalSavings)}</Text>

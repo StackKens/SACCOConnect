@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, Switch, TouchableOpacity, Linking, Modal, ScrollView } from "react-native";
 import { useState, useEffect } from "react";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { NotificationsButton } from "@/components/ui/NotificationsButton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
@@ -88,7 +89,7 @@ export default function Profile() {
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="Profile" subtitle="Manage your account & preferences" />}>
+    <ScreenWrapper header={<PageHeader title="Profile" subtitle="Manage your account & preferences" rightComponent={<NotificationsButton />} />}>
 
       <Card style={styles.profileCard}>
         <Avatar name={user?.name} size={80} style={styles.avatar} />
