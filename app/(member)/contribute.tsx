@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, Alert } from "react-native";
 import { router } from "expo-router";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Divider } from "@/components/ui/Divider";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
+import { PaymentMethodRow } from "@/components/ui/PaymentMethodRow";
+import { SuccessState } from "@/components/ui/SuccessState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { useMemberDataStore } from "@/store/member.store";
@@ -14,87 +15,86 @@ import { dueDateLabel, formatDate } from "@/utils/date";
 import { api } from "@/services/api";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { enqueue } from "@/services/offlineQueue";
+import { formatCurrency } from "@/utils/currency";
+import { Smartphone, Landmark } from "lucide-react-native";
 
 type PaymentMethod = "MTN" | "Airtel" | "Bank";
+type Step = "details" | "confirm" | "success";
 
-const METHODS: { key: PaymentMethod; label: string; apiValue: string }[] = [
-  { key: "MTN", label: "MTN Mobile Money", apiValue: "MOBILE_MONEY" },
-  { key: "Airtel", label: "Airtel Money", apiValue: "MOBILE_MONEY" },
-  { key: "Bank", label: "Bank Transfer", apiValue: "BANK_TRANSFER" },
+const METHODS: { key: PaymentMethod; label: string; sublabel: string; apiValue: string; icon: "mobile" | "bank" }[] = [
+  { key: "MTN", label: "MTN Mobile Money", sublabel: "Pay via mobile money", apiValue: "MOBILE_MONEY", icon: "mobile" },
+  { key: "Airtel", label: "Airtel Money", sublabel: "Pay via mobile money", apiValue: "MOBILE_MONEY", icon: "mobile" },
+  { key: "Bank", label: "Bank Transfer", sublabel: "Transfer from your bank account", apiValue: "BANK_TRANSFER", icon: "bank" },
 ];
 
+function mask(value: string) {
+  if (value.length <= 4) return value;
+  return `${value.slice(0, 4)}••••${value.slice(-3)}`;
+}
+
 export default function Contribute() {
+  const [step, setStep] = useState<Step>("details");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("MTN");
   const [phone, setPhone] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [loading, setLoading] = useState(false);
-  const { colors } = useTheme();
+  const [reference, setReference] = useState("");
+  const [offline, setOffline] = useState(false);
+  const { colors, spacing, radius, typography } = useTheme();
   const sacco = useAuthStore((state) => state.sacco);
+  const user = useAuthStore((state) => state.user);
   const addContribution = useMemberDataStore((s) => s.addContribution);
   const dueDate = sacco?.contributionDueDate;
   const isMobile = method === "MTN" || method === "Airtel";
   const selectedMethod = METHODS.find((m) => m.key === method)!;
+  const numAmount = parseFloat(amount);
+  const validAmount = !isNaN(numAmount) && numAmount > 0;
 
-  const handleSubmit = async () => {
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) {
+  const handleContinue = () => {
+    if (!validAmount) {
       Alert.alert("Invalid Amount", "Please enter a valid amount.");
       return;
     }
     if (isMobile && phone.trim().length < 9) {
-      Alert.alert(
-        "Invalid Number",
-        "Please enter a valid Uganda mobile number.",
-      );
+      Alert.alert("Invalid Number", "Please enter a valid Uganda mobile number.");
       return;
     }
     if (method === "Bank" && accountNumber.trim().length < 6) {
-      Alert.alert(
-        "Invalid Account",
-        "Please enter a valid bank account number.",
-      );
+      Alert.alert("Invalid Account", "Please enter a valid bank account number.");
       return;
     }
+    setStep("confirm");
+  };
 
+  const handleSubmit = async () => {
     setLoading(true);
     const body = {
       amount: numAmount,
       method: selectedMethod.apiValue,
-      transactionRef: isMobile
-        ? phone.trim()
-        : accountNumber.trim() || undefined,
+      transactionRef: isMobile ? phone.trim() : accountNumber.trim() || undefined,
     };
+    const year = new Date().getFullYear();
 
     try {
       const NetInfo = require("@react-native-community/netinfo").default;
       const net = await NetInfo.fetch();
 
       if (!net.isConnected) {
-        // offline — queue it and reflect optimistically in the local store.
         enqueue({ endpoint: "/api/contributions", method: "POST", body });
         addContribution(numAmount, selectedMethod.label);
-        Alert.alert(
-          "Saved Offline",
-          `UGX ${numAmount.toLocaleString()} contribution saved. It will be submitted automatically when you're back online.`,
-          [{ text: "OK", onPress: () => router.back() }],
-        );
+        setOffline(true);
+        setReference(`SC-${year}-${Date.now().toString().slice(-6)}`);
+        setStep("success");
         return;
       }
 
-      await api.post("/api/contributions", body);
-      // Hydrate from the API (single source of truth) rather than a
-      // separate local mutation that can drift from server data.
-      const userId = useAuthStore.getState().user?.id;
+      const res = await api.post("/api/contributions", body);
+      const userId = user?.id;
       if (userId) await syncMemberData(userId);
-
-      Alert.alert(
-        isMobile ? "Payment Request Sent" : "Contribution Recorded",
-        isMobile
-          ? `A payment prompt has been sent to ${phone}. Approve it to complete your contribution.`
-          : "Your bank transfer has been submitted for processing.",
-        [{ text: "OK", onPress: () => router.back() }],
-      );
+      setOffline(false);
+      setReference((res.data?.data?.reference as string) ?? `SC-${year}-${Date.now().toString().slice(-6)}`);
+      setStep("success");
     } catch (e) {
       Alert.alert("Error", getApiErrorMessage(e));
     } finally {
@@ -102,118 +102,145 @@ export default function Contribute() {
     }
   };
 
-  return (
-    <ScreenWrapper
-      header={
-        <PageHeader
-          title="Make Contribution"
-          subtitle="Choose your payment method"
-          showBack
-          onBack={() => router.back()}
+  const renderHeader = () => (
+    <PageHeader
+      title="Make Contribution"
+      subtitle={step === "confirm" ? "Review and confirm" : step === "success" ? "" : "Choose your payment method"}
+      showBack
+      onBack={() => (step === "confirm" ? setStep("details") : router.back())}
+    />
+  );
+
+  if (step === "success") {
+    return (
+      <ScreenWrapper header={renderHeader()}>
+        <SuccessState
+          title={offline ? "Contribution Saved Offline" : "Contribution Initiated"}
+          subtitle={
+            offline
+              ? `UGX ${numAmount.toLocaleString()} has been saved. It will be submitted automatically when you're back online.`
+              : isMobile
+                ? `A payment prompt has been sent to your phone. Approve it to complete your ${formatCurrency(numAmount)} contribution.`
+                : `Your ${formatCurrency(numAmount)} bank transfer has been submitted for processing.`
+          }
+          reference={reference}
+          primaryActionLabel="Done"
+          onPrimaryAction={() => router.back()}
         />
-      }
-    >
-      {dueDate && (
-        <View
-          style={[
-            styles.dueBanner,
-            {
-              backgroundColor: colors.primary + "12",
-              borderColor: colors.primary + "30",
-            },
-          ]}
-        >
-          <Text style={[styles.dueBannerText, { color: colors.text }]}>
-            Due by {formatDate(dueDate)} · {dueDateLabel(dueDate)}
-          </Text>
-          <Text style={[styles.dueBannerSub, { color: colors.textSecondary }]}>
-            Expected amount: UGX{" "}
-            {sacco?.contributionAmount?.toLocaleString() ?? "—"}
+      </ScreenWrapper>
+    );
+  }
+
+  return (
+    <ScreenWrapper header={renderHeader()}>
+      {dueDate && step === "details" && (
+        <View style={{ backgroundColor: colors.infoSoft as string, borderWidth: 1, borderColor: colors.info + "30", borderRadius: radius.md, padding: spacing.lg, marginBottom: spacing.xl }}>
+          <Text style={[typography.captionMedium, { color: colors.text }]}>Due by {formatDate(dueDate)} · {dueDateLabel(dueDate)}</Text>
+          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
+            Expected amount: {formatCurrency(sacco?.contributionAmount ?? 0)}
           </Text>
         </View>
       )}
 
-      <Card style={styles.card}>
-        <Input
-          label="Amount (UGX)"
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="numeric"
-          placeholder="e.g. 50000"
-        />
-        <Divider style={styles.divider} />
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          Payment Method
-        </Text>
-        <View style={styles.methodContainer}>
-          {METHODS.map((m) => (
-            <Button
-              key={m.key}
-              title={m.label}
-              onPress={() => setMethod(m.key)}
-              variant={method === m.key ? "primary" : "outline"}
-              style={styles.methodBtn}
-            />
-          ))}
-        </View>
-
-        {isMobile && (
-          <>
-            <Divider style={styles.divider} />
-            <Input
-              label={`${method === "MTN" ? "MTN" : "Airtel"} Mobile Money Number`}
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              placeholder={method === "MTN" ? "0771234567" : "0751234567"}
-            />
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Enter the registered {method === "MTN" ? "MTN" : "Airtel"} number.
-              You will receive a payment prompt to approve.
+      {step === "details" ? (
+        <>
+          <View style={{ marginBottom: spacing.xxl }}>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>Amount</Text>
+            <Text style={[typography.display, { color: colors.text, marginTop: spacing.xs, fontVariant: ["tabular-nums"] }]}>
+              {formatCurrency(validAmount ? numAmount : 0)}
             </Text>
-          </>
-        )}
-
-        {method === "Bank" && (
-          <>
-            <Divider style={styles.divider} />
             <Input
-              label="Bank Account Number"
-              value={accountNumber}
-              onChangeText={setAccountNumber}
+              label="Amount (UGX)"
+              value={amount}
+              onChangeText={setAmount}
               keyboardType="numeric"
-              placeholder="e.g. 1234567890"
+              placeholder="e.g. 50000"
+              containerStyle={{ marginTop: spacing.lg }}
             />
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Use your member ID as the transfer reference. Your contribution
-              will be confirmed within 24 hours.
-            </Text>
-          </>
-        )}
-      </Card>
+          </View>
 
-      <Button
-        title="Submit Contribution"
-        onPress={handleSubmit}
-        loading={loading}
-      />
+          <Text style={[typography.captionMedium, { color: colors.text, marginBottom: spacing.md }]}>Payment Method</Text>
+          <View style={{ gap: spacing.md }}>
+            {METHODS.map((m) => (
+              <PaymentMethodRow
+                key={m.key}
+                label={m.label}
+                sublabel={m.sublabel}
+                icon={
+                  m.icon === "mobile"
+                    ? <Smartphone size={22} color={method === m.key ? colors.secondary : colors.textMuted} />
+                    : <Landmark size={22} color={method === m.key ? colors.secondary : colors.textMuted} />
+                }
+                selected={method === m.key}
+                onPress={() => setMethod(m.key)}
+              />
+            ))}
+          </View>
+
+          {isMobile && (
+            <>
+              <Divider style={{ marginVertical: spacing.xl }} />
+              <Input
+                label={`${method === "MTN" ? "MTN" : "Airtel"} Mobile Money Number`}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                placeholder={method === "MTN" ? "0771234567" : "0751234567"}
+              />
+              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: -10 }]}>
+                You will receive a payment prompt on this number to approve.
+              </Text>
+            </>
+          )}
+
+          {method === "Bank" && (
+            <>
+              <Divider style={{ marginVertical: spacing.xl }} />
+              <Input
+                label="Bank Account Number"
+                value={accountNumber}
+                onChangeText={setAccountNumber}
+                keyboardType="numeric"
+                placeholder="e.g. 1234567890"
+              />
+              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: -10 }]}>
+                Use your member ID as the transfer reference. Your contribution will be confirmed within 24 hours.
+              </Text>
+            </>
+          )}
+
+          <Button title="Continue" onPress={handleContinue} style={{ marginTop: spacing.xl, marginBottom: spacing.huge }} />
+        </>
+      ) : (
+        <View>
+          <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.xl }}>
+            <Text style={[typography.micro, { color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4 }]}>You are contributing</Text>
+            <Text style={[typography.display, { color: colors.text, marginTop: spacing.sm, fontVariant: ["tabular-nums"] }]}>{formatCurrency(numAmount)}</Text>
+
+            <Divider style={{ marginVertical: spacing.xl }} />
+
+            <View style={{ gap: spacing.lg }}>
+              <ConfirmRow label="Payment method" value={selectedMethod.label} />
+              {isMobile && <ConfirmRow label="Phone" value={mask(phone.trim())} />}
+              {method === "Bank" && <ConfirmRow label="Account" value={mask(accountNumber.trim())} />}
+              {sacco && <ConfirmRow label="SACCO" value={sacco.name} />}
+            </View>
+          </View>
+
+          <Button title="Confirm Payment" onPress={handleSubmit} loading={loading} style={{ marginTop: spacing.xl }} />
+          <Button title="Back" onPress={() => setStep("details")} variant="ghost" style={{ marginTop: spacing.md, marginBottom: spacing.huge }} />
+        </View>
+      )}
     </ScreenWrapper>
   );
 }
 
-const styles = StyleSheet.create({
-  dueBanner: {
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 16,
-  },
-  dueBannerText: { fontSize: 14, fontWeight: "600" },
-  dueBannerSub: { fontSize: 12, marginTop: 4 },
-  card: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: "500", marginBottom: 10 },
-  methodContainer: { gap: 10, marginBottom: 4 },
-  methodBtn: {},
-  divider: { marginVertical: 16 },
-  hint: { fontSize: 12, lineHeight: 18, marginTop: 6 },
-});
+function ConfirmRow({ label, value }: { label: string; value: string }) {
+  const { colors, typography } = useTheme();
+  return (
+    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+      <Text style={[typography.caption, { color: colors.textSecondary }]}>{label}</Text>
+      <Text style={[typography.bodyMedium, { color: colors.text }]}>{value}</Text>
+    </View>
+  );
+}
