@@ -1,16 +1,15 @@
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Linking, Modal, ScrollView } from "react-native";
+import { View, Text, Switch, TouchableOpacity, Linking, Modal, ScrollView, Alert } from "react-native";
 import { useState, useEffect } from "react";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { NotificationsButton } from "@/components/ui/NotificationsButton";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Divider } from "@/components/ui/Divider";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
-import { ChevronRight, X, ShieldCheck } from "lucide-react-native";
+import { ChevronRight, X, ShieldCheck, UserCog, Fingerprint, Bell, BookOpen, Headphones, Info, Users, AlertCircle, Moon, MonitorSmartphone } from "lucide-react-native";
 
 const PRIVACY_POLICY = `We take your privacy seriously. Here is what you need to know:
 
@@ -58,19 +57,70 @@ SACCOConnect is a management tool. The SACCO is responsible for all financial de
 8. Contact
 For any questions or disputes, contact us at support@saccoconnect.ug.`;
 
-const HOW_TO_USE = [
-  { title: "Making a Contribution", desc: "Go to Savings and tap Make Contribution. Enter the amount, select your payment method, and confirm." },
-  { title: "Applying for a Loan", desc: "Go to Loans and tap the + button. Fill in the amount, purpose, repayment term, and monthly income." },
-  { title: "Repaying a Loan", desc: "Open an active loan card and tap Repay Loan. Enter the payment amount and confirm." },
-  { title: "Viewing Statements", desc: "Open the side menu or navigate to Statement to download your full transaction history." },
-];
+function SectionLabel({ children }: { children: string }) {
+  const { colors, spacing, typography } = useTheme();
+  return (
+    <Text style={[typography.micro, { color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.6, marginTop: spacing.xxl, marginBottom: spacing.sm }]}>
+      {children}
+    </Text>
+  );
+}
+
+interface RowProps {
+  icon: React.ReactNode;
+  label: string;
+  sublabel?: string;
+  onPress?: () => void;
+  right?: React.ReactNode;
+  last?: boolean;
+  destructive?: boolean;
+}
+
+function SettingRow({ icon, label, sublabel, onPress, right, last, destructive }: RowProps) {
+  const { colors, spacing, radius, typography } = useTheme();
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? "button" : undefined}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+        paddingVertical: spacing.lg,
+        borderBottomWidth: last ? 0 : 1,
+        borderBottomColor: colors.border,
+      }}
+    >
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: radius.sm,
+          backgroundColor: destructive ? (colors.errorSoft as string) : (colors.surfaceAlt as string),
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {icon}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[typography.bodyMedium, { color: destructive ? colors.error : colors.text }]}>{label}</Text>
+        {sublabel && (
+          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 1 }]}>{sublabel}</Text>
+        )}
+      </View>
+      {right ?? (onPress ? <ChevronRight size={18} color={colors.textMuted} /> : null)}
+    </TouchableOpacity>
+  );
+}
 
 export default function Profile() {
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
   const { theme, setTheme } = useUIStore();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, spacing, radius, typography } = useTheme();
   const [darkMode, setDarkMode] = useState(isDark);
   const [useSystem, setUseSystem] = useState(theme === "system");
   const [legalModal, setLegalModal] = useState<"privacy" | "terms" | null>(null);
@@ -88,164 +138,74 @@ export default function Profile() {
     setTheme(val ? "system" : isDark ? "dark" : "light");
   };
 
+  const comingSoon = () => Alert.alert("Coming soon", "This feature will be available in a future release.");
+
   return (
     <ScreenWrapper header={<PageHeader title="Profile" subtitle="Manage your account & preferences" rightComponent={<NotificationsButton />} />}>
 
-      <Card style={styles.profileCard}>
-        <Avatar name={user?.name} size={80} style={styles.avatar} />
-        <Text style={[styles.name, { color: colors.text }]}>{user?.name}</Text>
-        <Text style={[styles.phone, { color: colors.textSecondary }]}>{user?.phone}</Text>
-        {user?.nationalId && (
-          <Text style={[styles.phone, { color: colors.textSecondary }]}>ID: {user.nationalId}</Text>
-        )}
-        {sacco && (
-          <Text style={[styles.saccoTag, { color: colors.primary }]}>{sacco.name}</Text>
-        )}
-        <Text style={[styles.role, { color: colors.secondary }]}>
-          {user?.role?.toUpperCase()}
+      <View style={{ alignItems: "center", paddingVertical: spacing.xl }}>
+        <Avatar name={user?.name} size={80} />
+        <Text style={[typography.h2, { color: colors.text, marginTop: spacing.md }]}>{user?.name}</Text>
+        <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
+          {user?.nationalId ? `Member ID: ${user.id ?? user.nationalId}` : `Member ID: ${user?.id ?? "—"}`}
         </Text>
-      </Card>
+        {sacco && (
+          <Text style={[typography.captionMedium, { color: colors.primary, marginTop: spacing.sm }]}>{sacco.name}</Text>
+        )}
+      </View>
 
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>My SACCO</Text>
-        <TouchableOpacity
-          style={styles.supportRow}
-          onPress={() => router.push("/(member)/group_rules")}
-          accessibilityRole="button"
-          accessibilityLabel="View group rules"
-        >
-          <View style={styles.helpText}>
-            <Text style={[styles.settingLabel, { color: colors.text }]}>Group Rules</Text>
-            <Text style={[styles.helpDesc, { color: colors.textSecondary }]}>
-              Read the rules and terms for {sacco?.name ?? "your SACCO"}
-            </Text>
-          </View>
-          <ShieldCheck size={18} color={colors.primary} />
-        </TouchableOpacity>
-      </Card>
+      <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.xl }}>
+        <SectionLabel>Account</SectionLabel>
+        <SettingRow icon={<UserCog size={18} color={colors.primary} />} label="Personal Information" sublabel={user?.phone} onPress={comingSoon} />
+        <SettingRow icon={<Fingerprint size={18} color={colors.primary} />} label="Security & PIN" sublabel="Change your security PIN" onPress={comingSoon} />
+        <SettingRow icon={<Bell size={18} color={colors.primary} />} label="Notifications" sublabel="Manage alerts" onPress={() => router.push("/(member)/notifications")} last />
 
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
-        <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Dark Mode</Text>
-          <Switch value={darkMode} onValueChange={handleDarkModeToggle} disabled={useSystem} />
-        </View>
-        <Divider style={styles.divider} />
-        <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Use System Theme</Text>
-          <Switch value={useSystem} onValueChange={handleSystemToggle} />
-        </View>
-      </Card>
+        <SectionLabel>My SACCO</SectionLabel>
+        <SettingRow icon={<Users size={18} color={colors.primary} />} label={sacco?.name ?? "Your SACCO"} sublabel={sacco ? `UGX ${sacco.contributionAmount?.toLocaleString() ?? "—"} / month` : undefined} />
+        <SettingRow icon={<ShieldCheck size={18} color={colors.primary} />} label="Group Rules" sublabel="Read the rules and terms" onPress={() => router.push("/(member)/group_rules")} />
+        <SettingRow icon={<BookOpen size={18} color={colors.primary} />} label="Membership Details" onPress={comingSoon} last />
 
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>How to Use</Text>
-        {HOW_TO_USE.map((item, i) => (
-          <View key={i}>
-            {i > 0 && <Divider style={styles.divider} />}
-            <View style={styles.helpItem}>
-              <View style={styles.helpText}>
-                <Text style={[styles.helpTitle, { color: colors.text }]}>{item.title}</Text>
-                <Text style={[styles.helpDesc, { color: colors.textSecondary }]}>{item.desc}</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-      </Card>
+        <SectionLabel>Preferences</SectionLabel>
+        <SettingRow icon={<Moon size={18} color={colors.primary} />} label="Dark Mode" right={<Switch value={darkMode} onValueChange={handleDarkModeToggle} disabled={useSystem} />} />
+        <SettingRow icon={<MonitorSmartphone size={18} color={colors.primary} />} label="Use System Theme" right={<Switch value={useSystem} onValueChange={handleSystemToggle} />} last />
 
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
-        <TouchableOpacity
-          style={styles.supportRow}
-          onPress={() => Linking.openURL("mailto:support@saccoconnect.ug")}
-          accessibilityRole="button"
-          accessibilityLabel="Email support"
-        >
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Email Support</Text>
-          <ChevronRight size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
-        <Divider style={styles.divider} />
-        <TouchableOpacity
-          style={styles.supportRow}
-          onPress={() => Linking.openURL("tel:+256800100200")}
-          accessibilityRole="button"
-          accessibilityLabel="Call support line"
-        >
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Call Support Line</Text>
-          <ChevronRight size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
-        <Divider style={styles.divider} />
-        <View style={styles.supportRow}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>App Version</Text>
-          <Text style={[styles.helpDesc, { color: colors.textSecondary }]}>1.0.0</Text>
-        </View>
-      </Card>
-
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Legal</Text>
-        <TouchableOpacity style={styles.supportRow} onPress={() => setLegalModal("privacy")} accessibilityRole="button" accessibilityLabel="View privacy policy">
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Privacy Policy</Text>
-          <ChevronRight size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
-        <Divider style={styles.divider} />
-        <TouchableOpacity style={styles.supportRow} onPress={() => setLegalModal("terms")} accessibilityRole="button" accessibilityLabel="View terms of service">
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Terms of Service</Text>
-          <ChevronRight size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
-      </Card>
+        <SectionLabel>Support</SectionLabel>
+        <SettingRow icon={<Headphones size={18} color={colors.primary} />} label="Help Center" sublabel="How to use SACCOConnect" onPress={comingSoon} />
+        <SettingRow icon={<AlertCircle size={18} color={colors.primary} />} label="Contact SACCO" sublabel="support@saccoconnect.ug" onPress={() => Linking.openURL("mailto:support@saccoconnect.ug")} />
+        <SettingRow icon={<Info size={18} color={colors.primary} />} label="About SACCOConnect" sublabel="Version 1.0.0" onPress={() => setLegalModal("about")} last />
+      </View>
 
       <Modal visible={legalModal !== null} transparent animationType="slide" onRequestClose={() => setLegalModal(null)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalSheet, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {legalModal === "privacy" ? "Privacy Policy" : "Terms of Service"}
+        <View style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.xl, maxHeight: "80%" }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+              <Text style={[typography.h3, { color: colors.text }]}>
+                {legalModal === "privacy" ? "Privacy Policy" : legalModal === "terms" ? "Terms of Service" : "About SACCOConnect"}
               </Text>
               <TouchableOpacity onPress={() => setLegalModal(null)} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
                 <X size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <Divider />
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={[styles.legalText, { color: colors.textSecondary }]}>
-                {legalModal === "privacy" ? PRIVACY_POLICY : TERMS_OF_SERVICE}
-              </Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {legalModal === "about" ? (
+                <View style={{ paddingVertical: spacing.lg }}>
+                  <Text style={[typography.body, { color: colors.textSecondary, lineHeight: 24 }]}>
+                    SACCOConnect is a modern platform for Savings and Credit Cooperative Organisations — helping members save, borrow, and grow together.
+                  </Text>
+                  <Text style={[typography.caption, { color: colors.textMuted, marginTop: spacing.lg }]}>Version 1.0.0</Text>
+                </View>
+              ) : (
+                <Text style={[typography.body, { color: colors.textSecondary, lineHeight: 24 }]}>
+                  {legalModal === "privacy" ? PRIVACY_POLICY : TERMS_OF_SERVICE}
+                </Text>
+              )}
             </ScrollView>
           </View>
         </View>
       </Modal>
 
-      <Button
-        title="Logout"
-        onPress={logout}
-        variant="danger"
-        style={styles.logout}
-      />
+      <Button title="Logout" onPress={logout} variant="danger" style={{ marginTop: spacing.xxxl, marginBottom: spacing.huge }} />
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  profileCard: { alignItems: "center", marginBottom: 24 },
-  avatar: { marginBottom: 16 },
-  name: { fontSize: 22, fontWeight: "bold", marginBottom: 4 },
-  phone: { fontSize: 14, marginBottom: 2 },
-  saccoTag: { fontSize: 12, fontWeight: "600", marginBottom: 4, marginTop: 2 },
-  role: { fontSize: 12, fontWeight: "700", letterSpacing: 1 },
-  section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 14 },
-  settingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 4 },
-  settingLabel: { fontSize: 14 },
-  divider: { marginVertical: 10 },
-  helpItem: { paddingVertical: 6 },
-  helpText: { flex: 1 },
-  helpTitle: { fontSize: 14, fontWeight: "600", marginBottom: 2 },
-  helpDesc: { fontSize: 13, lineHeight: 18 },
-  supportRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 4 },
-  logout: { marginTop: 8, marginBottom: 24 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  modalSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: "80%" },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
-  modalTitle: { fontSize: 17, fontWeight: "700" },
-  modalBody: { marginTop: 12 },
-  legalText: { fontSize: 13, lineHeight: 22 },
-});
