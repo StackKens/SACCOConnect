@@ -6,7 +6,7 @@ import {
   Users,
   ClipboardList,
   Landmark,
-  Settings,
+  User,
 } from "lucide-react-native";
 
 export default function AdminLayout() {
@@ -64,13 +64,15 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="account"
         options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <Settings size={22} color={color} />,
+          title: "Account",
+          tabBarIcon: ({ color }) => <User size={22} color={color} />,
         }}
       />
       {/* Hidden screens */}
+      <Tabs.Screen name="settings" options={{ href: null }} />
+      <Tabs.Screen name="contribute" options={{ href: null }} />
       <Tabs.Screen name="loan-review" options={{ href: null }} />
       <Tabs.Screen name="member-detail" options={{ href: null }} />
       <Tabs.Screen name="active-loans" options={{ href: null }} />

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
-import { Users, Wallet, Banknote, Clock } from "lucide-react-native";
+import { Users, Wallet, Banknote, Clock, Settings } from "lucide-react-native";
+import { Pressable } from "react-native";
 import { formatCurrency } from "@/utils/currency";
 import { useState } from "react";
 import { api } from "@/services/api";
@@ -42,6 +43,17 @@ export default function AdminDashboard() {
         <PageHeader
           title="Admin Dashboard"
           subtitle="Overview of SACCO operations"
+          rightComponent={
+            <Pressable
+              onPress={() => router.push("/(admin)/settings")}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
+              style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.5 }]}
+            >
+              <Settings size={22} color={colors.text} strokeWidth={2} />
+            </Pressable>
+          }
         />
       }
     >
@@ -143,4 +155,5 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 12 },
   actionButtons: { gap: 10 },
   actionBtn: {},
+  headerBtn: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },
 });
