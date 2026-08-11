@@ -53,7 +53,7 @@
       ]
     },
     "extra": {
-      "apiUrl": "https://saccoconnect-production.up.railway.app"
+      "apiUrl": "http://10.0.2.2:3000"
     }
   }
 }
