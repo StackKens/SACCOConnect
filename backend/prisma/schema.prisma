@@ -192,3 +192,47 @@ model Announcement {
   createdAt DateTime @default(now())
   sacco     Sacco    @relation(fields: [saccoId], references: [id], onDelete: Cascade)
 }
+
+model SecurityEvent {
+  id         String           @id @default(cuid())
+  eventId    String           @unique
+  eventType  String
+  userId     String
+  timestamp  DateTime
+  channel    String?
+  payload    Json
+  createdAt  DateTime         @default(now())
+  assessment RiskAssessment?
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([eventType])
+}
+
+model RiskAssessment {
+  id           String         @id @default(cuid())
+  eventId      String         @unique
+  riskScore    Float
+  riskLevel    String
+  rulesScore   Int
+  rulesTier    String
+  modelScore   Float
+  modelFlagged Boolean
+  reasons      Json
+  assessedAt   DateTime
+  createdAt    DateTime       @default(now())
+  event        SecurityEvent  @relation(fields: [eventId], references: [eventId], onDelete: Cascade)
+}
+
+model RiskDecision {
+  id        String    @id @default(cuid())
+  eventId   String?
+  userId    String
+  riskLevel String
+  decision  String
+  reason    String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}

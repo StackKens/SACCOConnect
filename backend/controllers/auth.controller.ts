@@ -21,7 +21,8 @@ import {
 import {
   loginEvent,
   pinChangeEvent,
-  reportEvent,
+  recordRiskDecision,
+  sendEvent,
 } from "../services/security-intelligence.service";
 
 function eventContext(req: Request) {
@@ -35,6 +36,20 @@ function eventContext(req: Request) {
     ipAddress: req.ip || undefined,
     deviceId: typeof deviceId === "string" ? deviceId : undefined,
   };
+}
+
+function riskEnforced(): boolean {
+  const raw = process.env.SECURITY_RISK_ENFORCE;
+  return raw === undefined || raw === "true" || raw === "1";
+}
+
+function blockedRiskLevels(): Set<string> {
+  return new Set(
+    (process.env.SECURITY_RISK_BLOCK_LEVELS || "high,critical")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
 }
 
 export async function requestOTP(req: Request, res: Response) {
@@ -267,7 +282,7 @@ export async function login(req: Request, res: Response) {
   if (!user) throw new AppError("Invalid phone number or PIN", 401);
 
   if (user.lockedUntil && user.lockedUntil > new Date()) {
-    void reportEvent(
+    void sendEvent(
       loginEvent(user.id, "failure", eventContext(req), "account_locked"),
     );
     const minutes = Math.ceil(
@@ -283,7 +298,7 @@ export async function login(req: Request, res: Response) {
 
   const isValid = await bcrypt.compare(pin, user.pinHash);
   if (!isValid) {
-    void reportEvent(
+    void sendEvent(
       loginEvent(user.id, "failure", eventContext(req), "invalid_credentials"),
     );
     const attempts = user.failedLoginAttempts + 1;
@@ -309,7 +324,29 @@ export async function login(req: Request, res: Response) {
     data: { failedLoginAttempts: 0, lockedUntil: null },
   });
 
-  void reportEvent(loginEvent(user.id, "success", eventContext(req)));
+  const verdict = await sendEvent(loginEvent(user.id, "success", eventContext(req)));
+
+  if (verdict && riskEnforced() && blockedRiskLevels().has(verdict.risk_level)) {
+    await recordRiskDecision({
+      eventId: verdict.event_id,
+      userId: user.id,
+      riskLevel: verdict.risk_level,
+      decision: "BLOCK",
+      reason: verdict.reasons.join("; "),
+    });
+    throw new AppError(
+      "Suspicious login attempt. If this is you, contact your SACCO admin to verify.",
+      403,
+    );
+  }
+
+  await recordRiskDecision({
+    eventId: verdict?.event_id ?? null,
+    userId: user.id,
+    riskLevel: verdict?.risk_level ?? null,
+    decision: "ALLOW",
+    reason: verdict ? undefined : "engine unreachable — risk intelligence unavailable",
+  });
 
   const accessToken = generateAccessToken({
     userId: user.id,
@@ -416,7 +453,7 @@ export async function changePin(req: AuthRequest, res: Response) {
     data: { pinHash, failedLoginAttempts: 0, lockedUntil: null },
   });
 
-  void reportEvent(pinChangeEvent(user.id, "password", eventContext(req)));
+  void sendEvent(pinChangeEvent(user.id, "password", eventContext(req)));
 
   return res.json({ success: true, message: "PIN updated successfully" });
 }

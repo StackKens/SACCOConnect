@@ -1,3 +1,5 @@
+import { prisma } from "../config/database";
+
 type EventChannel = "mobile_app" | "web" | "api" | "admin";
 
 interface EventContext {
@@ -18,6 +20,10 @@ interface RiskVerdict {
   reasons: string[];
   assessed_at: string;
 }
+
+type SecurityEvent = ReturnType<
+  typeof loginEvent | typeof pinChangeEvent | typeof transactionEvent
+>;
 
 const ENGINE_URL = (process.env.SECURITY_ENGINE_URL || "http://localhost:8000").replace(/\/$/, "");
 const TIMEOUT_MS = Number(process.env.SECURITY_ENGINE_TIMEOUT_MS || 2000);
@@ -120,6 +126,63 @@ export async function assessEvent(event: unknown): Promise<RiskVerdict | null> {
   }
 }
 
-export async function reportEvent(event: unknown): Promise<void> {
-  await assessEvent(event);
+async function persistEvent(event: SecurityEvent, verdict: RiskVerdict | null): Promise<void> {
+  if (process.env.NODE_ENV === "test") return;
+  try {
+    await prisma.securityEvent.create({
+      data: {
+        eventId: event.event_id,
+        eventType: event.event_type,
+        userId: event.user_id,
+        timestamp: new Date(event.timestamp),
+        channel: event.channel,
+        payload: event as object,
+        assessment: verdict
+          ? {
+              create: {
+                riskScore: verdict.risk_score,
+                riskLevel: verdict.risk_level,
+                rulesScore: verdict.rules_score,
+                rulesTier: verdict.rules_tier,
+                modelScore: verdict.model_score,
+                modelFlagged: verdict.model_flagged,
+                reasons: verdict.reasons,
+                assessedAt: new Date(verdict.assessed_at),
+              },
+            }
+          : undefined,
+      },
+    });
+  } catch (error) {
+    console.warn("[security-intelligence] failed to persist event:", error);
+  }
+}
+
+export async function recordRiskDecision(input: {
+  eventId: string | null;
+  userId: string;
+  riskLevel: string | null;
+  decision: "ALLOW" | "MFA" | "REAUTH" | "RESTRICT" | "BLOCK";
+  reason?: string;
+}): Promise<void> {
+  if (process.env.NODE_ENV === "test") return;
+  try {
+    await prisma.riskDecision.create({
+      data: {
+        eventId: input.eventId,
+        userId: input.userId,
+        riskLevel: input.riskLevel ?? "unknown",
+        decision: input.decision,
+        reason: input.reason ?? null,
+      },
+    });
+  } catch (error) {
+    console.warn("[security-intelligence] failed to record decision:", error);
+  }
+}
+
+export async function sendEvent(event: SecurityEvent): Promise<RiskVerdict | null> {
+  const verdict = await assessEvent(event);
+  await persistEvent(event, verdict);
+  return verdict;
 }

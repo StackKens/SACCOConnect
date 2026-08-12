@@ -7,8 +7,7 @@ import { updateStreak } from "../services/streak.service";
 import { notifyContributionConfirmed } from "../services/notification.service";
 import { paramString } from "../utils/helpers";
 import { assertSameSacco } from "../middleware/tenant.middleware";
-import { reportEvent, transactionEvent } from "../services/security-intelligence.service";
-
+import { sendEvent, transactionEvent } from "../services/security-intelligence.service";
 function eventContext(req: AuthRequest) {
   return {
     channel: "mobile_app" as const,
@@ -47,7 +46,7 @@ export async function submitContribution(req: AuthRequest, res: Response) {
     try { await notifyContributionConfirmed(req.user!.userId, data.amount, contribution.id); } catch {}
   }
 
-  void reportEvent(
+  void sendEvent(
     transactionEvent(req.user!.userId, "contribution", data.amount, eventContext(req)),
   );
 
