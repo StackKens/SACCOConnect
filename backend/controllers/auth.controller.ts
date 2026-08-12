@@ -18,6 +18,24 @@ import {
   loginSchema,
   changePinSchema,
 } from "../utils/validators";
+import {
+  loginEvent,
+  pinChangeEvent,
+  reportEvent,
+} from "../services/security-intelligence.service";
+
+function eventContext(req: Request) {
+  const deviceId = req.headers["x-device-id"];
+  const channel = req.headers["x-channel"];
+  return {
+    channel: (channel === "mobile_app" || channel === "api" ? channel : "web") as
+      | "mobile_app"
+      | "web"
+      | "api",
+    ipAddress: req.ip || undefined,
+    deviceId: typeof deviceId === "string" ? deviceId : undefined,
+  };
+}
 
 export async function requestOTP(req: Request, res: Response) {
   const { phoneNumber } = sendOTPSchema.parse(req.body);
@@ -249,6 +267,9 @@ export async function login(req: Request, res: Response) {
   if (!user) throw new AppError("Invalid phone number or PIN", 401);
 
   if (user.lockedUntil && user.lockedUntil > new Date()) {
+    void reportEvent(
+      loginEvent(user.id, "failure", eventContext(req), "account_locked"),
+    );
     const minutes = Math.ceil(
       (user.lockedUntil.getTime() - Date.now()) / 60000,
     );
@@ -262,6 +283,9 @@ export async function login(req: Request, res: Response) {
 
   const isValid = await bcrypt.compare(pin, user.pinHash);
   if (!isValid) {
+    void reportEvent(
+      loginEvent(user.id, "failure", eventContext(req), "invalid_credentials"),
+    );
     const attempts = user.failedLoginAttempts + 1;
     if (attempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
       await prisma.user.update({
@@ -284,6 +308,8 @@ export async function login(req: Request, res: Response) {
     where: { id: user.id },
     data: { failedLoginAttempts: 0, lockedUntil: null },
   });
+
+  void reportEvent(loginEvent(user.id, "success", eventContext(req)));
 
   const accessToken = generateAccessToken({
     userId: user.id,
@@ -389,6 +415,8 @@ export async function changePin(req: AuthRequest, res: Response) {
     where: { id: user.id },
     data: { pinHash, failedLoginAttempts: 0, lockedUntil: null },
   });
+
+  void reportEvent(pinChangeEvent(user.id, "password", eventContext(req)));
 
   return res.json({ success: true, message: "PIN updated successfully" });
 }

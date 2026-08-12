@@ -20,6 +20,7 @@ import {
 } from "../services/notification.service";
 import { paramString } from "../utils/helpers";
 import { assertSameSacco } from "../middleware/tenant.middleware";
+import { reportEvent, transactionEvent } from "../services/security-intelligence.service";
 
 export async function applyForLoan(req: AuthRequest, res: Response) {
   const data = loanApplicationSchema.parse(req.body);
@@ -276,6 +277,14 @@ export async function makeRepayment(req: AuthRequest, res: Response) {
       status: isFullyRepaid ? "REPAID" : "ACTIVE",
     },
   });
+
+  void reportEvent(
+    transactionEvent(req.user!.userId, "loan_repayment", data.amountPaid, {
+      channel: "mobile_app",
+      ipAddress: req.ip || undefined,
+      deviceId: req.headers["x-device-id"] as string | undefined,
+    }),
+  );
 
   return res.json({
     success: true,

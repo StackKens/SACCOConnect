@@ -7,6 +7,15 @@ import { updateStreak } from "../services/streak.service";
 import { notifyContributionConfirmed } from "../services/notification.service";
 import { paramString } from "../utils/helpers";
 import { assertSameSacco } from "../middleware/tenant.middleware";
+import { reportEvent, transactionEvent } from "../services/security-intelligence.service";
+
+function eventContext(req: AuthRequest) {
+  return {
+    channel: "mobile_app" as const,
+    ipAddress: req.ip || undefined,
+    deviceId: req.headers["x-device-id"] as string | undefined,
+  };
+}
 
 export async function submitContribution(req: AuthRequest, res: Response) {
   const data = contributionSchema.parse(req.body);
@@ -37,6 +46,10 @@ export async function submitContribution(req: AuthRequest, res: Response) {
     await updateStreak(member.id);
     try { await notifyContributionConfirmed(req.user!.userId, data.amount, contribution.id); } catch {}
   }
+
+  void reportEvent(
+    transactionEvent(req.user!.userId, "contribution", data.amount, eventContext(req)),
+  );
 
   return res.status(201).json({ success: true, data: contribution });
 }
