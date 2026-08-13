@@ -166,7 +166,7 @@ export default function Members() {
                   keyboardType="phone-pad"
                 />
                 <View style={styles.modalActions}>
-                  <Button title={t("common.cancel")} onPress={closeModal} variant="outline" style={styles.modalBtn} />
+                  <Button title={t("common:cancel")} onPress={closeModal} variant="outline" style={styles.modalBtn} />
                   <Button title={t("members.sendInvite")} onPress={handleInvite} loading={inviteLoading} style={styles.modalBtn} />
                 </View>
               </>
