@@ -43,7 +43,7 @@ export function OnboardingSlide({ slide }: OnboardingSlideProps) {
 const styles = StyleSheet.create({
   slide: {
     flex: 1,
-    paddingHorizontal: 4,
+    paddingHorizontal: 24,
   },
   illustrationArea: {
     flex: 1,

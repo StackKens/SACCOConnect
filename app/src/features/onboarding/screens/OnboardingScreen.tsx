@@ -146,7 +146,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 12,
   },
@@ -155,6 +154,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     minHeight: 44,
+    paddingHorizontal: 24,
   },
   brand: {
     fontSize: 18,
@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 20,
     gap: 18,
+    paddingHorizontal: 24,
   },
   button: {
     height: 54,
