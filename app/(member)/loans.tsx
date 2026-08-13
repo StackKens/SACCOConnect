@@ -17,6 +17,7 @@ import { api } from "@/services/api";
 import { useState } from "react";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonLoanQueue } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 interface Loan {
   id: string;
@@ -31,21 +32,18 @@ interface Loan {
   rejectionReason: string | null;
 }
 
-const STATUS_LABEL: Record<string, { label: string; variant: "success" | "warning" | "error" | "info" }> = {
-  ACTIVE: { label: "Active", variant: "info" },
-  REPAID: { label: "Repaid", variant: "success" },
-  REJECTED: { label: "Rejected", variant: "error" },
-  PENDING: { label: "Pending", variant: "warning" },
-  AWAITING_GUARANTORS: { label: "Awaiting guarantors", variant: "warning" },
-  UNDER_REVIEW: { label: "Under review", variant: "warning" },
-};
-
-function statusOf(status: string) {
-  return STATUS_LABEL[status] ?? { label: status.replace(/_/g, " ").toLowerCase(), variant: "info" as const };
+function statusOf(status: string, t: (key: string) => string) {
+  const labels: Record<string, { label: string; variant: "success" | "warning" | "error" | "info" }> = {
+    ACTIVE: { label: t("active"), variant: "info" }, REPAID: { label: t("repaid"), variant: "success" },
+    REJECTED: { label: t("rejected"), variant: "error" }, PENDING: { label: t("pending"), variant: "warning" },
+    AWAITING_GUARANTORS: { label: t("awaitingGuarantors"), variant: "warning" }, UNDER_REVIEW: { label: t("underReview"), variant: "warning" },
+  };
+  return labels[status] ?? { label: status.replace(/_/g, " ").toLowerCase(), variant: "info" as const };
 }
 
 export default function Loans() {
   const { colors, spacing, radius, typography } = useTheme();
+  const { t } = useTranslation("loans");
   const [loans, setLoans] = useState<Loan[]>([]);
   const { loading, error, refresh } = useApiFetch(async () => {
     const res = await api.get("/api/loans/my");
@@ -56,7 +54,7 @@ export default function Loans() {
   const others = loans.filter((l) => l.id !== active?.id);
 
   return (
-    <ScreenWrapper header={<PageHeader title="Loans" subtitle="Track and manage your loan portfolio" rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh} floating={loans.length > 0 ? (
+    <ScreenWrapper header={<PageHeader title={t("title")} subtitle={t("portfolioSubtitle")} rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh} floating={loans.length > 0 ? (
       <TouchableOpacity style={[styles.fab, { backgroundColor: colors.primary }]} onPress={() => router.push("/(member)/apply_loan")}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
@@ -64,13 +62,13 @@ export default function Loans() {
       {loading ? (
         <SkeletonLoanQueue />
       ) : error ? (
-        <ErrorState title="Unable to load loans" message="We couldn't retrieve your loan information." onRetry={refresh} />
+        <ErrorState title={t("loadErrorTitle")} message={t("loadErrorMessage")} onRetry={refresh} />
       ) : loans.length === 0 ? (
         <EmptyState
           icon={<Banknote size={30} color={colors.primary} />}
-          title="No active loans"
-          description="You're currently debt-free. Explore loan options when you're ready to borrow."
-          actionLabel="Explore Loan Options"
+          title={t("noActiveLoans")}
+          description={t("noActiveLoansDescription")}
+          actionLabel={t("exploreOptions")}
           onAction={() => router.push("/(member)/apply_loan")}
         />
       ) : (
@@ -78,54 +76,54 @@ export default function Loans() {
           {active ? (
             <>
               <BalanceCard
-                label="Outstanding Balance"
+                label={t("outstanding")}
                 amount={active.amountApproved! - active.amountRepaid}
-                hint={active.expectedCompletion ? `Due ${formatDate(active.expectedCompletion)}` : undefined}
+                hint={active.expectedCompletion ? t("due", { date: formatDate(active.expectedCompletion) }) : undefined}
                 icon={<Banknote size={18} color={colors.primary} />}
               />
 
               <View style={{ marginTop: spacing.xl, padding: spacing.xl, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
-                  <Text style={[typography.captionMedium, { color: colors.text }]}>Repayment Progress</Text>
+                  <Text style={[typography.captionMedium, { color: colors.text }]}>{t("repaymentProgress")}</Text>
                   <Text style={[typography.captionMedium, { color: colors.secondary, fontVariant: ["tabular-nums"] }]}>
-                    {Math.round((active.amountRepaid / active.amountApproved!) * 100)}% repaid
+                    {t("percentRepaid", { percent: Math.round((active.amountRepaid / active.amountApproved!) * 100) })}
                   </Text>
                 </View>
                 <ProgressBar progress={active.amountRepaid / active.amountApproved!} height={10} />
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm }}>
-                  <Text style={[typography.caption, { color: colors.textSecondary }]}>Repaid {formatCurrency(active.amountRepaid)}</Text>
-                  <Text style={[typography.caption, { color: colors.textSecondary }]}>of {formatCurrency(active.amountApproved!)}</Text>
+                  <Text style={[typography.caption, { color: colors.textSecondary }]}>{t("repaidAmount", { amount: formatCurrency(active.amountRepaid) })}</Text>
+                  <Text style={[typography.caption, { color: colors.textSecondary }]}>{t("ofAmount", { amount: formatCurrency(active.amountApproved!) })}</Text>
                 </View>
               </View>
 
-              <SectionHeader title="Loan Details" />
+              <SectionHeader title={t("loanDetails")} />
               <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.xl }}>
-                <DetailRow label="Loan type" value={active.purpose} last={false} />
-                <DetailRow label="Original amount" value={formatCurrency(active.amountApproved!)} last={false} />
-                <DetailRow label="Remaining balance" value={formatCurrency(active.amountApproved! - active.amountRepaid)} last={false} />
-                <DetailRow label="Interest rate" value={`${active.interestRate}% p.a.`} last={false} />
-                <DetailRow label="Term" value={`${active.repaymentMonths} months`} last={false} />
-                {active.expectedCompletion && <DetailRow label="Expected completion" value={formatDate(active.expectedCompletion)} last />}
+                <DetailRow label={t("loanType")} value={active.purpose} last={false} />
+                <DetailRow label={t("originalAmount")} value={formatCurrency(active.amountApproved!)} last={false} />
+                <DetailRow label={t("remainingBalance")} value={formatCurrency(active.amountApproved! - active.amountRepaid)} last={false} />
+                <DetailRow label={t("interestRate")} value={`${active.interestRate}% p.a.`} last={false} />
+                <DetailRow label={t("term")} value={t("months", { count: active.repaymentMonths })} last={false} />
+                {active.expectedCompletion && <DetailRow label={t("expectedCompletion")} value={formatDate(active.expectedCompletion)} last />}
               </View>
 
-              <Button title="Repay Loan" onPress={() => router.push("/(member)/repay_loan")} style={{ marginTop: spacing.xxl }} />
+              <Button title={t("repayLoan")} onPress={() => router.push("/(member)/repay_loan")} style={{ marginTop: spacing.xxl }} />
             </>
           ) : (
             <EmptyState
               icon={<Banknote size={30} color={colors.primary} />}
-              title="No active loans"
-              description="You're currently debt-free. Explore loan options when you're ready to borrow."
-              actionLabel="Explore Loan Options"
+              title={t("noActiveLoans")}
+              description={t("noActiveLoansDescription")}
+              actionLabel={t("exploreOptions")}
               onAction={() => router.push("/(member)/apply_loan")}
             />
           )}
 
           {others.length > 0 && (
             <>
-              <SectionHeader title="Loan History" />
+              <SectionHeader title={t("loanHistory")} />
               <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.xl }}>
                 {others.map((loan, i) => {
-                  const st = statusOf(loan.status);
+                  const st = statusOf(loan.status, t);
                   const amount = loan.amountApproved ?? loan.amountRequested;
                   const isLast = i === others.length - 1;
                   return (
@@ -133,7 +131,7 @@ export default function Loans() {
                       key={loan.id}
                       onPress={() => loan.status === "ACTIVE" && router.push("/(member)/repay_loan")}
                       accessibilityRole="button"
-                      accessibilityLabel={`${st.label} loan`}
+                      accessibilityLabel={t("statusLoan", { status: st.label })}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
@@ -158,7 +156,7 @@ export default function Loans() {
           )}
 
           {loans.length > 0 && (
-            <Button title="Apply for a New Loan" onPress={() => router.push("/(member)/apply_loan")} variant="ghost" style={{ marginTop: spacing.xl, marginBottom: spacing.xxl }} />
+            <Button title={t("applyNew")} onPress={() => router.push("/(member)/apply_loan")} variant="ghost" style={{ marginTop: spacing.xl, marginBottom: spacing.xxl }} />
           )}
         </View>
       )}

@@ -1,8 +1,9 @@
 import { getCountryConfig } from "../config";
 import { usePreferencesStore } from "../store/preferences.store";
+import i18n from "../localization/i18n";
 
 const currentLocale = (): string =>
-  getCountryConfig(usePreferencesStore.getState().countryCode).locale;
+  i18n.language === "sw" ? "sw" : getCountryConfig(usePreferencesStore.getState().countryCode).locale;
 
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -48,11 +49,11 @@ export function daysUntil(dateString: string): number {
 
 export function dueDateLabel(dateString: string): string {
   const days = daysUntil(dateString);
-  if (days === 0) return "Due today";
-  if (days === 1) return "Due tomorrow";
-  if (days > 1) return `Due in ${days} days`;
-  if (days === -1) return "Overdue by 1 day";
-  return `Overdue by ${Math.abs(days)} days`;
+  if (days === 0) return i18n.t("dueToday", { ns: "common" });
+  if (days === 1) return i18n.t("dueTomorrow", { ns: "common" });
+  if (days > 1) return i18n.t("dueInDays", { ns: "common", count: days });
+  if (days === -1) return i18n.t("overdueByOneDay", { ns: "common" });
+  return i18n.t("overdueByDays", { ns: "common", count: Math.abs(days) });
 };
 
 export const getRelativeTime = (dateString: string): string => {
@@ -61,8 +62,8 @@ export const getRelativeTime = (dateString: string): string => {
   const diffDays = Math.floor(
     (now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24),
   );
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays === 0) return i18n.t("today", { ns: "common" });
+  if (diffDays === 1) return i18n.t("yesterday", { ns: "common" });
+  if (diffDays < 7) return i18n.t("daysAgo", { ns: "common", count: diffDays });
   return formatDate(dateString);
 };

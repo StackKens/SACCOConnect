@@ -13,16 +13,10 @@ import { formatDate } from "@/utils/date";
 import { formatCurrency } from "@/utils/currency";
 import { exportSaccoCsv } from "@/helpers/exportData";
 import { CountryLanguageSettings } from "@/components/preferences/CountryLanguageSettings";
-
-const ADMIN_HOW_TO = [
-  { title: "Approving a Loan", desc: "Go to Loan Queue, tap any pending application to open the review screen, then tap Approve or Reject." },
-  { title: "Adding a Member", desc: "Go to Members and tap Add Member. Fill in their details. An invite code will be generated for them to register." },
-  { title: "Posting Announcements", desc: "Go to Settings or use the Announcements screen to compose and publish a message to all members." },
-  { title: "Viewing Treasury", desc: "The Treasury tab shows total savings, disbursed loans, repayments, and outstanding balances in real time." },
-  { title: "Exporting Data", desc: "Use the Export Data button below to download a CSV of all transactions for reporting." },
-];
+import { useTranslation } from "react-i18next";
 
 export default function AdminSettings() {
+  const { t } = useTranslation("admin");
   const { theme, setTheme } = useUIStore();
   const logout = useAuthStore((state) => state.logout);
   const clearAppCache = useAuthStore((state) => state.clearAppCache);
@@ -31,6 +25,11 @@ export default function AdminSettings() {
   const { colors, isDark } = useTheme();
   const [darkMode, setDarkMode] = useState(isDark);
   const [useSystem, setUseSystem] = useState(theme === "system");
+  const adminHowTo = [
+    ["settings.howToApproveTitle", "settings.howToApproveDesc"], ["settings.howToAddMemberTitle", "settings.howToAddMemberDesc"],
+    ["settings.howToPostTitle", "settings.howToPostDesc"], ["settings.howToTreasuryTitle", "settings.howToTreasuryDesc"],
+    ["settings.howToExportTitle", "settings.howToExportDesc"],
+  ];
 
   useEffect(() => { setDarkMode(isDark); }, [isDark]);
 
@@ -46,7 +45,7 @@ export default function AdminSettings() {
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="Settings" subtitle="Admin controls & preferences" />}>
+    <ScreenWrapper header={<PageHeader title={t("settings")} subtitle={t("settings.subtitle")} />}>
 
       <Card style={styles.profileRow}>
         {sacco && (
@@ -59,7 +58,7 @@ export default function AdminSettings() {
             <View style={{ flex: 1 }}>
               <Text style={[styles.saccoName, { color: colors.text }]}>{sacco.name}</Text>
               <Text style={[styles.saccoMeta, { color: colors.textSecondary }]}>
-                {formatCurrency(sacco.contributionAmount ?? 0)} / month  •  {sacco.interestRate}% p.a.
+                {t("settings.monthlyRate", { amount: formatCurrency(sacco.contributionAmount ?? 0), rate: sacco.interestRate })}
               </Text>
             </View>
           </View>
@@ -67,41 +66,41 @@ export default function AdminSettings() {
         <Divider style={{ marginVertical: 12 }} />
         <Text style={[styles.adminName, { color: colors.text }]}>{user?.name}</Text>
         <Text style={[styles.adminPhone, { color: colors.textSecondary }]}>{user?.phone}</Text>
-        <Text style={[styles.adminBadge, { color: colors.secondary }]}>ADMINISTRATOR</Text>
+        <Text style={[styles.adminBadge, { color: colors.secondary }]}>{t("administrator").toUpperCase()}</Text>
       </Card>
 
       {/* Group Settings */}
       <Card style={styles.section}>
         <View style={styles.sectionHeader}>
           <Settings2 size={16} color={colors.primary} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Group Settings</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("settings.groupSettings")}</Text>
         </View>
         <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/edit-rules")} accessibilityRole="button" accessibilityLabel="Edit group rules">
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Edit Group Rules</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("editRules")}</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
         <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contribution-schedule")} accessibilityRole="button" accessibilityLabel="Set contribution due date">
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Contribution Due Date</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("settings.contributionDueDate")}</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
         <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contributions")} accessibilityRole="button" accessibilityLabel="View all contributions">
-          <Text style={[styles.settingLabel, { color: colors.text }]}>All Contributions</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("contributions")}</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
         <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/active-loans")} accessibilityRole="button" accessibilityLabel="View active loans">
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Active Loans</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("activeLoans")}</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         {sacco?.inviteCode && (
           <>
             <Divider style={styles.divider} />
-            <Text style={[styles.rulesLabel, { color: colors.textSecondary }]}>Member invite code</Text>
+            <Text style={[styles.rulesLabel, { color: colors.textSecondary }]}>{t("inviteCode")}</Text>
             <Text style={[styles.inviteCode, { color: colors.primary }]}>{sacco.inviteCode}</Text>
             <Text style={[styles.rulePreview, { color: colors.textSecondary }]}>
-              Share this code so new members can join in the app.
+              {t("shareInviteCode")}
             </Text>
           </>
         )}
@@ -109,7 +108,7 @@ export default function AdminSettings() {
         {sacco?.rules && sacco.rules.length > 0 && (
           <View style={{ marginTop: 4 }}>
             <Text style={[styles.rulesLabel, { color: colors.textSecondary }]}>
-              {sacco.rules.length} active rule{sacco.rules.length !== 1 ? "s" : ""}
+              {t("settings.activeRules", { count: sacco.rules.length })}
             </Text>
             {sacco.rules.slice(0, 3).map((r, i) => (
               <Text key={i} style={[styles.rulePreview, { color: colors.textSecondary }]} numberOfLines={1}>
@@ -117,71 +116,70 @@ export default function AdminSettings() {
               </Text>
             ))}
             {sacco.rules.length > 3 && (
-              <Text style={[styles.rulesLabel, { color: colors.primary }]}>+{sacco.rules.length - 3} more...</Text>
+              <Text style={[styles.rulesLabel, { color: colors.primary }]}>{t("settings.more", { count: sacco.rules.length - 3 })}</Text>
             )}
           </View>
         )}
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("appearance")}</Text>
         <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Dark Mode</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("darkMode")}</Text>
           <Switch value={darkMode} onValueChange={handleDarkModeToggle} disabled={useSystem} />
         </View>
         <Divider style={styles.divider} />
         <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Use System Theme</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("useSystemTheme")}</Text>
           <Switch value={useSystem} onValueChange={handleSystemToggle} />
         </View>
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Region & Language</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("regionLanguage")}</Text>
         <CountryLanguageSettings />
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>How to Use</Text>
-        {ADMIN_HOW_TO.map((item, i) => (
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("howToUse")}</Text>
+        {adminHowTo.map(([title, desc], i) => (
           <View key={i}>
             {i > 0 && <Divider style={styles.divider} />}
             <View style={styles.helpItem}>
-              <Text style={[styles.helpTitle, { color: colors.text }]}>{item.title}</Text>
-              <Text style={[styles.helpDesc, { color: colors.textSecondary }]}>{item.desc}</Text>
+              <Text style={[styles.helpTitle, { color: colors.text }]}>{t(title)}</Text>
+              <Text style={[styles.helpDesc, { color: colors.textSecondary }]}>{t(desc)}</Text>
             </View>
           </View>
         ))}
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Data</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("data")}</Text>
         <Button
-          title="Export Data (CSV)"
+          title={t("exportData")}
           onPress={async () => {
             if (!sacco?.id) {
-              Alert.alert("Unavailable", "No SACCO data to export.");
+              Alert.alert(t("settings.unavailable"), t("settings.noDataToExport"));
               return;
             }
             try {
               await exportSaccoCsv(sacco.id, sacco.name);
             } catch {
-              Alert.alert("Export failed", "Could not share the export file.");
+              Alert.alert(t("settings.exportFailed"), t("settings.couldNotShare"));
             }
           }}
           variant="outline"
           style={styles.exportBtn}
         />
         <Button
-          title="Clear Cache"
+          title={t("clearCache")}
           onPress={() => {
             Alert.alert(
-              "Clear all local data?",
-              "This removes saved members, loans, and preferences from this device.",
+              t("settings.clearDataTitle"), t("settings.clearDataDesc"),
               [
-                { text: "Cancel", style: "cancel" },
+                { text: t("common:cancel"), style: "cancel" },
                 {
-                  text: "Clear",
+                  text: t("settings.clear"),
                   style: "destructive",
                   onPress: clearAppCache,
                 },
@@ -193,20 +191,20 @@ export default function AdminSettings() {
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("support")}</Text>
         <TouchableOpacity style={styles.supportRow} onPress={() => Linking.openURL("mailto:admin@saccoconnect.ug")} accessibilityRole="button" accessibilityLabel="Email admin support">
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Email Support</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("emailSupport")}</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
         <View style={styles.supportRow}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>App Version</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("appVersion")}</Text>
           <Text style={[styles.helpDesc, { color: colors.textSecondary }]}>1.0.0</Text>
         </View>
       </Card>
 
       <Button
-        title="Logout"
+        title={t("logout")}
         onPress={logout}
         variant="danger"
         style={styles.logout}
