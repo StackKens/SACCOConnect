@@ -56,7 +56,7 @@ export default function RootLayout() {
 
     if (!user) {
       if (!inAuthGroup) {
-        router.replace("/(auth)/onboarding");
+        router.replace("/(auth)/entry");
       }
       return;
     }
