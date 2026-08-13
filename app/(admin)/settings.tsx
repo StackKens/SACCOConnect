@@ -136,7 +136,7 @@ export default function AdminSettings() {
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("regionLanguage")}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("language")}</Text>
         <CountryLanguageSettings />
       </Card>
 

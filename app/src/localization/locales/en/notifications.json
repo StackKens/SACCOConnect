@@ -1,0 +1,13 @@
+{
+  "loanApplied": "Loan Application Submitted",
+  "loanAppliedMsg": "Your application for {{amount}} ({{purpose}}) is under review.",
+  "loanApproved": "Loan Approved",
+  "loanApprovedMsg": "Your loan of {{amount}} has been approved. Due: {{date}}.",
+  "loanRejected": "Loan Rejected",
+  "loanRejectedMsg": "Your loan application was not approved.{{note}}",
+  "loanRejectedNote": " Reason: {{note}}",
+  "contributionRecorded": "Contribution Recorded",
+  "contributionRecordedMsg": "{{amount}} via {{method}} has been recorded.",
+  "repaymentMade": "Loan Repayment Made",
+  "repaymentMadeMsg": "{{amount}} repayment recorded (ref: {{ref}})."
+}

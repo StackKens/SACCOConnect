@@ -1,0 +1,13 @@
+{
+  "loanApplied": "Ombi la Mkopo Limewasilishwa",
+  "loanAppliedMsg": "Ombi lako la {{amount}} ({{purpose}}) linapitiwa.",
+  "loanApproved": "Mkopo Umeidhinishwa",
+  "loanApprovedMsg": "Mkopo wako wa {{amount}} umeidhinishwa. Unakamilika: {{date}}.",
+  "loanRejected": "Mkopo Umekataliwa",
+  "loanRejectedMsg": "Ombi lako la mkopo halikuidhinishwa.{{note}}",
+  "loanRejectedNote": " Sababu: {{note}}",
+  "contributionRecorded": "Mchango Umehifadhiwa",
+  "contributionRecordedMsg": "{{amount}} kupitia {{method}} imerekodiwa.",
+  "repaymentMade": "Marejesho Yamefanywa",
+  "repaymentMadeMsg": "Marejesho ya {{amount}} yamefanywa (rejea: {{ref}})."
+}

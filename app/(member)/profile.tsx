@@ -180,7 +180,7 @@ export default function Profile() {
         <SettingRow icon={<Moon size={18} color={colors.primary} />} label={t("darkMode")} right={<Switch value={darkMode} onValueChange={handleDarkModeToggle} disabled={useSystem} />} />
         <SettingRow icon={<MonitorSmartphone size={18} color={colors.primary} />} label={t("systemTheme")} right={<Switch value={useSystem} onValueChange={handleSystemToggle} />} last />
 
-        <SectionLabel>{t("sectionRegionLanguage")}</SectionLabel>
+        <SectionLabel>{t("language")}</SectionLabel>
         <CountryLanguageSettings />
 
         <SectionLabel>{t("sectionSupport")}</SectionLabel>

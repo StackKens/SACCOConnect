@@ -6,6 +6,7 @@ import { getCached, setCached } from "../services/cache";
 import { getSecureStorage } from "../services/secureStorage";
 import { formatCurrency } from "../utils/currency";
 import type { NotifItem } from "../components/features/NotificationRow";
+import i18n from "../localization/i18n";
 
 const readStorage = getSecureStorage("read_notifications");
 const ANNOUNCEMENTS_KEY = "/api/announcements";
@@ -35,8 +36,8 @@ function loanNotifications(
       {
         id: `loan_applied_${l.id}`,
         type: "loan_applied",
-        title: "Loan Application Submitted",
-        message: `Your application for ${formatCurrency(l.amount)} (${l.purpose}) is under review.`,
+        title: i18n.t("notifications:loanApplied"),
+        message: i18n.t("notifications:loanAppliedMsg", { amount: formatCurrency(l.amount), purpose: l.purpose }),
         date: l.dueDate ?? new Date().toISOString(),
       },
     ];
@@ -44,8 +45,8 @@ function loanNotifications(
       items.push({
         id: `loan_approved_${l.id}`,
         type: "loan_approved",
-        title: "Loan Approved",
-        message: `Your loan of ${formatCurrency(l.amount)} has been approved. Due: ${l.dueDate ?? "TBD"}.`,
+        title: i18n.t("notifications:loanApproved"),
+        message: i18n.t("notifications:loanApprovedMsg", { amount: formatCurrency(l.amount), date: l.dueDate ?? "TBD" }),
         date: l.dueDate ?? new Date().toISOString(),
       });
     }
@@ -53,8 +54,8 @@ function loanNotifications(
       items.push({
         id: `loan_rejected_${l.id}`,
         type: "loan_rejected",
-        title: "Loan Rejected",
-        message: l.rejectNote ? `Your loan was rejected: ${l.rejectNote}` : "Your loan application was not approved.",
+        title: i18n.t("notifications:loanRejected"),
+        message: i18n.t("notifications:loanRejectedMsg", { note: l.rejectNote ? i18n.t("notifications:loanRejectedNote", { note: l.rejectNote }) : "" }),
         date: new Date().toISOString(),
       });
     }
@@ -79,8 +80,8 @@ export function buildNotifications(
   const contributionItems: NotifItem[] = contributions.map((c) => ({
     id: `contrib_${c.id}`,
     type: "contribution",
-    title: "Contribution Recorded",
-    message: `${formatCurrency(c.amount)} via ${c.method} has been recorded.`,
+    title: i18n.t("notifications:contributionRecorded"),
+    message: i18n.t("notifications:contributionRecordedMsg", { amount: formatCurrency(c.amount), method: c.method }),
     date: c.date,
   }));
 
@@ -89,8 +90,8 @@ export function buildNotifications(
     .map((t) => ({
       id: `repay_${t.id}`,
       type: "loan_repayment",
-      title: "Loan Repayment Made",
-      message: `${formatCurrency(Math.abs(t.amount))} repayment recorded (ref: ${t.reference}).`,
+      title: i18n.t("notifications:repaymentMade"),
+      message: i18n.t("notifications:repaymentMadeMsg", { amount: formatCurrency(Math.abs(t.amount)), ref: t.reference }),
       date: t.date,
     }));
 
