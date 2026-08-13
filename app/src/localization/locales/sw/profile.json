@@ -91,5 +91,20 @@
   "tabs.savings": "Akiba",
   "tabs.loans": "Mikopo",
   "tabs.alerts": "Arifa",
-  "tabs.profile": "Wasifu"
+  "tabs.profile": "Wasifu",
+  "home.title": "Mwanzo",
+  "home.welcomeBack": "Karibu tena,",
+  "home.totalSavings": "Jumla ya Akiba",
+  "home.loanBalance": "Salio la Mkopo",
+  "home.noActiveLoan": "Hakuna mkopo unaotumika",
+  "home.makeContribution": "Fanya Mchango",
+  "home.quickActions": "Vitendo vya Haraka",
+  "home.actionContribute": "Mchango",
+  "home.actionApplyLoan": "Omba Mkopo",
+  "home.actionRepayLoan": "Lipa Mkopo",
+  "home.actionStatement": "Taarifa ya Akaunti",
+  "home.streakText": "mfululizo wa miezi {{count}}",
+  "home.streakSubtext": "Endelea kuchangia ili kudumisha mfululizo wako",
+  "home.nextContribution": "Mchango Unaofuata",
+  "home.overdue": "Imechelewa"
 }

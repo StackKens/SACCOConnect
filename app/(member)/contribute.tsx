@@ -18,6 +18,7 @@ import { getApiErrorMessage } from "@/services/auth.service";
 import { enqueue } from "@/services/offlineQueue";
 import { formatCurrency } from "@/utils/currency";
 import { Smartphone, Landmark } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 type PaymentMethod = "MTN" | "Airtel" | "Bank";
 type Step = "details" | "confirm" | "success";
@@ -34,6 +35,7 @@ function mask(value: string) {
 }
 
 export default function Contribute() {
+  const { t } = useTranslation("savings");
   const [step, setStep] = useState<Step>("details");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("MTN");
@@ -55,15 +57,15 @@ export default function Contribute() {
 
   const handleContinue = () => {
     if (!validAmount) {
-      Alert.alert("Invalid Amount", "Please enter a valid amount.");
+      Alert.alert(t("contribute.invalidAmount"), t("contribute.enterValidAmount"));
       return;
     }
     if (isMobile && phone.trim().length < 9) {
-      Alert.alert("Invalid Number", "Please enter a valid mobile number.");
+      Alert.alert(t("contribute.invalidNumber"), t("contribute.enterValidNumber"));
       return;
     }
     if (method === "Bank" && accountNumber.trim().length < 6) {
-      Alert.alert("Invalid Account", "Please enter a valid bank account number.");
+      Alert.alert(t("contribute.invalidAccount"), t("contribute.enterValidAccount"));
       return;
     }
     setStep("confirm");
@@ -98,7 +100,7 @@ export default function Contribute() {
       setReference((res.data?.data?.reference as string) ?? `SC-${year}-${Date.now().toString().slice(-6)}`);
       setStep("success");
     } catch (e) {
-      Alert.alert("Error", getApiErrorMessage(e));
+      Alert.alert(t("contribute.error"), getApiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -106,8 +108,8 @@ export default function Contribute() {
 
   const renderHeader = () => (
     <PageHeader
-      title="Make Contribution"
-      subtitle={step === "confirm" ? "Review and confirm" : step === "success" ? "" : "Choose your payment method"}
+      title={t("contribute.title")}
+      subtitle={step === "confirm" ? t("contribute.reviewConfirm") : step === "success" ? "" : t("contribute.chooseMethod")}
       showBack
       onBack={() => (step === "confirm" ? setStep("details") : router.back())}
     />
@@ -117,16 +119,16 @@ export default function Contribute() {
     return (
       <ScreenWrapper header={renderHeader()}>
         <SuccessState
-          title={offline ? "Contribution Saved Offline" : "Contribution Initiated"}
+          title={offline ? t("contribute.savedOffline") : t("contribute.initiated")}
           subtitle={
             offline
-              ? `${formatCurrency(numAmount)} has been saved. It will be submitted automatically when you're back online.`
+              ? t("contribute.offlineMsg", { amount: formatCurrency(numAmount) })
               : isMobile
-                ? `A payment prompt has been sent to your phone. Approve it to complete your ${formatCurrency(numAmount)} contribution.`
-                : `Your ${formatCurrency(numAmount)} bank transfer has been submitted for processing.`
+                ? t("contribute.mobilePrompt", { amount: formatCurrency(numAmount) })
+                : t("contribute.bankSubmitted", { amount: formatCurrency(numAmount) })
           }
           reference={reference}
-          primaryActionLabel="Done"
+          primaryActionLabel={t("contribute.done")}
           onPrimaryAction={() => router.back()}
         />
       </ScreenWrapper>
@@ -137,9 +139,11 @@ export default function Contribute() {
     <ScreenWrapper header={renderHeader()}>
       {dueDate && step === "details" && (
         <View style={{ backgroundColor: colors.infoSoft as string, borderWidth: 1, borderColor: colors.info + "30", borderRadius: radius.md, padding: spacing.lg, marginBottom: spacing.xl }}>
-          <Text style={[typography.captionMedium, { color: colors.text }]}>Due by {formatDate(dueDate)} · {dueDateLabel(dueDate)}</Text>
+          <Text style={[typography.captionMedium, { color: colors.text }]}>
+            {t("contribute.dueBy", { date: formatDate(dueDate), label: dueDateLabel(dueDate) })}
+          </Text>
           <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
-            Expected amount: {formatCurrency(sacco?.contributionAmount ?? 0)}
+            {t("contribute.expectedAmount", { amount: formatCurrency(sacco?.contributionAmount ?? 0) })}
           </Text>
         </View>
       )}
@@ -147,21 +151,21 @@ export default function Contribute() {
       {step === "details" ? (
         <>
           <View style={{ marginBottom: spacing.xxl }}>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>Amount</Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>{t("contribute.amount")}</Text>
             <Text style={[typography.display, { color: colors.text, marginTop: spacing.xs, fontVariant: ["tabular-nums"] }]}>
               {formatCurrency(validAmount ? numAmount : 0)}
             </Text>
             <Input
-              label={`Amount (${country.currency})`}
+              label={t("contribute.amountLabel", { currency: country.currency })}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
-              placeholder="e.g. 50000"
+              placeholder={t("contribute.amountPlaceholder")}
               containerStyle={{ marginTop: spacing.lg }}
             />
           </View>
 
-          <Text style={[typography.captionMedium, { color: colors.text, marginBottom: spacing.md }]}>Payment Method</Text>
+          <Text style={[typography.captionMedium, { color: colors.text, marginBottom: spacing.md }]}>{t("contribute.paymentMethod")}</Text>
           <View style={{ gap: spacing.md }}>
             {METHODS.map((m) => (
               <PaymentMethodRow
@@ -183,14 +187,14 @@ export default function Contribute() {
             <>
               <Divider style={{ marginVertical: spacing.xl }} />
               <Input
-                label={`${method === "MTN" ? "MTN" : "Airtel"} Mobile Money Number`}
+                label={t("contribute.mobileMoneyLabel", { provider: method === "MTN" ? "MTN" : "Airtel" })}
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
                 placeholder={method === "MTN" ? "0771234567" : "0751234567"}
               />
               <Text style={[typography.caption, { color: colors.textSecondary, marginTop: -10 }]}>
-                You will receive a payment prompt on this number to approve.
+                {t("contribute.mobilePromptNote")}
               </Text>
             </>
           )}
@@ -199,38 +203,38 @@ export default function Contribute() {
             <>
               <Divider style={{ marginVertical: spacing.xl }} />
               <Input
-                label="Bank Account Number"
+                label={t("contribute.bankAccountLabel")}
                 value={accountNumber}
                 onChangeText={setAccountNumber}
                 keyboardType="numeric"
-                placeholder="e.g. 1234567890"
+                placeholder={t("contribute.bankAccountPlaceholder")}
               />
               <Text style={[typography.caption, { color: colors.textSecondary, marginTop: -10 }]}>
-                Use your member ID as the transfer reference. Your contribution will be confirmed within 24 hours.
+                {t("contribute.bankNote")}
               </Text>
             </>
           )}
 
-          <Button title="Continue" onPress={handleContinue} style={{ marginTop: spacing.xl, marginBottom: spacing.huge }} />
+          <Button title={t("contribute.continue")} onPress={handleContinue} style={{ marginTop: spacing.xl, marginBottom: spacing.huge }} />
         </>
       ) : (
         <View>
           <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.xl }}>
-            <Text style={[typography.micro, { color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4 }]}>You are contributing</Text>
+            <Text style={[typography.micro, { color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4 }]}>{t("contribute.youAreContributing")}</Text>
             <Text style={[typography.display, { color: colors.text, marginTop: spacing.sm, fontVariant: ["tabular-nums"] }]}>{formatCurrency(numAmount)}</Text>
 
             <Divider style={{ marginVertical: spacing.xl }} />
 
             <View style={{ gap: spacing.lg }}>
-              <ConfirmRow label="Payment method" value={selectedMethod.label} />
-              {isMobile && <ConfirmRow label="Phone" value={mask(phone.trim())} />}
-              {method === "Bank" && <ConfirmRow label="Account" value={mask(accountNumber.trim())} />}
-              {sacco && <ConfirmRow label="SACCO" value={sacco.name} />}
+              <ConfirmRow label={t("contribute.paymentMethodLabel")} value={selectedMethod.label} />
+              {isMobile && <ConfirmRow label={t("contribute.phoneLabel")} value={mask(phone.trim())} />}
+              {method === "Bank" && <ConfirmRow label={t("contribute.accountLabel")} value={mask(accountNumber.trim())} />}
+              {sacco && <ConfirmRow label={t("contribute.saccoLabel")} value={sacco.name} />}
             </View>
           </View>
 
-          <Button title="Confirm Payment" onPress={handleSubmit} loading={loading} style={{ marginTop: spacing.xl }} />
-          <Button title="Back" onPress={() => setStep("details")} variant="ghost" style={{ marginTop: spacing.md, marginBottom: spacing.huge }} />
+          <Button title={t("contribute.confirmPayment")} onPress={handleSubmit} loading={loading} style={{ marginTop: spacing.xl }} />
+          <Button title={t("contribute.back")} onPress={() => setStep("details")} variant="ghost" style={{ marginTop: spacing.md, marginBottom: spacing.huge }} />
         </View>
       )}
     </ScreenWrapper>

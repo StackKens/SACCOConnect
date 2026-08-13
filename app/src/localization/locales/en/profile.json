@@ -91,5 +91,20 @@
   "tabs.savings": "Savings",
   "tabs.loans": "Loans",
   "tabs.alerts": "Alerts",
-  "tabs.profile": "Profile"
+  "tabs.profile": "Profile",
+  "home.title": "Home",
+  "home.welcomeBack": "Welcome back,",
+  "home.totalSavings": "Total Savings",
+  "home.loanBalance": "Loan Balance",
+  "home.noActiveLoan": "No active loan",
+  "home.makeContribution": "Make Contribution",
+  "home.quickActions": "Quick Actions",
+  "home.actionContribute": "Contribution",
+  "home.actionApplyLoan": "Apply Loan",
+  "home.actionRepayLoan": "Repay Loan",
+  "home.actionStatement": "Statement",
+  "home.streakText": "{{count}} month streak",
+  "home.streakSubtext": "Keep contributing to maintain your streak",
+  "home.nextContribution": "Next Contribution",
+  "home.overdue": "Overdue"
 }

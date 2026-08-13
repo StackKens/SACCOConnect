@@ -15,6 +15,7 @@ import { api } from "@/services/api";
 import { useState, useCallback } from "react";
 import { SkeletonHome } from "@/components/ui/Skeleton";
 import { useOfflineApi } from "@/hooks/useOfflineApi";
+import { useTranslation } from "react-i18next";
 
 interface MemberProfile {
   currentBalance: number;
@@ -35,6 +36,7 @@ interface ContributionItem {
 }
 
 export default function MemberDashboard() {
+  const { t } = useTranslation("profile");
   const { colors, spacing, radius, typography } = useTheme();
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
@@ -75,9 +77,9 @@ export default function MemberDashboard() {
   const firstName = user?.name?.split(" ")[0] || "Member";
 
   return (
-    <ScreenWrapper scroll header={<PageHeader title="Home" rightComponent={<NotificationsButton />} />} refreshing={refreshing} onRefresh={refresh}>
+    <ScreenWrapper scroll header={<PageHeader title={t("home.title")} rightComponent={<NotificationsButton />} />} refreshing={refreshing} onRefresh={refresh}>
       <View>
-        <Text style={[typography.caption, { color: colors.textSecondary }]}>Welcome back,</Text>
+        <Text style={[typography.caption, { color: colors.textSecondary }]}>{t("home.welcomeBack")}</Text>
         <Text style={[typography.h1, { color: colors.text }]}>{firstName}</Text>
         {sacco && (
           <Text style={[typography.caption, { color: colors.textMuted, marginTop: spacing.xs }]}>
@@ -94,7 +96,7 @@ export default function MemberDashboard() {
         <View>
           <View style={{ gap: spacing.md, marginTop: spacing.xl }}>
             <BalanceCard
-              label="Total Savings"
+              label={t("home.totalSavings")}
               amount={totalSavings}
               delta={thisMonthSavings > 0 ? `+${formatCurrency(thisMonthSavings)} this month` : undefined}
               deltaTone="positive"
@@ -102,9 +104,9 @@ export default function MemberDashboard() {
             />
 
             <BalanceCard
-              label="Loan Balance"
+              label={t("home.loanBalance")}
               amount={activeLoanBalance}
-              hint={activeLoan ? undefined : "No active loan"}
+              hint={activeLoan ? undefined : t("home.noActiveLoan")}
               deltaTone="negative"
               icon={<Scale size={18} color={activeLoanBalance > 0 ? colors.warning : colors.textMuted} />}
             />
@@ -122,48 +124,48 @@ export default function MemberDashboard() {
               }}
             >
               <Text style={[typography.micro, { color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4 }]}>
-                Next Contribution
+                {t("home.nextContribution")}
               </Text>
               <Text style={[typography.h2, { color: isOverdue ? colors.error : colors.text, marginTop: spacing.xs }]}>
                 {formatDate(nextContribution)}
               </Text>
               <Text style={[typography.body, { color: colors.textSecondary, marginTop: 2 }]}>
-                {dueLabel?.startsWith("Overdue") ? "Overdue" : dueLabel} · {formatCurrency(sacco?.contributionAmount ?? 0)}
+                {dueLabel?.startsWith("Overdue") ? t("home.overdue") : dueLabel} · {formatCurrency(sacco?.contributionAmount ?? 0)}
               </Text>
               <Button
-                title="Make Contribution"
+                title={t("home.makeContribution")}
                 onPress={() => router.push("/(member)/contribute")}
                 style={{ marginTop: spacing.lg }}
               />
             </View>
           )}
 
-          <SectionHeader title="Quick Actions" />
+          <SectionHeader title={t("home.quickActions")} />
 
           <QuickActionGrid
             actions={[
               {
                 key: "contribute",
-                label: "Contribution",
+                label: t("home.actionContribute"),
                 primary: true,
                 icon: <HandCoins size={20} color="#FFFFFF" />,
                 onPress: () => router.push("/(member)/contribute"),
               },
               {
                 key: "loan",
-                label: "Apply Loan",
+                label: t("home.actionApplyLoan"),
                 icon: <Handshake size={20} color={colors.primary} />,
                 onPress: () => router.push("/(member)/apply_loan"),
               },
               {
                 key: "repay",
-                label: "Repay Loan",
+                label: t("home.actionRepayLoan"),
                 icon: <CreditCard size={20} color={colors.primary} />,
                 onPress: () => router.push("/(member)/repay_loan"),
               },
               {
                 key: "statement",
-                label: "Statement",
+                label: t("home.actionStatement"),
                 icon: <FileText size={20} color={colors.primary} />,
                 onPress: () => router.push("/(member)/statement"),
               },
@@ -185,9 +187,9 @@ export default function MemberDashboard() {
             >
               <Flame size={24} color={colors.warning} />
               <View style={{ flex: 1 }}>
-                <Text style={[typography.bodyMedium, { color: colors.text }]}>{streak} month streak</Text>
+                <Text style={[typography.bodyMedium, { color: colors.text }]}>{t("home.streakText", { count: streak })}</Text>
                 <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                  Keep contributing to maintain your streak
+                  {t("home.streakSubtext")}
                 </Text>
               </View>
             </View>
