@@ -12,6 +12,7 @@ import { ChevronRight, Settings2 } from "lucide-react-native";
 import { formatDate } from "@/utils/date";
 import { formatCurrency } from "@/utils/currency";
 import { exportSaccoCsv } from "@/helpers/exportData";
+import { CountryLanguageSettings } from "@/components/preferences/CountryLanguageSettings";
 
 const ADMIN_HOW_TO = [
   { title: "Approving a Loan", desc: "Go to Loan Queue, tap any pending application to open the review screen, then tap Approve or Reject." },
@@ -133,6 +134,11 @@ export default function AdminSettings() {
           <Text style={[styles.settingLabel, { color: colors.text }]}>Use System Theme</Text>
           <Switch value={useSystem} onValueChange={handleSystemToggle} />
         </View>
+      </Card>
+
+      <Card style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Region & Language</Text>
+        <CountryLanguageSettings />
       </Card>
 
       <Card style={styles.section}>

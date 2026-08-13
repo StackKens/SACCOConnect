@@ -8,6 +8,7 @@ import { Divider } from "@/components/ui/Divider";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 import { useNotificationStore } from "@/store/notification.store";
+import { CountryLanguageSettings } from "@/components/preferences/CountryLanguageSettings";
 import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { router } from "expo-router";
@@ -176,6 +177,9 @@ export default function Profile() {
         <SectionLabel>Preferences</SectionLabel>
         <SettingRow icon={<Moon size={18} color={colors.primary} />} label="Dark Mode" right={<Switch value={darkMode} onValueChange={handleDarkModeToggle} disabled={useSystem} />} />
         <SettingRow icon={<MonitorSmartphone size={18} color={colors.primary} />} label="Use System Theme" right={<Switch value={useSystem} onValueChange={handleSystemToggle} />} last />
+
+        <SectionLabel>Region & Language</SectionLabel>
+        <CountryLanguageSettings />
 
         <SectionLabel>Support</SectionLabel>
         <SettingRow icon={<Headphones size={18} color={colors.primary} />} label="Help Center" sublabel="How to use SACCOConnect" onPress={() => router.push("/(member)/help")} />
