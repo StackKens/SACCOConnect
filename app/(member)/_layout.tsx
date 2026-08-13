@@ -2,6 +2,7 @@ import { Tabs, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { Home, Wallet, Banknote, User } from "lucide-react-native";
@@ -27,6 +28,7 @@ function TabIcon({ focused, children }: { focused: boolean; children: React.Reac
 export default function MemberLayout() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation("profile");
   const tabBarHeight = 56 + insets.bottom;
   const refreshSacco = useAuthStore((state) => state.refreshSacco);
 
@@ -61,7 +63,7 @@ export default function MemberLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: t("tabs.home"),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon focused={focused}>
               <Home size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />
@@ -73,7 +75,7 @@ export default function MemberLayout() {
       <Tabs.Screen
         name="contributions"
         options={{
-          title: "Savings",
+          title: t("tabs.savings"),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon focused={focused}>
               <Wallet size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />
@@ -85,7 +87,7 @@ export default function MemberLayout() {
       <Tabs.Screen
         name="loans"
         options={{
-          title: "Loans",
+          title: t("tabs.loans"),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon focused={focused}>
               <Banknote size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />
@@ -97,14 +99,14 @@ export default function MemberLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          title: "Alerts",
+          title: t("tabs.alerts"),
           href: null,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: t("tabs.profile"),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon focused={focused}>
               <User size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />

@@ -12,6 +12,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { startQueueListener } from "./src/services/offlineQueue";
 import { initSecureStorage } from "./src/services/secureStorage";
+import { initI18n } from "./src/localization/i18n";
+
+// Make translations available before any screen uses useTranslation. The
+// persisted preference replaces this initial device-language choice at boot.
+initI18n();
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return <ErrorBoundaryFallback error={error} retry={retry} />;

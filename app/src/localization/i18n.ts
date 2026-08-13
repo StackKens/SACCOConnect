@@ -8,6 +8,7 @@ import enAuth from "./locales/en/auth.json";
 import enSavings from "./locales/en/savings.json";
 import enLoans from "./locales/en/loans.json";
 import enProfile from "./locales/en/profile.json";
+import enAdmin from "./locales/en/admin.json";
 
 // Swahili
 import swCommon from "./locales/sw/common.json";
@@ -15,6 +16,7 @@ import swAuth from "./locales/sw/auth.json";
 import swSavings from "./locales/sw/savings.json";
 import swLoans from "./locales/sw/loans.json";
 import swProfile from "./locales/sw/profile.json";
+import swAdmin from "./locales/sw/admin.json";
 
 export type LanguageCode = "en" | "sw";
 
@@ -28,6 +30,7 @@ const resources = {
     savings: enSavings,
     loans: enLoans,
     profile: enProfile,
+    admin: enAdmin,
   },
   sw: {
     common: swCommon,
@@ -35,6 +38,7 @@ const resources = {
     savings: swSavings,
     loans: swLoans,
     profile: swProfile,
+    admin: swAdmin,
   },
 };
 
@@ -66,7 +70,7 @@ export function initI18n(preferredLanguage?: LanguageCode): typeof i18n {
       lng: language,
       fallbackLng: DEFAULT_LANGUAGE,
       defaultNS: "common",
-      ns: ["common", "auth", "savings", "loans", "profile"],
+      ns: ["common", "auth", "savings", "loans", "profile", "admin"],
       interpolation: {
         escapeValue: false, // React already escapes
       },
