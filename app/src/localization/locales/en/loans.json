@@ -1,0 +1,14 @@
+{
+  "title": "Loans",
+  "apply": "Apply for a loan",
+  "myLoans": "My loans",
+  "outstanding": "Outstanding balance",
+  "repayment": "Repayment",
+  "makeRepayment": "Make a repayment",
+  "applicationStatus": "Application status",
+  "pending": "Pending",
+  "approved": "Approved",
+  "rejected": "Rejected",
+  "active": "Active",
+  "completed": "Completed"
+}

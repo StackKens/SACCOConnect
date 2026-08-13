@@ -44,7 +44,8 @@
           }
         }
       ],
-      "./plugins/withAndroidSizeOptimization"
+      "./plugins/withAndroidSizeOptimization",
+      "expo-localization"
     ],
     "scheme": "saccoconnect",
     "router": {

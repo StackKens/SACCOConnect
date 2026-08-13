@@ -1,0 +1,9 @@
+{
+  "title": "Savings",
+  "balance": "Balance",
+  "deposit": "Deposit",
+  "withdraw": "Withdraw",
+  "transactionHistory": "Transaction history",
+  "noTransactions": "No transactions yet",
+  "saveMoney": "Save money"
+}

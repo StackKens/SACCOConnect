@@ -1,0 +1,14 @@
+{
+  "title": "Mikopo",
+  "apply": "Omba mkopo",
+  "myLoans": "Mikopo yangu",
+  "outstanding": "Salio la deni",
+  "repayment": "Malipo",
+  "makeRepayment": "Fanya malipo",
+  "applicationStatus": "Hali ya maombi",
+  "pending": "Inasubiri",
+  "approved": "Imeidhinishwa",
+  "rejected": "Imekataliwa",
+  "active": "Inatumika",
+  "completed": "Imekamilika"
+}
