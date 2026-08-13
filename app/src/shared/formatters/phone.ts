@@ -20,9 +20,6 @@ export function formatPhoneNumber(
   country: CountryConfig,
 ): string {
   const cleaned = nationalNumber.replace(/\D/g, "");
-  // Simple grouping for readability:
-  // - 9 digits: most supported markets (UG, KE, TZ, RW, SS)
-  // - 8 digits: Burundi
   if (cleaned.length === 9) {
     return `${country.phoneCode} ${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
   }
@@ -34,4 +31,24 @@ export function formatPhoneNumber(
 
 export function normalizePhoneNumber(phone: string): string {
   return phone.replace(/\D/g, "");
+}
+
+export function normalizePhoneNumberWithCountry(phone: string, country: CountryConfig): string {
+  const digits = phone.replace(/\D/g, "");
+  const code = country.phoneCode.replace("+", "");
+
+  if (digits.startsWith(code)) {
+    const withoutCode = digits.slice(code.length);
+    if (withoutCode.length === 9) return "0" + withoutCode;
+    if (withoutCode.length === 8) return "0" + withoutCode;
+    return "0" + withoutCode;
+  }
+
+  if (digits.startsWith("0")) {
+    if (digits.length === 10) return digits.slice(0, 10);
+    if (digits.length === 9) return digits.slice(0, 9);
+    return digits;
+  }
+
+  return "0" + digits;
 }

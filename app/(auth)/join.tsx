@@ -12,6 +12,7 @@ import { OtpVerification } from "@/components/features/OtpVerification";
 import { useAuthStore } from "@/store/auth.store";
 import { InviteCode } from "@/types";
 import { Building2 } from "lucide-react-native";
+import { formatCurrency } from "@/utils/currency";
 
 type Step = "code" | "confirm" | "otp" | "details" | "pin" | "welcome";
 
@@ -138,8 +139,7 @@ export default function Join() {
                 <Text
                   style={[styles.saccoSub, { color: colors.textSecondary }]}
                 >
-                  Monthly: {country.currency}{" "}
-                  {invite.contributionAmount?.toLocaleString() ?? "—"}
+                  Monthly: {formatCurrency(invite.contributionAmount ?? 0)}
                 </Text>
                 <Text
                   style={[styles.saccoSub, { color: colors.textSecondary }]}
@@ -168,6 +168,7 @@ export default function Join() {
             phone={phone}
             onPhoneChange={setPhone}
             onVerified={() => setStep("details")}
+            country={country}
           />
         </View>
       )}

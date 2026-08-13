@@ -4,7 +4,7 @@ import { useMemberDataStore } from "./member.store";
 import { useLoanStore } from "./loan.store";
 import { useAnnouncementStore } from "./announcement.store";
 import { defaultContributionDueDate } from "../utils/date";
-import { normalizeUgandaPhone } from "../utils/phone";
+import { normalizePhoneNumber } from "../shared/formatters/phone";
 import {
   authApi,
   AuthSessionResponse,
@@ -192,10 +192,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (phone, pin) => {
     let sessionData: AuthSessionResponse;
     if (USE_MOCK_API) {
-      sessionData = mockLogin(normalizeUgandaPhone(phone), pin);
+      sessionData = mockLogin(normalizePhoneNumber(phone), pin);
     } else {
       try {
-        const res = await authApi.login(normalizeUgandaPhone(phone), pin);
+        const res = await authApi.login(normalizePhoneNumber(phone), pin);
         sessionData = res.data.data;
       } catch (apiError) {
         throw new Error(getApiErrorMessage(apiError));
@@ -213,18 +213,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   requestOtp: async (phone) => {
     if (USE_MOCK_API) {
-      return mockRequestOtp(normalizeUgandaPhone(phone));
+      return mockRequestOtp(normalizePhoneNumber(phone));
     }
-    const res = await authApi.requestOtp(normalizeUgandaPhone(phone));
+    const res = await authApi.requestOtp(normalizePhoneNumber(phone));
     return res.data.dev_otp;
   },
 
   verifyOtp: async (phone, code) => {
     if (USE_MOCK_API) {
-      mockVerifyOtp(normalizeUgandaPhone(phone), code);
+      mockVerifyOtp(normalizePhoneNumber(phone), code);
       return;
     }
-    await authApi.verifyOtp(normalizeUgandaPhone(phone), code);
+    await authApi.verifyOtp(normalizePhoneNumber(phone), code);
   },
 
   lookupInviteCode: async (code) => {
@@ -251,7 +251,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   registerAdmin: async (params) => {
     try {
       const res = await authApi.registerAdmin({
-        phoneNumber: normalizeUgandaPhone(params.phone),
+        phoneNumber: normalizePhoneNumber(params.phone),
         fullName: params.fullName.trim(),
         nationalId: params.nationalId?.trim() || undefined,
         pin: params.pin,
@@ -275,7 +275,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   joinSACCO: async ({ code, name, nationalId, phone, pin }) => {
     try {
       const res = await authApi.registerMember({
-        phoneNumber: normalizeUgandaPhone(phone),
+        phoneNumber: normalizePhoneNumber(phone),
         fullName: name.trim(),
         nationalId: nationalId.trim() || undefined,
         pin,

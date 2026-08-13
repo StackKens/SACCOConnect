@@ -17,6 +17,7 @@ import { api } from "@/services/api";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { enqueue } from "@/services/offlineQueue";
 import { formatCurrency } from "@/utils/currency";
+import { formatPhoneNumber } from "@/shared/formatters/phone";
 import { Smartphone, Landmark } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
@@ -191,7 +192,7 @@ export default function Contribute() {
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
-                placeholder={method === "MTN" ? "0771234567" : "0751234567"}
+                placeholder={formatPhoneNumber("000000000", country).replace(country.phoneCode + " ", "")}
               />
               <Text style={[typography.caption, { color: colors.textSecondary, marginTop: -10 }]}>
                 {t("contribute.mobilePromptNote")}

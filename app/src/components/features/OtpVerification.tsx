@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { getApiErrorMessage } from "@/services/auth.service";
-import { normalizeUgandaPhone } from "@/utils/phone";
+import { normalizePhoneNumberWithCountry, formatPhoneNumber } from "@/shared/formatters/phone";
+import type { CountryConfig } from "@/config";
 
 interface OtpVerificationProps {
   phone: string;
   onPhoneChange?: (phone: string) => void;
   phoneEditable?: boolean;
   onVerified: () => void;
+  country: CountryConfig;
 }
 
 export function OtpVerification({
@@ -19,6 +21,7 @@ export function OtpVerification({
   onPhoneChange,
   phoneEditable = true,
   onVerified,
+  country,
 }: OtpVerificationProps) {
   const { colors } = useTheme();
   const requestOtp = useAuthStore((s) => s.requestOtp);
@@ -28,16 +31,20 @@ export function OtpVerification({
   const [loading, setLoading] = useState(false);
   const [devHint, setDevHint] = useState<string | null>(null);
 
+  const normalized = normalizePhoneNumberWithCountry(phone, country);
+  const displayPhone = formatPhoneNumber(normalized.replace(/^0/, ""), country);
+  const placeholder = formatPhoneNumber("000000000", country).replace(country.phoneCode + " ", "");
+
   const handleSend = async () => {
-    const normalized = normalizeUgandaPhone(phone);
-    if (normalized.length < 10) {
+      const clean = normalizePhoneNumberWithCountry(phone, country);
+    if (clean.length < 9) {
       Alert.alert("Required", "Enter a valid phone number.");
       return;
     }
     setLoading(true);
     setDevHint(null);
     try {
-      const devOtp = await requestOtp(normalized);
+      const devOtp = await requestOtp(clean);
       setSent(true);
       setOtp("");
       if (__DEV__ && devOtp) {
@@ -46,8 +53,8 @@ export function OtpVerification({
       Alert.alert(
         "Code sent",
         __DEV__ && devOtp
-          ? `Enter the 6-digit code sent to ${normalized}. Development code: ${devOtp}`
-          : `Enter the 6-digit code sent to ${normalized}.`,
+          ? `Enter the 6-digit code sent to ${displayPhone}. Development code: ${devOtp}`
+          : `Enter the 6-digit code sent to ${displayPhone}.`,
       );
     } catch (e) {
       Alert.alert("Could not send code", getApiErrorMessage(e));
@@ -63,7 +70,7 @@ export function OtpVerification({
     }
     setLoading(true);
     try {
-      await verifyOtp(phone.trim(), otp);
+      await verifyOtp(normalized, otp);
       onVerified();
     } catch (e) {
       Alert.alert("Verification failed", getApiErrorMessage(e));
@@ -80,11 +87,11 @@ export function OtpVerification({
           value={phone}
           onChangeText={onPhoneChange}
           keyboardType="phone-pad"
-          placeholder="e.g. 0712345678"
+          placeholder={placeholder}
         />
       ) : (
         <Text style={[styles.phoneLabel, { color: colors.textSecondary }]}>
-          Verifying {phone}
+          Verifying {displayPhone}
         </Text>
       )}
 

@@ -45,7 +45,7 @@
   "invalidCode": "Msimbo si sahihi",
   "enterSixDigitOtp": "Weka OTP ya tarakimu 6.",
   "verificationFailed": "Uthibitisho umeshindikana",
-  "phonePlaceholder": "mf. 0712345678",
+  "phonePlaceholder": "mf. 712345678",
   "verifyingPhone": "Inathibitisha {{phone}}",
   "sendOtp": "Tuma OTP",
   "devCode": "Msimbo wa maendeleo: {{code}}",

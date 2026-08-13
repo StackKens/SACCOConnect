@@ -11,7 +11,7 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { OtpVerification } from "@/components/features/OtpVerification";
 import { useAuthStore } from "@/store/auth.store";
 import { formatCurrency } from "@/utils/currency";
-import { normalizeUgandaPhone } from "@/utils/phone";
+import { formatPhoneNumber, normalizePhoneNumberWithCountry } from "@/shared/formatters/phone";
 import { PRESET_RULES } from "@/constants/rules";
 
 type Step = "phone" | "otp" | "personal" | "sacco" | "review";
@@ -59,7 +59,7 @@ export default function RegisterAdmin() {
     setLoading(true);
     try {
       await registerAdmin({
-        phone: normalizeUgandaPhone(phone),
+        phone: normalizePhoneNumberWithCountry(phone, country),
         fullName: fullName.trim(),
         nationalId: nationalId.trim() || undefined,
         pin,
@@ -103,9 +103,9 @@ export default function RegisterAdmin() {
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
-            placeholder="e.g. 0700123456"
+            placeholder={formatPhoneNumber("000000000", country).replace(country.phoneCode + " ", "")}
           />
-          <Button title="Continue" onPress={() => setStep("otp")} disabled={normalizeUgandaPhone(phone).length < 10} />
+          <Button title="Continue" onPress={() => setStep("otp")} disabled={normalizePhoneNumberWithCountry(phone, country).length < 9} />
         </View>
       )}
 
@@ -116,6 +116,7 @@ export default function RegisterAdmin() {
             phone={phone}
             phoneEditable={false}
             onVerified={() => setStep("personal")}
+            country={country}
           />
         </View>
       )}

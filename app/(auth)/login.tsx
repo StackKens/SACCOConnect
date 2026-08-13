@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/Input";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
+import { useCountry } from "@/hooks/useCountry";
+import { formatPhoneNumber } from "@/shared/formatters/phone";
 
 export default function Login() {
   const [phone, setPhone] = useState("");
@@ -15,6 +17,7 @@ export default function Login() {
   const { login } = useAuthStore();
   const { colors } = useTheme();
   const { t } = useTranslation("auth");
+  const { country } = useCountry();
 
   const handleLogin = async () => {
     if (!phone.trim() || pin.length < 4) {
@@ -53,7 +56,7 @@ export default function Login() {
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"
-          placeholder={t("login.phoneExample")}
+          placeholder={formatPhoneNumber("000000000", country).replace(country.phoneCode + " ", "")}
           autoCapitalize="none"
         />
         <Input

@@ -45,7 +45,7 @@
   "invalidCode": "Invalid code",
   "enterSixDigitOtp": "Enter the 6-digit OTP.",
   "verificationFailed": "Verification failed",
-  "phonePlaceholder": "e.g. 0712345678",
+  "phonePlaceholder": "e.g. 712345678",
   "verifyingPhone": "Verifying {{phone}}",
   "sendOtp": "Send OTP",
   "devCode": "Development code: {{code}}",

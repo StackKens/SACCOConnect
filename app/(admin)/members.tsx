@@ -20,12 +20,13 @@ import { MemberRow } from "@/components/features/MemberRow";
 import { useTheme } from "@/hooks/useTheme";
 import { router } from "expo-router";
 import { UserPlus, Search } from "lucide-react-native";
-import { normalizeUgandaPhone } from "@/utils/phone";
 import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useAuthStore } from "@/store/auth.store";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 import { useTranslation } from "react-i18next";
+import { useCountry } from "@/hooks/useCountry";
+import { normalizePhoneNumberWithCountry } from "@/shared/formatters/phone";
 
 interface MemberRow {
   id: string;
@@ -38,6 +39,7 @@ interface MemberRow {
 export default function Members() {
   const { t } = useTranslation("admin");
   const { colors } = useTheme();
+  const { country } = useCountry();
   const sacco = useAuthStore((state) => state.sacco);
   const me = useAuthStore((state) => state.user);
   const [showModal, setShowModal] = useState(false);
@@ -58,14 +60,14 @@ export default function Members() {
   );
 
   const handleInvite = async () => {
-    const normalizedPhone = normalizeUgandaPhone(invitePhone);
-    if (normalizedPhone.length < 10) {
+    const normalized = normalizePhoneNumberWithCountry(invitePhone, country);
+    if (normalized.length < 9) {
       Alert.alert(t("members.required"), t("members.invalidPhone"));
       return;
     }
     setInviteLoading(true);
     try {
-      const res = await api.post("/api/members/invite/send", { phoneNumber: normalizedPhone });
+      const res = await api.post("/api/members/invite/send", { phoneNumber: normalized });
       setInviteCode(res.data.data.inviteCode);
     } catch (e: any) {
       Alert.alert(t("members.error"), e?.response?.data?.message || t("members.couldNotSendInvite"));

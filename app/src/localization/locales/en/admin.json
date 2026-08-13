@@ -70,7 +70,7 @@
   "members.couldNotSendInvite": "Could not send invite SMS.",
   "members.inviteModalTitle": "Invite Member",
   "members.inviteModalSubtitle": "Enter their phone number. An invite code will be generated — share it with them via SMS or WhatsApp.",
-  "members.phonePlaceholder": "e.g. 0712345678",
+  "members.phonePlaceholder": "e.g. 712345678",
   "members.phoneLabel": "Phone Number",
   "members.sendInvite": "Send Invite",
   "members.inviteCodeReady": "Invite Code Ready",
