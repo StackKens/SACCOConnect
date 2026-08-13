@@ -20,6 +20,7 @@ import { Pagination } from "../components/Pagination";
 import { OnboardingSlide } from "../components/OnboardingSlide";
 import { onboardingData } from "../data/onboardingData";
 import { useTranslation } from "react-i18next";
+import { CountryLanguageSettings } from "@/components/preferences/CountryLanguageSettings";
 
 const ENTRY_ROUTE = "/(auth)/entry";
 
@@ -100,6 +101,10 @@ export function OnboardingScreen() {
           )}
         </View>
 
+        <View style={styles.pickerArea}>
+          <CountryLanguageSettings />
+        </View>
+
         <View style={styles.pagerArea} onLayout={onLayout}>
           {listHeight > 0 && (
             <FlatList
@@ -174,6 +179,9 @@ const styles = StyleSheet.create({
   },
   pagerArea: {
     flex: 1,
+  },
+  pickerArea: {
+    paddingHorizontal: 24,
   },
   footer: {
     marginTop: 20,

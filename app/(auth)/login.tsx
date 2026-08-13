@@ -2,10 +2,12 @@ import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Vibration } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/Input";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
+import { CountryLanguageSettings } from "@/components/preferences/CountryLanguageSettings";
 
 export default function Login() {
   const [phone, setPhone] = useState("");
@@ -13,10 +15,11 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuthStore();
   const { colors } = useTheme();
+  const { t } = useTranslation("auth");
 
   const handleLogin = async () => {
     if (!phone.trim() || pin.length < 4) {
-      Alert.alert("Missing info", "Enter your phone number and 4-digit PIN.");
+      Alert.alert(t("login.missingInfo"), t("login.missingInfoMessage"));
       return;
     }
     setLoading(true);
@@ -30,7 +33,7 @@ export default function Login() {
       }
     } catch (e: any) {
       Vibration.vibrate(80);
-      Alert.alert("Login Failed", e?.message || "Invalid credentials.");
+      Alert.alert(t("login.failed"), e?.message || t("login.invalidCredentials"));
     } finally {
       setLoading(false);
     }
@@ -40,22 +43,26 @@ export default function Login() {
     <ScreenWrapper>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t("welcomeBack")}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Sign in with your phone & PIN
+            {t("login.subtitle")}
           </Text>
         </View>
 
+        <View style={styles.pickerArea}>
+          <CountryLanguageSettings />
+        </View>
+
         <Input
-          label="Phone Number"
+          label={t("common:phone")}
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"
-          placeholder="e.g. 0712345678"
+          placeholder={t("login.phoneExample")}
           autoCapitalize="none"
         />
         <Input
-          label="4-Digit PIN"
+          label={t("login.pinLabel")}
           value={pin}
           onChangeText={(v) => { if (v.length <= 4) setPin(v); }}
           keyboardType="number-pad"
@@ -64,11 +71,11 @@ export default function Login() {
           maxLength={4}
         />
 
-        <Button title="Log In" onPress={handleLogin} loading={loading} style={styles.btn} />
+        <Button title={t("login")} onPress={handleLogin} loading={loading} style={styles.btn} />
 
         <TouchableOpacity onPress={() => router.push("/(auth)/entry")}>
           <Text style={[styles.link, { color: colors.primary }]}>
-            Back to welcome
+            {t("login.backToWelcome")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -81,6 +88,7 @@ const styles = StyleSheet.create({
   header: { marginBottom: 32 },
   title: { fontSize: 28, fontWeight: "800", marginBottom: 6, letterSpacing: -0.5 },
   subtitle: { fontSize: 15 },
+  pickerArea: { marginBottom: 24 },
   btn: { marginTop: 8, marginBottom: 20 },
   link: { textAlign: "center", fontSize: 14, marginTop: 8 },
 });

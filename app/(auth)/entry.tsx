@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/Button";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "react-i18next";
+import { CountryLanguageSettings } from "@/components/preferences/CountryLanguageSettings";
 
 export default function Entry() {
   const { colors } = useTheme();
+  const { t } = useTranslation("auth");
 
   return (
     <ScreenWrapper scroll={false}>
@@ -20,30 +23,34 @@ export default function Entry() {
             SACCOConnect
           </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Digital Savings & Loan Management
+            {t("entry.tagline")}
           </Text>
         </View>
 
         <View style={styles.buttons}>
           <Button
-            title="Create a SACCO"
+            title={t("entry.createSacco")}
             onPress={() => router.push("/(auth)/register-admin" as any)}
           />
           <Button
-            title="Join a SACCO"
+            title={t("entry.joinSacco")}
             onPress={() => router.push("/(auth)/join" as any)}
             variant="outline"
             style={{ marginTop: 12 }}
           />
           <Button
-            title="Log In"
+            title={t("login")}
             onPress={() => router.push("/(auth)/login")}
             variant="outline"
             style={{ marginTop: 12 }}
           />
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            Returning user? Log in with your phone and PIN.
+            {t("entry.returningUser")}
           </Text>
+        </View>
+
+        <View style={styles.footer}>
+          <CountryLanguageSettings />
         </View>
       </View>
     </ScreenWrapper>
@@ -68,4 +75,5 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 15, textAlign: "center", marginBottom: 6 },
   buttons: { gap: 0 },
   hint: { fontSize: 12, textAlign: "center", marginTop: 16, lineHeight: 18 },
+  footer: { marginTop: 24 },
 });
