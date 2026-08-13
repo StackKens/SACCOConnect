@@ -66,7 +66,7 @@ export default function Login() {
 
         <Button title="Log In" onPress={handleLogin} loading={loading} style={styles.btn} />
 
-        <TouchableOpacity onPress={() => router.push("/(auth)/onboarding")}>
+        <TouchableOpacity onPress={() => router.push("/(auth)/entry")}>
           <Text style={[styles.link, { color: colors.primary }]}>
             Back to welcome
           </Text>

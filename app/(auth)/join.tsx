@@ -83,7 +83,7 @@ export default function Join() {
         <PageHeader
           title="Join a SACCO"
           showBack
-          onBack={() => router.push("/(auth)/onboarding")}
+          onBack={() => router.push("/(auth)/entry")}
         />
       }
     >

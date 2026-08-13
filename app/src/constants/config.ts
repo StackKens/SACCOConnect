@@ -17,9 +17,10 @@ export const STORAGE_KEYS = {
 };
 export const ROUTES = {
   AUTH: {
+    ONBOARDING: "/(auth)/onboarding",
+    ENTRY: "/(auth)/entry",
     LOGIN: "/(auth)/login",
     REGISTER: "/(auth)/register",
-    ONBOARDING: "/(auth)/onboarding",
   },
   MEMBER: {
     HOME: "/(member)",
