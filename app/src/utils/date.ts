@@ -1,6 +1,12 @@
+import { getCountryConfig } from "../config";
+import { usePreferencesStore } from "../store/preferences.store";
+
+const currentLocale = (): string =>
+  getCountryConfig(usePreferencesStore.getState().countryCode).locale;
+
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-UG", {
+  return date.toLocaleDateString(currentLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -9,7 +15,7 @@ export const formatDate = (dateString: string): string => {
 
 export const formatDateLong = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-UG", {
+  return date.toLocaleDateString(currentLocale(), {
     weekday: "long",
     year: "numeric",
     month: "long",

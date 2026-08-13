@@ -7,6 +7,7 @@ import { PaymentMethodRow } from "@/components/ui/PaymentMethodRow";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { formatCurrency } from "@/utils/currency";
 import { router } from "expo-router";
 import { api } from "@/services/api";
@@ -43,6 +44,7 @@ export default function RepayLoan() {
   });
   const [submitting, setSubmitting] = useState(false);
   const { colors, spacing, radius, typography } = useTheme();
+  const { country } = useCountry();
 
   const outstanding = loan ? loan.totalRepayable - loan.amountRepaid : 0;
   const fullyRepaid = loan ? loan.amountRepaid >= loan.totalRepayable : false;
@@ -141,7 +143,7 @@ export default function RepayLoan() {
               </View>
 
               <Input
-                label="Payment Amount (UGX)"
+                label={`Payment Amount (${country.currency})`}
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="numeric"

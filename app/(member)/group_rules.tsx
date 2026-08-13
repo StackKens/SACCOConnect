@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { formatDate } from "@/utils/date";
+import { formatCurrency } from "@/utils/currency";
 import { ShieldCheck } from "lucide-react-native";
 
 function GroupAvatar({ name, color, size = 64 }: { name: string; color: string; size?: number }) {
@@ -45,7 +46,7 @@ export default function GroupRules() {
         <GroupAvatar name={sacco?.name ?? "SACCO"} color={logoColor} />
         <Text style={[styles.saccoName, { color: colors.text }]}>{sacco?.name ?? "Your SACCO"}</Text>
         <Text style={[styles.saccoMeta, { color: colors.textSecondary }]}>
-          UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"} / month
+          {formatCurrency(sacco?.contributionAmount ?? 0)} / month
           {sacco?.contributionDueDate ? `  •  Due ${formatDate(sacco.contributionDueDate)}` : ""}
         </Text>
       </View>

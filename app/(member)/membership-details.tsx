@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { api } from "@/services/api";
 import { formatDate } from "@/utils/date";
+import { formatCurrency } from "@/utils/currency";
 import { BadgeCheck, Users, Wallet } from "lucide-react-native";
 
 interface MemberProfile {
@@ -109,7 +110,7 @@ export default function MembershipDetails() {
           <View style={[styles.stat, { backgroundColor: colors.primary + "12" }]}>
             <Wallet size={18} color={colors.primary} />
             <Text style={[styles.statValue, { color: colors.text }]}>
-              UGX {(member?.currentBalance ?? 0).toLocaleString()}
+              {formatCurrency(member?.currentBalance ?? 0)}
             </Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Balance</Text>
           </View>

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { formatCurrency } from "@/utils/currency";
 import { getRelativeTime } from "@/utils/date";
 import { Wallet, Banknote, RefreshCw, AlertCircle, TrendingUp, TrendingDown } from "lucide-react-native";
@@ -136,6 +137,7 @@ const EMPTY: TreasuryData = {
 
 export default function Treasury() {
   const { colors } = useTheme();
+  const { country } = useCountry();
   const [data, setData] = useState<TreasuryData>(EMPTY);
   const { loading, error, refresh } = useApiFetch(async () => {
     const res = await api.get("/api/contributions/treasury");
@@ -145,7 +147,7 @@ export default function Treasury() {
   const { totalSavings, totalDisbursed, totalRepaid, outstanding, collectionRate, monthlyData, recentTransactions } = data;
 
   const chartMonthlyData = monthlyData.map((d) => ({
-    month: new Date(`${d.month}-01`).toLocaleDateString("en-UG", { month: "short" }),
+    month: new Date(`${d.month}-01`).toLocaleDateString(country.locale, { month: "short" }),
     collections: d.collections,
     disbursed: d.disbursed,
   }));

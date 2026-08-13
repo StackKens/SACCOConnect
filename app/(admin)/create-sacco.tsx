@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Divider";
 import { TextArea } from "@/components/ui/TextArea";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { useAuthStore } from "@/store/auth.store";
 import { PRESET_RULES } from "@/constants/rules";
 import { CheckSquare, Square } from "lucide-react-native";
@@ -27,6 +28,7 @@ function GroupAvatar({ name, color, size = 56 }: { name: string; color: string; 
 
 export default function CreateSACCO() {
   const { colors } = useTheme();
+  const { country } = useCountry();
   const { createSACCO } = useAuthStore();
 
   const [name, setName] = useState("");
@@ -95,8 +97,8 @@ export default function CreateSACCO() {
 
       {/* Basic info */}
       <Card style={styles.card}>
-        <Input label="SACCO Name" value={name} onChangeText={setName} placeholder="e.g. UgandaSavings SACCO" autoCapitalize="words" />
-        <Input label="Monthly Contribution (UGX)" value={contribution} onChangeText={setContribution} keyboardType="numeric" placeholder="e.g. 50000" />
+        <Input label="SACCO Name" value={name} onChangeText={setName} placeholder="e.g. Unity Savings SACCO" autoCapitalize="words" />
+        <Input label={`Monthly Contribution (${country.currency})`} value={contribution} onChangeText={setContribution} keyboardType="numeric" placeholder="e.g. 50000" />
         <Input label="Interest Rate (% per annum)" value={interest} onChangeText={setInterest} keyboardType="numeric" placeholder="e.g. 12" />
       </Card>
 

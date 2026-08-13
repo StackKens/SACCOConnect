@@ -2,14 +2,17 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking } from "react-native"
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { router } from "expo-router";
+import { formatPhoneNumber } from "@/shared/formatters";
 import { HelpCircle, Mail, Phone, ChevronRight, BookOpen } from "lucide-react-native";
 
 const SUPPORT_EMAIL = "support@saccoconnect.app";
-const SUPPORT_PHONE = "+256700000000";
 
 export default function Help() {
   const { colors } = useTheme();
+  const { country } = useCountry();
+  const SUPPORT_PHONE = formatPhoneNumber("700000000", country);
 
   const sendEmail = () => {
     Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=SACCOConnect%20Support`);

@@ -4,6 +4,7 @@ import { useMemberDataStore } from "./member.store";
 import { api } from "../services/api";
 import { getCached, setCached } from "../services/cache";
 import { getSecureStorage } from "../services/secureStorage";
+import { formatCurrency } from "../utils/currency";
 import type { NotifItem } from "../components/features/NotificationRow";
 
 const readStorage = getSecureStorage("read_notifications");
@@ -35,7 +36,7 @@ function loanNotifications(
         id: `loan_applied_${l.id}`,
         type: "loan_applied",
         title: "Loan Application Submitted",
-        message: `Your application for UGX ${l.amount.toLocaleString()} (${l.purpose}) is under review.`,
+        message: `Your application for ${formatCurrency(l.amount)} (${l.purpose}) is under review.`,
         date: l.dueDate ?? new Date().toISOString(),
       },
     ];
@@ -44,7 +45,7 @@ function loanNotifications(
         id: `loan_approved_${l.id}`,
         type: "loan_approved",
         title: "Loan Approved",
-        message: `Your loan of UGX ${l.amount.toLocaleString()} has been approved. Due: ${l.dueDate ?? "TBD"}.`,
+        message: `Your loan of ${formatCurrency(l.amount)} has been approved. Due: ${l.dueDate ?? "TBD"}.`,
         date: l.dueDate ?? new Date().toISOString(),
       });
     }
@@ -79,7 +80,7 @@ export function buildNotifications(
     id: `contrib_${c.id}`,
     type: "contribution",
     title: "Contribution Recorded",
-    message: `UGX ${c.amount.toLocaleString()} via ${c.method} has been recorded.`,
+    message: `${formatCurrency(c.amount)} via ${c.method} has been recorded.`,
     date: c.date,
   }));
 
@@ -89,7 +90,7 @@ export function buildNotifications(
       id: `repay_${t.id}`,
       type: "loan_repayment",
       title: "Loan Repayment Made",
-      message: `UGX ${Math.abs(t.amount).toLocaleString()} repayment recorded (ref: ${t.reference}).`,
+      message: `${formatCurrency(Math.abs(t.amount))} repayment recorded (ref: ${t.reference}).`,
       date: t.date,
     }));
 

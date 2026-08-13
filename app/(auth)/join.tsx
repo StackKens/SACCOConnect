@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -15,6 +16,7 @@ type Step = "code" | "confirm" | "otp" | "details" | "pin" | "welcome";
 
 export default function Join() {
   const { colors } = useTheme();
+  const { country } = useCountry();
   const { lookupInviteCode, joinSACCO } = useAuthStore();
 
   const [step, setStep] = useState<Step>("code");
@@ -135,7 +137,7 @@ export default function Join() {
                 <Text
                   style={[styles.saccoSub, { color: colors.textSecondary }]}
                 >
-                  Monthly: UGX{" "}
+                  Monthly: {country.currency}{" "}
                   {invite.contributionAmount?.toLocaleString() ?? "—"}
                 </Text>
                 <Text

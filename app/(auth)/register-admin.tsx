@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -9,6 +10,7 @@ import { TextArea } from "@/components/ui/TextArea";
 import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { OtpVerification } from "@/components/features/OtpVerification";
 import { useAuthStore } from "@/store/auth.store";
+import { formatCurrency } from "@/utils/currency";
 import { normalizeUgandaPhone } from "@/utils/phone";
 import { PRESET_RULES } from "@/constants/rules";
 
@@ -16,6 +18,7 @@ type Step = "phone" | "otp" | "personal" | "sacco" | "review";
 
 export default function RegisterAdmin() {
   const { colors } = useTheme();
+  const { country } = useCountry();
   const registerAdmin = useAuthStore((s) => s.registerAdmin);
 
   const [step, setStep] = useState<Step>("phone");
@@ -147,7 +150,7 @@ export default function RegisterAdmin() {
           <Text style={[styles.title, { color: colors.text }]}>SACCO details</Text>
           <Input label="SACCO Name" value={saccoName} onChangeText={setSaccoName} autoCapitalize="words" />
           <Input label="Registration No. (optional)" value={registrationNo} onChangeText={setRegistrationNo} />
-          <Input label="Monthly Contribution (UGX)" value={contribution} onChangeText={setContribution} keyboardType="numeric" />
+          <Input label={`Monthly Contribution (${country.currency})`} value={contribution} onChangeText={setContribution} keyboardType="numeric" />
           <Input label="Max Loan Limit (× savings)" value={maxLoanMultiplier} onChangeText={setMaxLoanMultiplier} keyboardType="numeric" />
           <Input label="Interest Rate (% p.a.)" value={interestRate} onChangeText={setInterestRate} keyboardType="numeric" />
           <Input label="Max Loan Term (months)" value={loanTermMonths} onChangeText={setLoanTermMonths} keyboardType="numeric" />
@@ -165,7 +168,7 @@ export default function RegisterAdmin() {
             <Text style={[styles.row, { color: colors.textSecondary }]}>Phone: {phone}</Text>
             <Text style={[styles.row, { color: colors.text }]}>SACCO: {saccoName}</Text>
             <Text style={[styles.row, { color: colors.textSecondary }]}>
-              UGX {Number(contribution).toLocaleString()} / month · {interestRate}% · {loanTermMonths} months max
+              {formatCurrency(Number(contribution) || 0)} / month · {interestRate}% · {loanTermMonths} months max
             </Text>
             {meetingDay ? (
               <Text style={[styles.row, { color: colors.textSecondary }]}>Meeting: {meetingDay}</Text>

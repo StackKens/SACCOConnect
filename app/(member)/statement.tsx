@@ -10,9 +10,10 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 import { TransactionRow, TxItem } from "@/components/features/TransactionRow";
+import { useCountry } from "@/hooks/useCountry";
 
-function buildCsv(transactions: TxItem[]): string {
-  const header = "Date,Type,Description,Reference,Amount (UGX),Status";
+function buildCsv(transactions: TxItem[], currencyCode: string): string {
+  const header = `Date,Type,Description,Reference,Amount (${currencyCode}),Status`;
   const rows = transactions.map((t) => {
     const date = t.date?.slice(0, 10) ?? "";
     const amount = Math.abs(t.amount).toFixed(2);
@@ -33,6 +34,7 @@ function buildCsv(transactions: TxItem[]): string {
 
 export default function Statement() {
   const { colors } = useTheme();
+  const { country } = useCountry();
   const [transactions, setTransactions] = useState<TxItem[]>([]);
   const [exporting, setExporting] = useState(false);
   const { loading, error, refresh } = useApiFetch(async () => {
@@ -85,7 +87,7 @@ export default function Statement() {
     }
     setExporting(true);
     try {
-      const csv = buildCsv(transactions);
+      const csv = buildCsv(transactions, country.currency);
       await Share.share({
         message: csv,
         title: "SACCOConnect Statement",

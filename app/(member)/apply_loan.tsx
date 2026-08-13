@@ -7,6 +7,7 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Avatar } from "@/components/ui/Avatar";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { router } from "expo-router";
 import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -38,6 +39,7 @@ function estimateMonthly(principal: number, rate: number, months: number) {
 
 export default function ApplyLoan() {
   const { colors, spacing, radius, typography } = useTheme();
+  const { country } = useCountry();
   const sacco = useAuthStore((state) => state.sacco);
   const [stepIdx, setStepIdx] = useState(0);
   const [eligibility, setEligibility] = useState<Eligibility | null>(null);
@@ -210,7 +212,7 @@ export default function ApplyLoan() {
           <Text style={[typography.caption, { color: colors.textSecondary, marginTop: spacing.xs, marginBottom: spacing.lg }]}>
             You can borrow up to {formatCurrency(maxAmount)}.
           </Text>
-          <Input label="Loan Amount (UGX)" value={amount} onChangeText={setAmount} keyboardType="numeric" placeholder={`e.g. ${Math.round(maxAmount / 2).toLocaleString()}`} />
+          <Input label={`Loan Amount (${country.currency})`} value={amount} onChangeText={setAmount} keyboardType="numeric" placeholder={`e.g. ${Math.round(maxAmount / 2).toLocaleString()}`} />
 
           {numAmount > 0 && numTerm > 0 && (
             <View style={{ backgroundColor: colors.surfaceAlt as string, borderRadius: radius.md, padding: spacing.lg, marginTop: spacing.md }}>

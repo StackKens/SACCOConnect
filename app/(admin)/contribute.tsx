@@ -8,6 +8,7 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { PaymentMethodRow } from "@/components/ui/PaymentMethodRow";
 import { SuccessState } from "@/components/ui/SuccessState";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { useAuthStore } from "@/store/auth.store";
 import { syncMemberData } from "@/store/auth.store";
 import { dueDateLabel, formatDate } from "@/utils/date";
@@ -41,6 +42,7 @@ export default function AdminContribute() {
   const [reference, setReference] = useState("");
   const [offline, setOffline] = useState(false);
   const { colors, spacing, radius, typography } = useTheme();
+  const { country } = useCountry();
   const sacco = useAuthStore((state) => state.sacco);
   const user = useAuthStore((state) => state.user);
   const dueDate = sacco?.contributionDueDate;
@@ -55,7 +57,7 @@ export default function AdminContribute() {
       return;
     }
     if (isMobile && phone.trim().length < 9) {
-      Alert.alert("Invalid Number", "Please enter a valid Uganda mobile number.");
+      Alert.alert("Invalid Number", "Please enter a valid mobile number.");
       return;
     }
     if (method === "Bank" && accountNumber.trim().length < 6) {
@@ -115,7 +117,7 @@ export default function AdminContribute() {
           title={offline ? "Contribution Saved Offline" : "Contribution Initiated"}
           subtitle={
             offline
-              ? `UGX ${numAmount.toLocaleString()} has been saved. It will be submitted automatically when you're back online.`
+              ? `${formatCurrency(numAmount)} has been saved. It will be submitted automatically when you're back online.`
               : isMobile
                 ? `A payment prompt has been sent to your phone. Approve it to complete your ${formatCurrency(numAmount)} contribution.`
                 : `Your ${formatCurrency(numAmount)} bank transfer has been submitted for processing.`
@@ -147,7 +149,7 @@ export default function AdminContribute() {
               {formatCurrency(validAmount ? numAmount : 0)}
             </Text>
             <Input
-              label="Amount (UGX)"
+              label={`Amount (${country.currency})`}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"

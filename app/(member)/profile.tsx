@@ -9,6 +9,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 import { useNotificationStore } from "@/store/notification.store";
 import { useTheme } from "@/hooks/useTheme";
+import { formatCurrency } from "@/utils/currency";
 import { router } from "expo-router";
 import { ChevronRight, X, ShieldCheck, UserCog, Fingerprint, Bell, BookOpen, Headphones, Info, Users, AlertCircle, Moon, MonitorSmartphone } from "lucide-react-native";
 
@@ -168,7 +169,7 @@ export default function Profile() {
         />
 
         <SectionLabel>My SACCO</SectionLabel>
-        <SettingRow icon={<Users size={18} color={colors.primary} />} label={sacco?.name ?? "Your SACCO"} sublabel={sacco ? `UGX ${sacco.contributionAmount?.toLocaleString() ?? "—"} / month` : undefined} />
+        <SettingRow icon={<Users size={18} color={colors.primary} />} label={sacco?.name ?? "Your SACCO"} sublabel={sacco ? `${formatCurrency(sacco.contributionAmount ?? 0)} / month` : undefined} />
         <SettingRow icon={<ShieldCheck size={18} color={colors.primary} />} label="Group Rules" sublabel="Read the rules and terms" onPress={() => router.push("/(member)/group_rules")} />
         <SettingRow icon={<BookOpen size={18} color={colors.primary} />} label="Membership Details" onPress={() => router.push("/(member)/membership-details")} last />
 

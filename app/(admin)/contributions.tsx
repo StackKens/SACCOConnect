@@ -37,7 +37,7 @@ export default function AdminContributions() {
   const handleConfirm = (id: string, memberName: string, amount: number) => {
     Alert.alert(
       "Confirm Contribution",
-      `Confirm UGX ${amount.toLocaleString()} cash payment from ${memberName}?`,
+      `Confirm ${formatCurrency(amount)} cash payment from ${memberName}?`,
       [
         { text: "Cancel", style: "cancel" },
         {

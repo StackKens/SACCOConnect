@@ -1,12 +1,14 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
+import { useCountry } from "@/hooks/useCountry";
 import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { CheckCircle, Circle, ShieldCheck } from "lucide-react-native";
+import { formatCurrency } from "@/utils/currency";
 import { useState } from "react";
 
 function GroupAvatar({ name, color, size = 72 }: { name: string; color: string; size?: number }) {
@@ -24,6 +26,7 @@ function GroupAvatar({ name, color, size = 72 }: { name: string; color: string; 
 
 export default function GroupRules() {
   const { colors, isDark } = useTheme();
+  const { country } = useCountry();
   const { sacco, acceptRules } = useAuthStore();
   const [agreed, setAgreed] = useState(false);
 
@@ -46,7 +49,7 @@ export default function GroupRules() {
           <GroupAvatar name={sacco?.name ?? "SACCO"} color={logoColor} size={80} />
           <Text style={[styles.saccoName, { color: colors.text }]}>{sacco?.name ?? "Your SACCO"}</Text>
           <Text style={[styles.saccoSub, { color: colors.textSecondary }]}>
-            Monthly contribution: UGX {sacco?.contributionAmount?.toLocaleString() ?? "—"}
+            Monthly contribution: {formatCurrency(sacco?.contributionAmount ?? 0)}
             {"  •  "}
             Interest: {sacco?.interestRate ?? "—"}% p.a.
           </Text>

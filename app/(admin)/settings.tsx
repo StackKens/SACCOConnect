@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { router } from "expo-router";
 import { ChevronRight, Settings2 } from "lucide-react-native";
 import { formatDate } from "@/utils/date";
+import { formatCurrency } from "@/utils/currency";
 import { exportSaccoCsv } from "@/helpers/exportData";
 
 const ADMIN_HOW_TO = [
@@ -57,7 +58,7 @@ export default function AdminSettings() {
             <View style={{ flex: 1 }}>
               <Text style={[styles.saccoName, { color: colors.text }]}>{sacco.name}</Text>
               <Text style={[styles.saccoMeta, { color: colors.textSecondary }]}>
-                UGX {sacco.contributionAmount?.toLocaleString()} / month  •  {sacco.interestRate}% p.a.
+                {formatCurrency(sacco.contributionAmount ?? 0)} / month  •  {sacco.interestRate}% p.a.
               </Text>
             </View>
           </View>
