@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { useAuthStore } from "./src/store/auth.store";
 import { useUIStore } from "./src/store/ui.store";
+import { usePreferencesStore } from "./src/store/preferences.store";
+import { CountryProvider } from "./src/providers/CountryProvider";
 import { LoadingSpinner } from "./src/components/ui/LoadingSpinner";
 import ErrorBoundaryFallback from "./src/components/ErrorBoundary";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -33,6 +35,7 @@ export default function RootLayout() {
   useEffect(() => {
     (async () => {
       await initSecureStorage();
+      usePreferencesStore.getState().hydratePreferences();
       useUIStore.getState().hydrateTheme();
       await checkAuth();
       // start offline queue listener once at app boot
@@ -94,13 +97,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ThemeUpdater />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(member)" />
-          <Stack.Screen name="(admin)" />
-        </Stack>
+        <CountryProvider>
+          <ThemeUpdater />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(member)" />
+            <Stack.Screen name="(admin)" />
+          </Stack>
+        </CountryProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
