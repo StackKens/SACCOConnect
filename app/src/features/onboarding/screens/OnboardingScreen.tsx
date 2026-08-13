@@ -19,11 +19,13 @@ import { Button } from "@/components/ui/Button";
 import { Pagination } from "../components/Pagination";
 import { OnboardingSlide } from "../components/OnboardingSlide";
 import { onboardingData } from "../data/onboardingData";
+import { useTranslation } from "react-i18next";
 
 const ENTRY_ROUTE = "/(auth)/entry";
 
 export function OnboardingScreen() {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation("auth");
   const { width } = useWindowDimensions();
   const router = useRouter();
 
@@ -31,7 +33,8 @@ export function OnboardingScreen() {
   const [listHeight, setListHeight] = useState(0);
   const listRef = useRef<FlatList<typeof onboardingData[number]>>(null);
 
-  const isLastSlide = activeIndex === onboardingData.length - 1;
+  const slides = onboardingData.map((slide, index) => ({ ...slide, title: t(`onboarding.slide${index + 1}Title`), description: t(`onboarding.slide${index + 1}Description`) }));
+  const isLastSlide = activeIndex === slides.length - 1;
 
   const finish = useCallback(() => {
     router.replace(ENTRY_ROUTE);
@@ -53,9 +56,9 @@ export function OnboardingScreen() {
   const onMomentumScrollEnd = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const next = Math.round(e.nativeEvent.contentOffset.x / width);
-      setActiveIndex(Math.min(Math.max(next, 0), onboardingData.length - 1));
+      setActiveIndex(Math.min(Math.max(next, 0), slides.length - 1));
     },
-    [width],
+    [width, slides.length],
   );
 
   const onLayout = useCallback((e: LayoutChangeEvent) => {
@@ -101,7 +104,7 @@ export function OnboardingScreen() {
           {listHeight > 0 && (
             <FlatList
               ref={listRef}
-              data={onboardingData}
+              data={slides}
               renderItem={renderItem}
               keyExtractor={(item) => item.id}
               horizontal
@@ -122,12 +125,12 @@ export function OnboardingScreen() {
 
         <View style={styles.footer}>
           <Pagination
-            count={onboardingData.length}
+            count={slides.length}
             activeIndex={activeIndex}
           />
 
           <Button
-            title={isLastSlide ? "Get Started" : "Next"}
+            title={isLastSlide ? t("onboarding.getStarted") : t("common:next")}
             onPress={goNext}
             style={styles.button}
             accessibilityLabel={

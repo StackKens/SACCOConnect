@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { formatDate } from "@/utils/date";
 import { formatCurrency } from "@/utils/currency";
 import { ShieldCheck } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 function GroupAvatar({ name, color, size = 64 }: { name: string; color: string; size?: number }) {
   const initials = name
@@ -33,6 +34,7 @@ function GroupAvatar({ name, color, size = 64 }: { name: string; color: string; 
 
 export default function GroupRules() {
   const { colors } = useTheme();
+  const { t } = useTranslation("auth");
   const sacco = useAuthStore((state) => state.sacco);
   const rules = sacco?.rules ?? [];
   const logoColor = sacco?.logoColor ?? colors.primary;
@@ -40,11 +42,11 @@ export default function GroupRules() {
   return (
     <ScreenWrapper
       scroll
-      header={<PageHeader title="Group Rules" subtitle="Rules and terms for your SACCO" showBack onBack={() => router.back()} />}
+      header={<PageHeader title={t("groupRules.title")} subtitle={t("groupRules.intro")} showBack onBack={() => router.back()} />}
     >
       <View style={styles.identity}>
         <GroupAvatar name={sacco?.name ?? "SACCO"} color={logoColor} />
-        <Text style={[styles.saccoName, { color: colors.text }]}>{sacco?.name ?? "Your SACCO"}</Text>
+        <Text style={[styles.saccoName, { color: colors.text }]}>{sacco?.name ?? t("groupRules.yourSacco")}</Text>
         <Text style={[styles.saccoMeta, { color: colors.textSecondary }]}>
           {formatCurrency(sacco?.contributionAmount ?? 0)} / month
           {sacco?.contributionDueDate ? `  •  Due ${formatDate(sacco.contributionDueDate)}` : ""}

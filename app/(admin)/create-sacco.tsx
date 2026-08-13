@@ -12,6 +12,7 @@ import { useCountry } from "@/hooks/useCountry";
 import { useAuthStore } from "@/store/auth.store";
 import { PRESET_RULES } from "@/constants/rules";
 import { CheckSquare, Square } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 const LOGO_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#0EA5E9", "#14B8A6"];
 
@@ -28,6 +29,7 @@ function GroupAvatar({ name, color, size = 56 }: { name: string; color: string; 
 
 export default function CreateSACCO() {
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const { country } = useCountry();
   const { createSACCO } = useAuthStore();
 
@@ -46,13 +48,13 @@ export default function CreateSACCO() {
   };
 
   const handleCreate = async () => {
-    if (!name.trim()) return Alert.alert("Required", "Enter a SACCO name.");
+    if (!name.trim()) return Alert.alert(t("createSacco.required"), t("createSacco.enterName"));
     if (!contribution || isNaN(Number(contribution)))
-      return Alert.alert("Required", "Enter a valid monthly contribution amount.");
+      return Alert.alert(t("createSacco.required"), t("createSacco.enterContribution"));
     if (!interest || isNaN(Number(interest)))
-      return Alert.alert("Required", "Enter a valid interest rate.");
+      return Alert.alert(t("createSacco.required"), t("createSacco.enterInterest"));
     if (selectedRules.length === 0 && !customRule.trim())
-      return Alert.alert("Required", "Select at least one rule for your group.");
+      return Alert.alert(t("createSacco.required"), t("createSacco.selectRule"));
 
     setLoading(true);
     try {
@@ -64,12 +66,12 @@ export default function CreateSACCO() {
         customRule,
         logoColor,
       });
-      Alert.alert("SACCO Created", `${name} is ready. You can now invite members.`, [
-        { text: "Invite Members", onPress: () => router.replace("/(admin)/members") },
-        { text: "Go to Dashboard", onPress: () => router.replace("/(admin)") },
+      Alert.alert(t("createSacco.createdTitle"), t("createSacco.createdMsg", { name }), [
+        { text: t("createSacco.inviteMembers"), onPress: () => router.replace("/(admin)/members") },
+        { text: t("createSacco.goToDashboard"), onPress: () => router.replace("/(admin)") },
       ]);
     } catch (e: any) {
-      Alert.alert("Error", e?.message || "Could not create SACCO.");
+      Alert.alert(t("createSacco.error"), e?.message || t("createSacco.couldNotCreate"));
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,7 @@ export default function CreateSACCO() {
   return (
     <ScreenWrapper
       scroll
-      header={<PageHeader title="Create SACCO" subtitle="Set up your group" showBack onBack={() => router.back()} />}
+      header={<PageHeader title={t("createSacco")} subtitle={t("createSacco.subtitle")} showBack onBack={() => router.back()} />}
     >
       {/* Group identity preview */}
       <Card style={styles.previewCard}>
@@ -86,7 +88,7 @@ export default function CreateSACCO() {
           <GroupAvatar name={name} color={logoColor} size={56} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.previewName, { color: colors.text }]} numberOfLines={1}>
-              {name.trim() || "Group Name"}
+              {name.trim() || t("createSacco.groupName")}
             </Text>
             <Text style={[styles.previewSub, { color: colors.textSecondary }]}>
               Preview of your group avatar
@@ -97,9 +99,9 @@ export default function CreateSACCO() {
 
       {/* Basic info */}
       <Card style={styles.card}>
-        <Input label="SACCO Name" value={name} onChangeText={setName} placeholder="e.g. Unity Savings SACCO" autoCapitalize="words" />
-        <Input label={`Monthly Contribution (${country.currency})`} value={contribution} onChangeText={setContribution} keyboardType="numeric" placeholder="e.g. 50000" />
-        <Input label="Interest Rate (% per annum)" value={interest} onChangeText={setInterest} keyboardType="numeric" placeholder="e.g. 12" />
+        <Input label={t("createSacco.nameLabel")} value={name} onChangeText={setName} placeholder={t("createSacco.namePlaceholder")} autoCapitalize="words" />
+        <Input label={t("createSacco.contributionLabel", { currency: country.currency })} value={contribution} onChangeText={setContribution} keyboardType="numeric" placeholder={t("createSacco.amountPlaceholder")} />
+        <Input label={t("createSacco.interestLabel")} value={interest} onChangeText={setInterest} keyboardType="numeric" placeholder={t("createSacco.interestPlaceholder")} />
       </Card>
 
       {/* Logo color */}
@@ -135,14 +137,14 @@ export default function CreateSACCO() {
         })}
         <Divider style={{ marginVertical: 14 }} />
         <TextArea
-          label="Custom Rule (optional)"
+          label={t("createSacco.customRuleLabel")}
           value={customRule}
           onChangeText={setCustomRule}
-          placeholder="Add your own rule..."
+          placeholder={t("createSacco.customRulePlaceholder")}
         />
       </Card>
 
-      <Button title="Create SACCO" onPress={handleCreate} loading={loading} style={styles.btn} />
+      <Button title={t("createSacco")} onPress={handleCreate} loading={loading} style={styles.btn} />
     </ScreenWrapper>
   );
 }

@@ -10,9 +10,11 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { PRESET_RULES } from "@/constants/rules";
 import { CheckSquare, Square, Trash2 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 export default function EditRules() {
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const sacco = useAuthStore((state) => state.sacco);
   const updateSACCORules = useAuthStore((state) => state.updateSACCORules);
 
@@ -27,11 +29,11 @@ export default function EditRules() {
   const addRule = () => {
     const trimmed = newRule.trim();
     if (!trimmed) {
-      Alert.alert("Required", "Enter a rule before adding.");
+      Alert.alert(t("editRules.required"), t("editRules.enterRule"));
       return;
     }
     if (draftRules.includes(trimmed)) {
-      Alert.alert("Duplicate", "This rule is already in the list.");
+      Alert.alert(t("editRules.duplicate"), t("editRules.alreadyInList"));
       return;
     }
     setDraftRules((prev) => [...prev, trimmed]);
@@ -50,19 +52,19 @@ export default function EditRules() {
 
   const handleSave = async () => {
     if (draftRules.length === 0) {
-      Alert.alert("Required", "Add at least one rule before saving.");
+      Alert.alert(t("editRules.required"), t("editRules.addOneBeforeSave"));
       return;
     }
 
     setSaving(true);
     try {
       await updateSACCORules(draftRules);
-      Alert.alert("Saved", "Group rules have been updated.", [
-        { text: "OK", onPress: () => router.back() },
+      Alert.alert(t("editRules.saved"), t("editRules.updated"), [
+        { text: t("ok"), onPress: () => router.back() },
       ]);
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "Could not save rules.";
-      Alert.alert("Error", message);
+      const message = e instanceof Error ? e.message : t("editRules.couldNotSave");
+      Alert.alert(t("editRules.error"), message);
     } finally {
       setSaving(false);
     }
@@ -73,22 +75,22 @@ export default function EditRules() {
       scroll
       header={
         <PageHeader
-          title="Edit Group Rules"
-          subtitle="Update the rules members must follow"
+          title={t("editRules")}
+          subtitle={t("editRules.subtitle")}
           showBack
           onBack={() => router.back()}
         />
       }
     >
       <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Current Rules</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("editRules.currentRules")}</Text>
         <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-          {draftRules.length} rule{draftRules.length !== 1 ? "s" : ""} in this list
+          {t("editRules.rulesInList", { count: draftRules.length })}
         </Text>
 
         {draftRules.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No rules yet. Add one below or select from presets.
+            {t("editRules.noRules")}
           </Text>
         ) : (
           draftRules.map((rule, i) => (
@@ -106,23 +108,23 @@ export default function EditRules() {
       </Card>
 
       <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Add New Rule</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("editRules.addNewRule")}</Text>
         <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-          Write a clear rule, then tap Add Rule. Save when you are done editing.
+          {t("editRules.addRuleHint")}
         </Text>
         <TextArea
-          label="New Rule"
+          label={t("editRules.newRuleLabel")}
           value={newRule}
           onChangeText={setNewRule}
-          placeholder="e.g. Members who miss two consecutive contributions will receive a written warning."
+          placeholder={t("editRules.newRulePlaceholder")}
         />
-        <Button title="Add Rule" onPress={addRule} variant="outline" />
+        <Button title={t("editRules.addRule")} onPress={addRule} variant="outline" />
       </Card>
 
       <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Preset Rules</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("editRules.presetRules")}</Text>
         <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-          Tap to add or remove common SACCO rules.
+          {t("editRules.presetHint")}
         </Text>
         {PRESET_RULES.map((rule, i) => {
           const checked = draftRules.includes(rule);
@@ -140,7 +142,7 @@ export default function EditRules() {
       </Card>
 
       <Divider style={styles.divider} />
-      <Button title="Save Rules" onPress={handleSave} loading={saving} style={styles.saveBtn} />
+      <Button title={t("editRules.saveRules")} onPress={handleSave} loading={saving} style={styles.saveBtn} />
     </ScreenWrapper>
   );
 }

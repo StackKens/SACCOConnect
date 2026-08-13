@@ -10,6 +10,7 @@ import { StatusBar } from "expo-status-bar";
 import { CheckCircle, Circle, ShieldCheck } from "lucide-react-native";
 import { formatCurrency } from "@/utils/currency";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 function GroupAvatar({ name, color, size = 72 }: { name: string; color: string; size?: number }) {
   const initials = name
@@ -26,6 +27,7 @@ function GroupAvatar({ name, color, size = 72 }: { name: string; color: string; 
 
 export default function GroupRules() {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation("auth");
   const { country } = useCountry();
   const { sacco, acceptRules } = useAuthStore();
   const [agreed, setAgreed] = useState(false);
@@ -47,11 +49,11 @@ export default function GroupRules() {
         {/* Group identity */}
         <View style={styles.identity}>
           <GroupAvatar name={sacco?.name ?? "SACCO"} color={logoColor} size={80} />
-          <Text style={[styles.saccoName, { color: colors.text }]}>{sacco?.name ?? "Your SACCO"}</Text>
+          <Text style={[styles.saccoName, { color: colors.text }]}>{sacco?.name ?? t("groupRules.yourSacco")}</Text>
           <Text style={[styles.saccoSub, { color: colors.textSecondary }]}>
-            Monthly contribution: {formatCurrency(sacco?.contributionAmount ?? 0)}
+            {t("groupRules.monthlyContribution", { amount: formatCurrency(sacco?.contributionAmount ?? 0) })}
             {"  •  "}
-            Interest: {sacco?.interestRate ?? "—"}% p.a.
+            {t("groupRules.interest", { rate: sacco?.interestRate ?? "—" })}
           </Text>
         </View>
 
@@ -59,10 +61,10 @@ export default function GroupRules() {
         <Card style={styles.rulesCard}>
           <View style={styles.rulesHeader}>
             <ShieldCheck size={18} color={colors.primary} />
-            <Text style={[styles.rulesTitle, { color: colors.text }]}>Group Rules & Terms</Text>
+            <Text style={[styles.rulesTitle, { color: colors.text }]}>{t("groupRules.title")}</Text>
           </View>
           <Text style={[styles.rulesIntro, { color: colors.textSecondary }]}>
-            Please read through the following rules carefully. By joining this SACCO you agree to abide by all of them.
+            {t("groupRules.intro")}
           </Text>
           {rules.map((rule, i) => (
             <View key={i} style={styles.ruleRow}>
@@ -80,14 +82,14 @@ export default function GroupRules() {
             ? <CheckCircle size={22} color={colors.primary} />
             : <Circle size={22} color={colors.textSecondary} />}
           <Text style={[styles.agreeText, { color: colors.text }]}>
-            I have read and agree to all the rules above
+            {t("groupRules.agree")}
           </Text>
         </TouchableOpacity>
 
         <Button
-          title="Accept & Continue"
+          title={t("groupRules.accept")}
           onPress={handleAccept}
-          style={[styles.btn, !agreed && { opacity: 0.45 }]}
+          style={{ ...styles.btn, opacity: agreed ? 1 : 0.45 }}
         />
 
       </ScrollView>
