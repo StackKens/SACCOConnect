@@ -14,6 +14,7 @@ import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 interface Contribution {
   id: string;
@@ -27,6 +28,7 @@ interface Contribution {
 
 export default function AdminContributions() {
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const { loading, error, refresh } = useApiFetch(async () => {
     const res = await api.get("/api/contributions");
@@ -36,12 +38,12 @@ export default function AdminContributions() {
 
   const handleConfirm = (id: string, memberName: string, amount: number) => {
     Alert.alert(
-      "Confirm Contribution",
-      `Confirm ${formatCurrency(amount)} cash payment from ${memberName}?`,
+      t("contributions.confirmTitle"),
+      t("contributions.confirmMsg", { amount: formatCurrency(amount), memberName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("common:cancel"), style: "cancel" },
         {
-          text: "Confirm",
+          text: t("common:confirm"),
           onPress: async () => {
             setConfirming(id);
             try {
@@ -50,7 +52,7 @@ export default function AdminContributions() {
                 prev.map((c) => c.id === id ? { ...c, status: "CONFIRMED" } : c)
               );
             } catch (e) {
-              Alert.alert("Error", getApiErrorMessage(e));
+              Alert.alert(t("contributions.error"), getApiErrorMessage(e));
             } finally {
               setConfirming(null);
             }
@@ -65,17 +67,17 @@ export default function AdminContributions() {
     .reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title="Contributions" subtitle="All member savings contributions" showBack onBack={() => router.back()} />}>
+    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title={t("contributions")} subtitle={t("contributions.subtitle")} showBack onBack={() => router.back()} />}>
 
       <Card style={styles.summaryCard}>
-        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Confirmed</Text>
+        <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t("contributions.totalConfirmed")}</Text>
         <Text style={[styles.summaryAmount, { color: colors.text }]}>{formatCurrency(total)}</Text>
       </Card>
 
       {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonMemberList /> : (
         <View style={styles.list}>
           {contributions.length === 0 ? (
-            <EmptyState title="No contributions yet" />
+            <EmptyState title={t("contributions.noContributions")} />
           ) : contributions.map((item) => (
             <Card key={item.id} style={styles.card}>
               <View style={styles.row}>
@@ -85,7 +87,7 @@ export default function AdminContributions() {
                     {formatDate(item.createdAt)} · {item.method.replace(/_/g, " ")}
                   </Text>
                   {item.transactionRef && (
-                    <Text style={[styles.ref, { color: colors.textSecondary }]}>Ref: {item.transactionRef}</Text>
+                    <Text style={[styles.ref, { color: colors.textSecondary }]}>{t("contributions.ref", { ref: item.transactionRef })}</Text>
                   )}
                 </View>
                 <View style={styles.right}>
@@ -96,7 +98,7 @@ export default function AdminContributions() {
                   />
                   {item.status === "PENDING" && (
                     <Button
-                      title="Confirm"
+                      title={t("common:confirm")}
                       variant="primary"
                       style={styles.confirmBtn}
                       loading={confirming === item.id}

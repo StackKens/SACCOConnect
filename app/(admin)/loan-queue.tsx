@@ -13,6 +13,7 @@ import { Search, Inbox } from "lucide-react-native";
 import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonLoanQueue } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 interface LoanQueueItem {
   id: string;
@@ -26,6 +27,7 @@ interface LoanQueueItem {
 
 export default function LoanQueue() {
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const [loans, setLoans] = useState<LoanQueueItem[]>([]);
   const { loading, error, refresh } = useApiFetch(async () => {
     const res = await api.get("/api/loans/queue");
@@ -40,12 +42,12 @@ export default function LoanQueue() {
   );
 
   return (
-    <ScreenWrapper header={<PageHeader title="Loan Applications" subtitle="Review and action pending requests" />} refreshing={loading} onRefresh={refresh}>
+    <ScreenWrapper header={<PageHeader title={t("loanQueue.title")} subtitle={t("loanQueue.subtitle")} />} refreshing={loading} onRefresh={refresh}>
       <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Search size={16} color={colors.textSecondary} />
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search by name or purpose..."
+          placeholder={t("loanQueue.searchPlaceholder")}
           placeholderTextColor={colors.textSecondary}
           value={query}
           onChangeText={setQuery}
@@ -60,11 +62,10 @@ export default function LoanQueue() {
           <SkeletonLoanQueue />
         ) : filtered.length === 0 ? (
           <EmptyState
-            title={loans.length === 0 ? "No pending applications" : "No results found"}
+            title={loans.length === 0 ? t("loanQueue.noPending") : t("loanQueue.noResults")}
             description={
               loans.length === 0
-                ? "Applications submitted by members will appear here."
-                : "Try a different name or purpose."
+                ? t("loanQueue.noPendingDesc") : t("loanQueue.noResultsDesc")
             }
             icon={<Inbox size={32} color={colors.textSecondary} />}
           />
@@ -74,7 +75,7 @@ export default function LoanQueue() {
               key={item.id}
               onPress={() => router.push(`/(admin)/loan-review?id=${item.id}`)}
               accessibilityRole="button"
-              accessibilityLabel={`Review loan application from ${item.member.fullName}`}
+              accessibilityLabel={t("loanQueue.reviewLabel", { name: item.member.fullName })}
             >
               <Card style={styles.card}>
                 <View style={styles.header}>
@@ -83,10 +84,10 @@ export default function LoanQueue() {
                 </View>
                 <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(item.amountRequested)}</Text>
                 <Text style={[styles.details, { color: colors.textSecondary }]}>
-                  Term: {item.repaymentMonths} months • {item.purpose}
+                  {t("loanQueue.termLine", { months: item.repaymentMonths, purpose: item.purpose })}
                 </Text>
                 <Text style={[styles.date, { color: colors.textSecondary }]}>
-                  Applied: {formatDate(item.createdAt)}
+                  {t("loanQueue.applied", { date: formatDate(item.createdAt) })}
                 </Text>
               </Card>
             </TouchableOpacity>

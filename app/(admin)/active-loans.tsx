@@ -13,6 +13,7 @@ import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useState } from "react";
 import { SkeletonLoanQueue } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 interface ActiveLoan {
   id: string;
@@ -26,6 +27,7 @@ interface ActiveLoan {
 
 export default function ActiveLoans() {
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const [loans, setLoans] = useState<ActiveLoan[]>([]);
   const { loading, error, refresh } = useApiFetch(async () => {
     const res = await api.get("/api/loans/active");
@@ -33,15 +35,15 @@ export default function ActiveLoans() {
   });
 
   return (
-    <ScreenWrapper header={<PageHeader title="Active Loans" subtitle="Monitor all disbursed loans" />} refreshing={loading} onRefresh={refresh}>
+    <ScreenWrapper header={<PageHeader title={t("activeLoans")} subtitle={t("activeLoans.subtitle")} />} refreshing={loading} onRefresh={refresh}>
       {error ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : loading ? (
         <SkeletonLoanQueue />
       ) : loans.length === 0 ? (
         <EmptyState
-          title="No active loans yet"
-          description="Disbursed loans will appear here."
+          title={t("activeLoans.noLoans")}
+          description={t("activeLoans.noLoansDesc")}
           icon={<Inbox size={32} color={colors.textSecondary} />}
         />
       ) : (
@@ -53,17 +55,17 @@ export default function ActiveLoans() {
               <Card key={item.id} style={styles.card}>
                 <View style={styles.header}>
                   <Text style={[styles.memberName, { color: colors.text }]}>{item.member.fullName}</Text>
-                  <Badge label={remaining <= 0 ? "completed" : "active"} variant={remaining <= 0 ? "success" : "warning"} />
+                  <Badge label={remaining <= 0 ? t("activeLoans.completed") : t("activeLoans.active")} variant={remaining <= 0 ? "success" : "warning"} />
                 </View>
                 <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(item.amountApproved)}</Text>
-                <Text style={[styles.purpose, { color: colors.textSecondary }]}>{item.purpose} • {item.repaymentMonths} months</Text>
+                <Text style={[styles.purpose, { color: colors.textSecondary }]}>{t("activeLoans.purposeLine", { purpose: item.purpose, months: item.repaymentMonths })}</Text>
                 <ProgressBar progress={progress} height={6} style={{ marginVertical: 10 }} />
                 <View style={styles.progressLabels}>
-                  <Text style={[styles.label, { color: colors.success }]}>Repaid: {formatCurrency(item.amountRepaid)}</Text>
-                  <Text style={[styles.label, { color: colors.textSecondary }]}>Remaining: {formatCurrency(remaining)}</Text>
+                  <Text style={[styles.label, { color: colors.success }]}>{t("activeLoans.repaid", { amount: formatCurrency(item.amountRepaid) })}</Text>
+                  <Text style={[styles.label, { color: colors.textSecondary }]}>{t("activeLoans.remaining", { amount: formatCurrency(remaining) })}</Text>
                 </View>
                 {item.expectedCompletion && (
-                  <Text style={[styles.dueDate, { color: colors.textSecondary }]}>Due: {formatDate(item.expectedCompletion)}</Text>
+                  <Text style={[styles.dueDate, { color: colors.textSecondary }]}>{t("activeLoans.due", { date: formatDate(item.expectedCompletion) })}</Text>
                 )}
               </Card>
             );

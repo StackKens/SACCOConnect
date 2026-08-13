@@ -15,6 +15,7 @@ import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 interface Announcement {
   id: string;
@@ -34,11 +35,12 @@ export default function Announcements() {
     setAnnouncements(res.data.data);
   });
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const user = useAuthStore((s) => s.user);
 
   const handlePost = async () => {
     if (!title.trim() || !content.trim()) {
-      Alert.alert("Required", "Please fill in both title and content.");
+      Alert.alert(t("announcements.required"), t("announcements.fillBoth"));
       return;
     }
     setPosting(true);
@@ -52,24 +54,24 @@ export default function Announcements() {
       setContent("");
       refresh();
     } catch (e) {
-      Alert.alert("Error", getApiErrorMessage(e));
+      Alert.alert(t("announcements.error"), getApiErrorMessage(e));
     } finally {
       setPosting(false);
     }
   };
 
   const handleDelete = (id: string, announcementTitle: string) => {
-    Alert.alert("Delete Announcement", `Remove "${announcementTitle}"?`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("announcements.deleteTitle"), t("announcements.deletePrompt", { title: announcementTitle }), [
+      { text: t("common:cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("common:delete"),
         style: "destructive",
         onPress: async () => {
           try {
             await api.delete(`/api/announcements/${id}`);
             setAnnouncements((prev) => prev.filter((a) => a.id !== id));
           } catch (e) {
-            Alert.alert("Error", getApiErrorMessage(e));
+            Alert.alert(t("announcements.error"), getApiErrorMessage(e));
           }
         },
       },
@@ -77,33 +79,33 @@ export default function Announcements() {
   };
 
   return (
-    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title="Announcements" subtitle="Compose and manage member announcements" />}>
+    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title={t("announcements")} subtitle={t("announcements.subtitle")} />}>
 
       <Card style={styles.formCard}>
-        <Input label="Title" value={title} onChangeText={setTitle} placeholder="Announcement title" />
+        <Input label={t("announcements.titleLabel")} value={title} onChangeText={setTitle} placeholder={t("announcements.titlePlaceholder")} />
         <Input
-          label="Content"
+          label={t("announcements.contentLabel")}
           value={content}
           onChangeText={setContent}
           multiline
           numberOfLines={6}
-          placeholder="Write the announcement details here..."
+          placeholder={t("announcements.contentPlaceholder")}
           style={styles.contentArea}
         />
-        <Button title="Post Announcement" onPress={handlePost} loading={posting} />
+        <Button title={t("announcements.post")} onPress={handlePost} loading={posting} />
       </Card>
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Posted ({announcements.length})</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("announcements.posted", { count: announcements.length })}</Text>
 
       {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonMemberList /> : (
         <View style={styles.list}>
           {announcements.length === 0 ? (
-            <EmptyState title="No announcements yet" />
+            <EmptyState title={t("announcements.none")} />
           ) : announcements.map((item) => (
             <View key={item.id} style={[styles.announceCard, { backgroundColor: colors.surface }]}>
               <View style={styles.cardHeader}>
                 <Text style={[styles.announceTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
-                <TouchableOpacity onPress={() => handleDelete(item.id, item.title)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Delete announcement: ${item.title}`}>
+                <TouchableOpacity onPress={() => handleDelete(item.id, item.title)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("announcements.deleteLabel", { title: item.title })}>
                   <Trash2 size={16} color={colors.error} />
                 </TouchableOpacity>
               </View>
@@ -111,7 +113,7 @@ export default function Announcements() {
               <Divider style={styles.divider} />
               <View style={styles.footer}>
                 <Text style={[styles.meta, { color: colors.textSecondary }]}>{formatDate(item.createdAt)}</Text>
-                <Text style={[styles.meta, { color: colors.secondary }]}>by {item.author}</Text>
+                <Text style={[styles.meta, { color: colors.secondary }]}>{t("announcements.by", { author: item.author })}</Text>
               </View>
             </View>
           ))}
