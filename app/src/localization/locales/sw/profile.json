@@ -86,5 +86,10 @@
   "currentPinRequired": "Weka namba yako ya siri ya sasa ya tarakimu 4.",
   "newPinRequired": "PIN mpya lazima iwe tarakimu 4.",
   "pinSame": "PIN mpya lazima iwe tofauti na PIN ya sasa.",
-  "pinMismatchNew": "PIN mpya hazilingani."
+  "pinMismatchNew": "PIN mpya hazilingani.",
+  "tabs.home": "Mwanzo",
+  "tabs.savings": "Akiba",
+  "tabs.loans": "Mikopo",
+  "tabs.alerts": "Arifa",
+  "tabs.profile": "Wasifu"
 }

@@ -86,5 +86,10 @@
   "currentPinRequired": "Enter your current 4-digit PIN.",
   "newPinRequired": "Your new PIN must be 4 digits.",
   "pinSame": "New PIN must be different from the current PIN.",
-  "pinMismatchNew": "New PINs do not match."
+  "pinMismatchNew": "New PINs do not match.",
+  "tabs.home": "Home",
+  "tabs.savings": "Savings",
+  "tabs.loans": "Loans",
+  "tabs.alerts": "Alerts",
+  "tabs.profile": "Profile"
 }
