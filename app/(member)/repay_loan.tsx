@@ -15,6 +15,7 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { enqueue } from "@/services/offlineQueue";
 import { Smartphone, Landmark, Banknote } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 interface ActiveLoan {
   id: string;
@@ -35,6 +36,7 @@ const METHODS: { key: RepayMethod; label: string }[] = [
 ];
 
 export default function RepayLoan() {
+  const { t } = useTranslation("loans");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<RepayMethod>("MOBILE_MONEY");
   const [loan, setLoan] = useState<ActiveLoan | null>(null);
@@ -51,16 +53,16 @@ export default function RepayLoan() {
 
   const handlePayment = async () => {
     if (!loan) {
-      Alert.alert("No Active Loan", "You don't have an active loan to repay.");
+      Alert.alert(t("repay.noActiveLoanTitle"), t("repay.noActiveLoanMsg"));
       return;
     }
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
-      Alert.alert("Error", "Enter a valid amount.");
+      Alert.alert(t("repay.error"), t("repay.enterValidAmount"));
       return;
     }
     if (numAmount > outstanding) {
-      Alert.alert("Error", `Amount exceeds outstanding balance of ${formatCurrency(outstanding)}.`);
+      Alert.alert(t("repay.error"), t("repay.amountExceeds", { amount: formatCurrency(outstanding) }));
       return;
     }
 
@@ -73,35 +75,35 @@ export default function RepayLoan() {
         enqueue({ endpoint: `/api/loans/${loan.id}/repay`, method: "POST", body });
         setLoan((l) => (l ? { ...l, amountRepaid: Math.min(l.totalRepayable, l.amountRepaid + numAmount) } : l));
         Alert.alert(
-          "Saved Offline",
-          `Payment of ${formatCurrency(numAmount)} queued. It will be submitted automatically when you're back online.`,
+          t("repay.savedOffline"),
+          t("repay.savedOfflineMsg", { amount: formatCurrency(numAmount) }),
         );
         return;
       }
       const res = await api.post(`/api/loans/${loan.id}/repay`, body);
       const repaid = res.data.fullyRepaid;
       Alert.alert(
-        repaid ? "Loan Fully Repaid" : "Payment Recorded",
+        repaid ? t("repay.loanFullyRepaid") : t("repay.paymentRecorded"),
         repaid
-          ? `Congratulations! You have fully repaid your loan of ${formatCurrency(loan.amountApproved)}.`
-          : `Payment of ${formatCurrency(numAmount)} recorded. Remaining: ${formatCurrency(outstanding - numAmount)}.`,
-        [{ text: "OK", onPress: () => router.back() }],
+          ? t("repay.congrats", { amount: formatCurrency(loan.amountApproved) })
+          : t("repay.remaining", { amount: formatCurrency(numAmount), remaining: formatCurrency(outstanding - numAmount) }),
+        [{ text: t("apply.done"), onPress: () => router.back() }],
       );
     } catch (e) {
-      Alert.alert("Error", getApiErrorMessage(e));
+      Alert.alert(t("repay.error"), getApiErrorMessage(e));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="Repay Loan" showBack onBack={() => router.back()} />}>
+    <ScreenWrapper header={<PageHeader title={t("repay.title")} showBack onBack={() => router.back()} />}>
       {error ? (
-        <ErrorState title="Unable to load loan" message={error} onRetry={refresh} />
+        <ErrorState title={t("repay.error")} message={error} onRetry={refresh} />
       ) : (
         <View style={{ paddingBottom: spacing.huge }}>
           <BalanceCard
-            label="Outstanding Balance"
+            label={t("repay.outstandingBalance")}
             amount={loading ? 0 : outstanding}
             hint={loan ? `${loan.purpose} · ${loan.repaymentMonths} months · ${loan.interestRate}% p.a.` : undefined}
             icon={<Banknote size={18} color={colors.primary} />}
@@ -109,20 +111,20 @@ export default function RepayLoan() {
 
           {!loading && !loan && (
             <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.xl }]}>
-              You have no active loan right now.
+              {t("repay.noActiveLoan")}
             </Text>
           )}
 
           {fullyRepaid && (
             <View style={{ marginTop: spacing.xl, backgroundColor: colors.successSoft as string, borderRadius: radius.md, padding: spacing.lg }}>
-              <Text style={[typography.bodyMedium, { color: colors.success }]}>Loan fully repaid.</Text>
+              <Text style={[typography.bodyMedium, { color: colors.success }]}>{t("repay.fullyRepaid")}</Text>
             </View>
           )}
 
           {loan && !fullyRepaid && (
             <>
               <Text style={[typography.captionMedium, { color: colors.text, marginTop: spacing.xxl, marginBottom: spacing.md }]}>
-                Payment Method
+                {t("repay.paymentMethod")}
               </Text>
               <View style={{ gap: spacing.md }}>
                 {METHODS.map((m) => (
@@ -143,15 +145,15 @@ export default function RepayLoan() {
               </View>
 
               <Input
-                label={`Payment Amount (${country.currency})`}
+                label={t("repay.paymentAmount", { currency: country.currency })}
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="numeric"
-                placeholder={`Max ${formatCurrency(outstanding)}`}
+                placeholder={t("repay.maxAmount", { amount: formatCurrency(outstanding) })}
                 containerStyle={{ marginTop: spacing.xl }}
               />
 
-              <Button title="Make Payment" onPress={handlePayment} loading={submitting} style={{ marginTop: spacing.xl }} />
+              <Button title={t("repay.makePayment")} onPress={handlePayment} loading={submitting} style={{ marginTop: spacing.xl }} />
             </>
           )}
         </View>

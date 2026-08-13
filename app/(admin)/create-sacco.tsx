@@ -91,7 +91,7 @@ export default function CreateSACCO() {
               {name.trim() || t("createSacco.groupName")}
             </Text>
             <Text style={[styles.previewSub, { color: colors.textSecondary }]}>
-              Preview of your group avatar
+              {t("createSacco.previewAvatar")}
             </Text>
           </View>
         </View>
@@ -106,7 +106,7 @@ export default function CreateSACCO() {
 
       {/* Logo color */}
       <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Group Avatar Color</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("createSacco.avatarColor")}</Text>
         <View style={styles.colorRow}>
           {LOGO_COLORS.map((c) => (
             <TouchableOpacity
@@ -120,9 +120,9 @@ export default function CreateSACCO() {
 
       {/* Preset rules */}
       <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Group Rules</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("createSacco.groupRules")}</Text>
         <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-          Select the rules that apply to your group. Members will read and accept these before joining.
+          {t("createSacco.rulesSub")}
         </Text>
         {PRESET_RULES.map((rule, i) => {
           const checked = selectedRules.includes(rule);

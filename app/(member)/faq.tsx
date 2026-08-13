@@ -4,50 +4,24 @@ import { ScreenWrapper, PageHeader } from "@/components/ui/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { ChevronDown, ChevronRight } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FAQS: { question: string; answer: string }[] = [
-  {
-    question: "How do I make a contribution?",
-    answer:
-      "Tap the Contribute button on the Home or Savings screen. Enter the amount and choose a payment method (Mobile Money or Bank), then confirm. The contribution is recorded immediately.",
-  },
-  {
-    question: "When are contributions due?",
-    answer:
-      "Your SACCO sets a monthly contribution amount and due date. You can see both on the Home screen. Making contributions on time keeps your streak alive.",
-  },
-  {
-    question: "How do I apply for a loan?",
-    answer:
-      "Go to the Loans tab and tap Apply for a Loan. Choose the amount and purpose, then submit. Your SACCO admin will review and approve or reject the request.",
-  },
-  {
-    question: "How do I repay my loan?",
-    answer:
-      "On the Loans tab, open an active loan and tap Repay. Enter the amount and choose a payment method. The balance updates as soon as the payment is confirmed.",
-  },
-  {
-    question: "I forgot my PIN. How do I reset it?",
-    answer:
-      "You can change your PIN from Profile → Security & PIN while logged in. If you are locked out entirely, contact support@saccoconnect.app for help.",
-  },
-  {
-    question: "Why is my transaction showing as pending?",
-    answer:
-      "Payments made via Mobile Money may take a few minutes to be confirmed by your SACCO admin. Pending transactions update automatically once confirmed.",
-  },
-  {
-    question: "Is my data safe?",
-    answer:
-      "Yes. Your account and financial data are encrypted and only accessible to authorised SACCO administrators. See the Privacy Policy in Profile for details.",
-  },
+const FAQS = [
+  { q: "faq.q1", a: "faq.a1" },
+  { q: "faq.q2", a: "faq.a2" },
+  { q: "faq.q3", a: "faq.a3" },
+  { q: "faq.q4", a: "faq.a4" },
+  { q: "faq.q5", a: "faq.a5" },
+  { q: "faq.q6", a: "faq.a6" },
+  { q: "faq.q7", a: "faq.a7" },
 ];
 
 export default function FAQ() {
+  const { t } = useTranslation("common");
   const { colors } = useTheme();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -58,20 +32,20 @@ export default function FAQ() {
 
   return (
     <ScreenWrapper
-      header={<PageHeader title="FAQ" subtitle="Frequently asked questions" showBack />}
+      header={<PageHeader title={t("faq.title")} subtitle={t("faq.subtitle")} showBack />}
     >
       <Card style={styles.card}>
         {FAQS.map((faq, index) => {
           const open = openIndex === index;
           return (
-            <View key={faq.question}>
+            <View key={faq.q}>
               <TouchableOpacity
                 style={styles.questionRow}
                 onPress={() => toggle(index)}
                 accessibilityRole="button"
                 accessibilityState={{ expanded: open }}
               >
-                <Text style={[styles.question, { color: colors.text }]}>{faq.question}</Text>
+                <Text style={[styles.question, { color: colors.text }]}>{t(faq.q)}</Text>
                 {open ? (
                   <ChevronDown size={18} color={colors.textSecondary} />
                 ) : (
@@ -79,7 +53,7 @@ export default function FAQ() {
                 )}
               </TouchableOpacity>
               {open && (
-                <Text style={[styles.answer, { color: colors.textSecondary }]}>{faq.answer}</Text>
+                <Text style={[styles.answer, { color: colors.textSecondary }]}>{t(faq.a)}</Text>
               )}
               {index < FAQS.length - 1 && <View style={styles.divider} />}
             </View>

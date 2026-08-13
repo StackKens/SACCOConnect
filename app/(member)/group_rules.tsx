@@ -56,15 +56,15 @@ export default function GroupRules() {
       <Card style={styles.rulesCard}>
         <View style={styles.rulesHeader}>
           <ShieldCheck size={20} color={colors.primary} />
-          <Text style={[styles.rulesTitle, { color: colors.text }]}>Rules & Terms</Text>
+          <Text style={[styles.rulesTitle, { color: colors.text }]}>{t("groupRules.rulesTitle")}</Text>
         </View>
         <Text style={[styles.rulesIntro, { color: colors.textSecondary }]}>
-          These are the rules set by your SACCO administrator. All members are expected to follow them.
+          {t("groupRules.rulesIntro")}
         </Text>
 
         {rules.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No group rules have been published yet.
+            {t("groupRules.emptyState")}
           </Text>
         ) : (
           rules.map((rule, i) => (

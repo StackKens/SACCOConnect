@@ -13,6 +13,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { router } from "expo-router";
 import { ChevronRight, X, ShieldCheck, UserCog, Fingerprint, Bell, BookOpen, Headphones, Info, Users, AlertCircle, Moon, MonitorSmartphone } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 const PRIVACY_POLICY = `We take your privacy seriously. Here is what you need to know:
 
@@ -119,6 +120,7 @@ function SettingRow({ icon, label, sublabel, onPress, right, last, destructive }
 }
 
 export default function Profile() {
+  const { t } = useTranslation("profile");
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
@@ -144,7 +146,7 @@ export default function Profile() {
   };
 
   return (
-    <ScreenWrapper header={<PageHeader title="Profile" subtitle="Manage your account & preferences" rightComponent={<NotificationsButton />} />}>
+    <ScreenWrapper header={<PageHeader title={t("title")} subtitle={t("subtitle")} rightComponent={<NotificationsButton />} />}>
 
       <View style={{ alignItems: "center", paddingVertical: spacing.xl }}>
         <Avatar name={user?.name} size={80} />
@@ -158,33 +160,33 @@ export default function Profile() {
       </View>
 
       <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.xl }}>
-        <SectionLabel>Account</SectionLabel>
-        <SettingRow icon={<UserCog size={18} color={colors.primary} />} label="Personal Information" sublabel={user?.phone} onPress={() => router.push("/(member)/personal-info")} />
-        <SettingRow icon={<Fingerprint size={18} color={colors.primary} />} label="Security & PIN" sublabel="Change your security PIN" onPress={() => router.push("/(member)/security")} />
+        <SectionLabel>{t("sectionAccount")}</SectionLabel>
+        <SettingRow icon={<UserCog size={18} color={colors.primary} />} label={t("personalInfo")} sublabel={user?.phone} onPress={() => router.push("/(member)/personal-info")} />
+        <SettingRow icon={<Fingerprint size={18} color={colors.primary} />} label={t("securityPin")} sublabel={t("securityPinSublabel")} onPress={() => router.push("/(member)/security")} />
         <SettingRow
           icon={<Bell size={18} color={colors.primary} />}
-          label="Notifications"
-          sublabel={notificationsEnabled ? "Alerts are on" : "Alerts are paused"}
+          label={t("notifications")}
+          sublabel={notificationsEnabled ? t("notificationsOn") : t("notificationsOff")}
           onPress={() => router.push("/(member)/notifications")}
           right={<Switch value={notificationsEnabled} onValueChange={setNotificationsEnabled} />}
         />
 
-        <SectionLabel>My SACCO</SectionLabel>
-        <SettingRow icon={<Users size={18} color={colors.primary} />} label={sacco?.name ?? "Your SACCO"} sublabel={sacco ? `${formatCurrency(sacco.contributionAmount ?? 0)} / month` : undefined} />
-        <SettingRow icon={<ShieldCheck size={18} color={colors.primary} />} label="Group Rules" sublabel="Read the rules and terms" onPress={() => router.push("/(member)/group_rules")} />
-        <SettingRow icon={<BookOpen size={18} color={colors.primary} />} label="Membership Details" onPress={() => router.push("/(member)/membership-details")} last />
+        <SectionLabel>{t("sectionMySacco")}</SectionLabel>
+        <SettingRow icon={<Users size={18} color={colors.primary} />} label={sacco?.name ?? t("groupRules.yourSacco")} sublabel={sacco ? `${formatCurrency(sacco.contributionAmount ?? 0)} / month` : undefined} />
+        <SettingRow icon={<ShieldCheck size={18} color={colors.primary} />} label={t("groupRules")} sublabel={t("groupRulesSublabel")} onPress={() => router.push("/(member)/group_rules")} />
+        <SettingRow icon={<BookOpen size={18} color={colors.primary} />} label={t("membershipDetails")} onPress={() => router.push("/(member)/membership-details")} last />
 
-        <SectionLabel>Preferences</SectionLabel>
-        <SettingRow icon={<Moon size={18} color={colors.primary} />} label="Dark Mode" right={<Switch value={darkMode} onValueChange={handleDarkModeToggle} disabled={useSystem} />} />
-        <SettingRow icon={<MonitorSmartphone size={18} color={colors.primary} />} label="Use System Theme" right={<Switch value={useSystem} onValueChange={handleSystemToggle} />} last />
+        <SectionLabel>{t("sectionPreferences")}</SectionLabel>
+        <SettingRow icon={<Moon size={18} color={colors.primary} />} label={t("darkMode")} right={<Switch value={darkMode} onValueChange={handleDarkModeToggle} disabled={useSystem} />} />
+        <SettingRow icon={<MonitorSmartphone size={18} color={colors.primary} />} label={t("systemTheme")} right={<Switch value={useSystem} onValueChange={handleSystemToggle} />} last />
 
-        <SectionLabel>Region & Language</SectionLabel>
+        <SectionLabel>{t("sectionRegionLanguage")}</SectionLabel>
         <CountryLanguageSettings />
 
-        <SectionLabel>Support</SectionLabel>
-        <SettingRow icon={<Headphones size={18} color={colors.primary} />} label="Help Center" sublabel="How to use SACCOConnect" onPress={() => router.push("/(member)/help")} />
-        <SettingRow icon={<AlertCircle size={18} color={colors.primary} />} label="Contact SACCO" sublabel="support@saccoconnect.ug" onPress={() => Linking.openURL("mailto:support@saccoconnect.ug")} />
-        <SettingRow icon={<Info size={18} color={colors.primary} />} label="About SACCOConnect" sublabel="Version 1.0.0" onPress={() => setLegalModal("about")} last />
+        <SectionLabel>{t("sectionSupport")}</SectionLabel>
+        <SettingRow icon={<Headphones size={18} color={colors.primary} />} label={t("helpCenter")} sublabel={t("helpCenterSublabel")} onPress={() => router.push("/(member)/help")} />
+        <SettingRow icon={<AlertCircle size={18} color={colors.primary} />} label={t("contactSacco")} sublabel={t("contactSaccoSublabel")} onPress={() => Linking.openURL("mailto:support@saccoconnect.ug")} />
+        <SettingRow icon={<Info size={18} color={colors.primary} />} label={t("about")} sublabel={t("aboutSublabel")} onPress={() => setLegalModal("about")} last />
       </View>
 
       <Modal visible={legalModal !== null} transparent animationType="slide" onRequestClose={() => setLegalModal(null)}>
@@ -192,7 +194,7 @@ export default function Profile() {
           <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.xl, maxHeight: "80%" }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
               <Text style={[typography.h3, { color: colors.text }]}>
-                {legalModal === "privacy" ? "Privacy Policy" : legalModal === "terms" ? "Terms of Service" : "About SACCOConnect"}
+                {legalModal === "privacy" ? t("privacyPolicy") : legalModal === "terms" ? t("termsOfService") : t("aboutTitle")}
               </Text>
               <TouchableOpacity onPress={() => setLegalModal(null)} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
                 <X size={22} color={colors.textSecondary} />
@@ -209,7 +211,7 @@ export default function Profile() {
                 </View>
               ) : (
                 <Text style={[typography.body, { color: colors.textSecondary, lineHeight: 24 }]}>
-                  {legalModal === "privacy" ? PRIVACY_POLICY : TERMS_OF_SERVICE}
+                  {t("aboutText")}
                 </Text>
               )}
             </ScrollView>
@@ -217,7 +219,7 @@ export default function Profile() {
         </View>
       </Modal>
 
-      <Button title="Logout" onPress={logout} variant="danger" style={{ marginTop: spacing.xxxl, marginBottom: spacing.huge }} />
+      <Button title={t("logout")} onPress={logout} variant="danger" style={{ marginTop: spacing.xxxl, marginBottom: spacing.huge }} />
     </ScreenWrapper>
   );
 }

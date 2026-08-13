@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 import { TransactionRow } from "@/components/features/TransactionRow";
+import { useTranslation } from "react-i18next";
 
 interface Contribution {
   id: string;
@@ -45,6 +46,7 @@ function buildGrowth(contributions: Contribution[]): { label: string; value: num
 }
 
 export default function Contributions() {
+  const { t } = useTranslation("savings");
   const { colors, spacing, radius, typography } = useTheme();
   const sacco = useAuthStore((state) => state.sacco);
   const [contributions, setContributions] = useState<Contribution[]>([]);
@@ -63,9 +65,9 @@ export default function Contributions() {
   const growth = buildGrowth(contributions);
 
   return (
-    <ScreenWrapper header={<PageHeader title="Savings" subtitle="Your contributions at a glance" rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh}>
+    <ScreenWrapper header={<PageHeader title={t("title")} subtitle={t("subtitle")} rightComponent={<NotificationsButton />} />} refreshing={loading} onRefresh={refresh}>
       <BalanceCard
-        label="Total Savings"
+        label={t("totalSavings")}
         amount={totalSavings}
         delta={dueLabel && dueDate ? `Due ${formatDate(dueDate)}` : undefined}
         deltaTone={isOverdue ? "negative" : "neutral"}
@@ -87,7 +89,7 @@ export default function Contributions() {
           <CalendarClock size={22} color={isOverdue ? colors.error : colors.primary} />
           <View style={{ flex: 1 }}>
             <Text style={[typography.captionMedium, { color: colors.text }]}>
-              {isOverdue ? "Monthly contribution overdue" : "Monthly due date"}
+              {isOverdue ? t("monthlyOverdue") : t("monthlyDue")}
             </Text>
             <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
               {formatCurrency(sacco?.contributionAmount ?? 0)} by {formatDate(dueDate)}
@@ -101,14 +103,14 @@ export default function Contributions() {
           <SkeletonMemberList />
         </View>
       ) : error ? (
-        <ErrorState title="Unable to load savings" message="We couldn't retrieve your savings information." onRetry={refresh} />
+        <ErrorState title={t("unableToLoad")} message={t("loadError")} onRetry={refresh} />
       ) : contributions.length === 0 ? (
         <View style={{ marginTop: spacing.xxl }}>
           <EmptyState
             icon={<Wallet size={30} color={colors.primary} />}
-            title="No contributions yet"
-            description="Your contributions will appear here once you make your first one."
-            actionLabel="Make Contribution"
+            title={t("noContributions")}
+            description={t("noContributionsSub")}
+            actionLabel={t("makeContribution")}
             onAction={() => router.push("/(member)/contribute")}
           />
         </View>
@@ -116,14 +118,14 @@ export default function Contributions() {
         <View>
           {growth.length > 1 && (
             <>
-              <SectionHeader title="Savings Growth" />
+              <SectionHeader title={t("savingsGrowth")} />
               <View style={{ padding: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border }}>
                 <GrowthChart data={growth} />
               </View>
             </>
           )}
 
-          <SectionHeader title="Contribution History" subtitle="Your most recent contributions" />
+          <SectionHeader title={t("contributionHistory")} subtitle={t("contributionHistorySub")} />
 
           <View style={{ marginHorizontal: -spacing.xl, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, backgroundColor: colors.surface }}>
             {contributions.slice(0, 10).map((item, i) => (
@@ -143,7 +145,7 @@ export default function Contributions() {
           </View>
 
           <Button
-            title="Make Contribution"
+            title={t("makeContribution")}
             onPress={() => router.push("/(member)/contribute")}
             style={{ marginTop: spacing.xl, marginBottom: spacing.xxl }}
           />

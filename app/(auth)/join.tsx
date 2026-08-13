@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Alert } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { useCountry } from "@/hooks/useCountry";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -17,6 +18,7 @@ type Step = "code" | "confirm" | "otp" | "details" | "pin" | "welcome";
 export default function Join() {
   const { colors } = useTheme();
   const { country } = useCountry();
+  const { t } = useTranslation("auth");
   const { lookupInviteCode, joinSACCO } = useAuthStore();
 
   const [step, setStep] = useState<Step>("code");
@@ -37,7 +39,7 @@ export default function Join() {
       setInvite(result);
       setStep("confirm");
     } catch (e: any) {
-      Alert.alert("Invalid Code", e?.message || "Code not found.");
+      Alert.alert(t("join.invalidCode"), e?.message || t("join.codeNotFound"));
     } finally {
       setLoading(false);
     }
@@ -45,15 +47,15 @@ export default function Join() {
 
   const handleJoin = async () => {
     if (pin.length < 4)
-      return Alert.alert("PIN too short", "PIN must be 4 digits.");
+      return Alert.alert(t("pinTooShort"), t("pinTooShortMessage"));
     if (pin !== confirmPin)
-      return Alert.alert("PIN mismatch", "PINs do not match.");
+      return Alert.alert(t("pinMismatch"), t("pinMismatchMessage"));
     setLoading(true);
     try {
       await joinSACCO({ code, name, nationalId, phone, pin });
       setStep("welcome");
     } catch (e: any) {
-      Alert.alert("Error", e?.message || "Could not join SACCO.");
+      Alert.alert(t("join.errorTitle"), e?.message || t("join.couldNotJoin"));
     } finally {
       setLoading(false);
     }
@@ -64,14 +66,13 @@ export default function Join() {
       <ScreenWrapper>
         <View style={styles.welcome}>
           <Text style={[styles.welcomeTitle, { color: colors.text }]}>
-            Welcome!
+            {t("join.welcome")}
           </Text>
           <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>
-            You have joined {invite.saccoName}. Tap below to open your
-            dashboard.
+            {t("join.welcomeSub", { saccoName: invite.saccoName })}
           </Text>
           <Button
-            title="Go to Dashboard"
+            title={t("join.goToDashboard")}
             onPress={() => router.replace("/(member)")}
           />
         </View>
@@ -83,7 +84,7 @@ export default function Join() {
     <ScreenWrapper
       header={
         <PageHeader
-          title="Join a SACCO"
+          title={t("entry.joinSacco")}
           showBack
           onBack={() => router.push("/(auth)/entry")}
         />
@@ -92,21 +93,21 @@ export default function Join() {
       {step === "code" && (
         <View style={styles.stepContainer}>
           <Text style={[styles.stepTitle, { color: colors.text }]}>
-            Enter your invite code
+            {t("join.enterCode")}
           </Text>
           <Text style={[styles.stepSub, { color: colors.textSecondary }]}>
-            Your SACCO admin sent this 6-character code when they invited you.
+            {t("join.enterCodeSub")}
           </Text>
           <Input
-            label="Invite Code"
+            label={t("join.inviteCodeLabel")}
             value={code}
             onChangeText={(v) => setCode(v.toUpperCase())}
-            placeholder="e.g. ABC123"
+            placeholder={t("join.inviteCodeExample")}
             autoCapitalize="characters"
             style={styles.codeInput}
           />
           <Button
-            title="Verify Code"
+            title={t("join.verifyCode")}
             onPress={handleLookup}
             loading={loading}
           />
@@ -116,7 +117,7 @@ export default function Join() {
       {step === "confirm" && invite && (
         <View style={styles.stepContainer}>
           <Text style={[styles.stepTitle, { color: colors.text }]}>
-            You're joining
+            {t("join.joining")}
           </Text>
           <Card
             style={[styles.saccoCard, { borderColor: colors.primary + "40" }]}
@@ -148,9 +149,9 @@ export default function Join() {
               </View>
             </View>
           </Card>
-          <Button title="Looks good, continue" onPress={() => setStep("otp")} />
+          <Button title={t("join.looksGood")} onPress={() => setStep("otp")} />
           <Button
-            title="Wrong SACCO? Go Back"
+            title={t("join.wrongSacco")}
             onPress={() => setStep("code")}
             variant="outline"
             style={{ marginTop: 12 }}
@@ -161,7 +162,7 @@ export default function Join() {
       {step === "otp" && (
         <View style={styles.stepContainer}>
           <Text style={[styles.stepTitle, { color: colors.text }]}>
-            Verify your phone
+            {t("join.verifyPhone")}
           </Text>
           <OtpVerification
             phone={phone}
@@ -174,25 +175,25 @@ export default function Join() {
       {step === "details" && (
         <View style={styles.stepContainer}>
           <Text style={[styles.stepTitle, { color: colors.text }]}>
-            Your details
+            {t("join.detailsTitle")}
           </Text>
           <Input
-            label="Full Name"
+            label={t("join.fullNameLabel")}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
           />
           <Input
-            label="National ID"
+            label={t("join.nationalIdLabel")}
             value={nationalId}
             onChangeText={setNationalId}
             autoCapitalize="characters"
           />
           <Button
-            title="Continue"
+            title={t("join.continue")}
             onPress={() => {
               if (!name.trim())
-                return Alert.alert("Required", "Enter your full name.");
+                return Alert.alert(t("join.requiredName"), t("join.enterFullName"));
               setStep("pin");
             }}
             style={{ marginTop: 8 }}
@@ -203,10 +204,10 @@ export default function Join() {
       {step === "pin" && (
         <View style={styles.stepContainer}>
           <Text style={[styles.stepTitle, { color: colors.text }]}>
-            Create your PIN
+            {t("join.pinTitle")}
           </Text>
           <Input
-            label="4-Digit PIN"
+            label={t("join.pinLabel")}
             value={pin}
             onChangeText={(v) => {
               if (v.length <= 4) setPin(v);
@@ -216,7 +217,7 @@ export default function Join() {
             maxLength={4}
           />
           <Input
-            label="Confirm PIN"
+            label={t("join.confirmPinLabel")}
             value={confirmPin}
             onChangeText={(v) => {
               if (v.length <= 4) setConfirmPin(v);
@@ -226,7 +227,7 @@ export default function Join() {
             maxLength={4}
           />
           <Button
-            title="Join SACCO"
+            title={t("join.joinSacco")}
             onPress={handleJoin}
             loading={loading}
             style={{ marginTop: 8 }}

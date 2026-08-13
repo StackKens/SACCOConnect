@@ -8,8 +8,10 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth.store";
 import { api } from "@/services/api";
 import { getApiErrorMessage } from "@/services/auth.service";
+import { useTranslation } from "react-i18next";
 
 export default function PersonalInfo() {
+  const { t } = useTranslation("profile");
   const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const updateProfile = useAuthStore((state) => state.updateProfile);
@@ -39,7 +41,7 @@ export default function PersonalInfo() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      setNameError("Please enter your full name.");
+      setNameError(t("enterFullName"));
       return;
     }
     setLoading(true);
@@ -52,7 +54,7 @@ export default function PersonalInfo() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
-      Alert.alert("Update failed", getApiErrorMessage(e));
+      Alert.alert(t("updateFailed"), getApiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -60,35 +62,35 @@ export default function PersonalInfo() {
 
   return (
     <ScreenWrapper
-      header={<PageHeader title="Personal Information" subtitle="View and edit your details" showBack />}
+      header={<PageHeader title={t("personalInfoTitle")} subtitle={t("personalInfoSub")} showBack />}
     >
       <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Your details</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("yourDetails")}</Text>
         <Input
-          label="Full Name"
+          label={t("fullName")}
           value={name}
-          onChangeText={(t) => {
-            setName(t);
+          onChangeText={(v) => {
+            setName(v);
             setNameError(undefined);
           }}
-          placeholder="e.g. John Doe"
+          placeholder={t("placeholderName")}
           autoCapitalize="words"
           error={nameError}
         />
         <Input
-          label="National ID"
+          label={t("nationalIdLabel")}
           value={nationalId}
           onChangeText={setNationalId}
-          placeholder="Optional"
+          placeholder={t("optional")}
           autoCapitalize="characters"
         />
-        <Input label="Phone Number" value={phone} editable={false} />
+        <Input label={t("phoneNumberLabel")} value={phone} editable={false} />
         {saved && (
           <Text style={[styles.savedNote, { color: colors.secondary }]}>
-            Your changes have been saved.
+            {t("savedNote")}
           </Text>
         )}
-        <Button title="Save Changes" onPress={handleSave} loading={loading} disabled={loading} />
+        <Button title={t("saveChanges")} onPress={handleSave} loading={loading} disabled={loading} />
       </Card>
     </ScreenWrapper>
   );

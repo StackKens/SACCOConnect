@@ -6,10 +6,12 @@ import { useCountry } from "@/hooks/useCountry";
 import { router } from "expo-router";
 import { formatPhoneNumber } from "@/shared/formatters";
 import { HelpCircle, Mail, Phone, ChevronRight, BookOpen } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 const SUPPORT_EMAIL = "support@saccoconnect.app";
 
 export default function Help() {
+  const { t } = useTranslation("common");
   const { colors } = useTheme();
   const { country } = useCountry();
   const SUPPORT_PHONE = formatPhoneNumber("700000000", country);
@@ -20,19 +22,19 @@ export default function Help() {
 
   return (
     <ScreenWrapper
-      header={<PageHeader title="Help Center" subtitle="Get support" showBack />}
+      header={<PageHeader title={t("help.title")} subtitle={t("help.subtitle")} showBack />}
     >
       <Card style={styles.card}>
         <View style={styles.headerRow}>
           <HelpCircle size={24} color={colors.primary} />
-          <Text style={[styles.title, { color: colors.text }]}>How can we help?</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t("help.howCanWeHelp")}</Text>
         </View>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Find quick answers in the FAQ or reach out to the support team directly.
+          {t("help.howCanWeHelpSub")}
         </Text>
       </Card>
 
-      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Quick links</Text>
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t("help.quickLinks")}</Text>
       <Card style={styles.card}>
         <TouchableOpacity
           style={styles.row}
@@ -41,21 +43,21 @@ export default function Help() {
         >
           <BookOpen size={20} color={colors.primary} />
           <View style={styles.rowText}>
-            <Text style={[styles.rowTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
+            <Text style={[styles.rowTitle, { color: colors.text }]}>{t("help.faq")}</Text>
             <Text style={[styles.rowSubtitle, { color: colors.textSecondary }]}>
-              Answers to common questions
+              {t("help.faqSub")}
             </Text>
           </View>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </Card>
 
-      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Contact us</Text>
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t("help.contactUs")}</Text>
       <Card style={styles.card}>
         <TouchableOpacity style={styles.row} onPress={sendEmail} accessibilityRole="button">
           <Mail size={20} color={colors.primary} />
           <View style={styles.rowText}>
-            <Text style={[styles.rowTitle, { color: colors.text }]}>Email support</Text>
+            <Text style={[styles.rowTitle, { color: colors.text }]}>{t("help.emailSupport")}</Text>
             <Text style={[styles.rowSubtitle, { color: colors.textSecondary }]}>{SUPPORT_EMAIL}</Text>
           </View>
           <ChevronRight size={18} color={colors.textSecondary} />
@@ -68,7 +70,7 @@ export default function Help() {
         >
           <Phone size={20} color={colors.primary} />
           <View style={styles.rowText}>
-            <Text style={[styles.rowTitle, { color: colors.text }]}>Call support</Text>
+            <Text style={[styles.rowTitle, { color: colors.text }]}>{t("help.callSupport")}</Text>
             <Text style={[styles.rowSubtitle, { color: colors.textSecondary }]}>{SUPPORT_PHONE}</Text>
           </View>
           <ChevronRight size={18} color={colors.textSecondary} />
