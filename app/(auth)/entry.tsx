@@ -4,7 +4,6 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { router } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "react-i18next";
-import { CountryLanguageSettings } from "@/components/preferences/CountryLanguageSettings";
 
 export default function Entry() {
   const { colors } = useTheme();
@@ -48,10 +47,6 @@ export default function Entry() {
             {t("entry.returningUser")}
           </Text>
         </View>
-
-        <View style={styles.footer}>
-          <CountryLanguageSettings />
-        </View>
       </View>
     </ScreenWrapper>
   );
@@ -75,5 +70,4 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 15, textAlign: "center", marginBottom: 6 },
   buttons: { gap: 0 },
   hint: { fontSize: 12, textAlign: "center", marginTop: 16, lineHeight: 18 },
-  footer: { marginTop: 24 },
 });
