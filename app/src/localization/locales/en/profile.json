@@ -5,5 +5,22 @@
   "preferences": "Preferences",
   "changeCountry": "Change country",
   "changeLanguage": "Change language",
-  "logout": "Log out"
+  "logout": "Log out",
+  "notifications": "Notifications",
+  "markAllRead": "Mark all read",
+  "retryNotifications": "Retry loading notifications",
+  "notificationsLoadError": "Couldn't load notifications. Tap to retry.",
+  "noNotifications": "No notifications yet",
+  "notificationsPaused": "Notifications are paused",
+  "notificationsEmpty": "Contribution, loan, and announcement updates will appear here.",
+  "notificationsPausedDescription": "Turn notifications back on in Profile → Notifications.",
+  "statement": "Statement",
+  "statementTitle": "SACCOConnect Statement",
+  "nothingToExport": "Nothing to export",
+  "noTransactions": "There are no transactions yet.",
+  "exportFailed": "Export failed",
+  "statementExportFailed": "Could not generate the statement. Please try again.",
+  "exportStatement": "Export statement as CSV",
+  "preparing": "Preparing...",
+  "export": "Export"
 }

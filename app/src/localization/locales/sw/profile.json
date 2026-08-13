@@ -5,5 +5,22 @@
   "preferences": "Mapendeleo",
   "changeCountry": "Badilisha nchi",
   "changeLanguage": "Badilisha lugha",
-  "logout": "Toka"
+  "logout": "Toka",
+  "notifications": "Arifa",
+  "markAllRead": "Weka zote zimesomwa",
+  "retryNotifications": "Jaribu kupakia arifa tena",
+  "notificationsLoadError": "Hatukuweza kupakia arifa. Gusa ujaribu tena.",
+  "noNotifications": "Hakuna arifa bado",
+  "notificationsPaused": "Arifa zimesimamishwa",
+  "notificationsEmpty": "Taarifa za michango, mikopo na matangazo zitaonekana hapa.",
+  "notificationsPausedDescription": "Washa arifa tena katika Wasifu → Arifa.",
+  "statement": "Taarifa ya Akaunti",
+  "statementTitle": "Taarifa ya SACCOConnect",
+  "nothingToExport": "Hakuna cha kuhamisha",
+  "noTransactions": "Hakuna miamala bado.",
+  "exportFailed": "Uhamishaji umeshindikana",
+  "statementExportFailed": "Hatukuweza kutengeneza taarifa. Tafadhali jaribu tena.",
+  "exportStatement": "Hamisha taarifa kama CSV",
+  "preparing": "Inaandaa...",
+  "export": "Hamisha"
 }

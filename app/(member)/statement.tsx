@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 import { TransactionRow, TxItem } from "@/components/features/TransactionRow";
 import { useCountry } from "@/hooks/useCountry";
+import { useTranslation } from "react-i18next";
 
 function buildCsv(transactions: TxItem[], currencyCode: string): string {
   const header = `Date,Type,Description,Reference,Amount (${currencyCode}),Status`;
@@ -34,6 +35,7 @@ function buildCsv(transactions: TxItem[], currencyCode: string): string {
 
 export default function Statement() {
   const { colors } = useTheme();
+  const { t } = useTranslation("profile");
   const { country } = useCountry();
   const [transactions, setTransactions] = useState<TxItem[]>([]);
   const [exporting, setExporting] = useState(false);
@@ -82,7 +84,7 @@ export default function Statement() {
 
   const handleExport = async () => {
     if (transactions.length === 0) {
-      Alert.alert("Nothing to export", "There are no transactions yet.");
+      Alert.alert(t("nothingToExport"), t("noTransactions"));
       return;
     }
     setExporting(true);
@@ -90,10 +92,10 @@ export default function Statement() {
       const csv = buildCsv(transactions, country.currency);
       await Share.share({
         message: csv,
-        title: "SACCOConnect Statement",
+        title: t("statementTitle"),
       });
     } catch {
-      Alert.alert("Export failed", "Could not generate the statement. Please try again.");
+      Alert.alert(t("exportFailed"), t("statementExportFailed"));
     } finally {
       setExporting(false);
     }
@@ -102,7 +104,7 @@ export default function Statement() {
   return (
     <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={
       <PageHeader
-        title="Statement"
+        title={t("statement")}
         showBack
         onBack={() => router.back()}
         rightComponent={
@@ -111,10 +113,10 @@ export default function Statement() {
             onPress={handleExport}
             disabled={exporting}
             accessibilityRole="button"
-            accessibilityLabel="Export statement as CSV"
+            accessibilityLabel={t("exportStatement")}
           >
             <Download size={20} color={colors.primary} />
-            <Text style={{ color: colors.primary }}>{exporting ? "Preparing..." : "Export"}</Text>
+            <Text style={{ color: colors.primary }}>{exporting ? t("preparing") : t("export")}</Text>
           </TouchableOpacity>
         }
       />
@@ -122,7 +124,7 @@ export default function Statement() {
       {loading ? <SkeletonMemberList /> : error ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : transactions.length === 0 ? (
-        <EmptyState title="No transactions yet" />
+        <EmptyState title={t("noTransactions")} />
       ) : (
         <View style={styles.list}>
           {transactions.map((item) => (

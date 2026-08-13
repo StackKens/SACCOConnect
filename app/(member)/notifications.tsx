@@ -9,9 +9,11 @@ import { getReadIds } from "@/store/notification.store";
 import { useState, useCallback, useEffect } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { NotificationRow } from "@/components/features/NotificationRow";
+import { useTranslation } from "react-i18next";
 
 export default function Notifications() {
   const { colors } = useTheme();
+  const { t } = useTranslation("profile");
   const user = useAuthStore((s) => s.user);
   const userId = user?.id ?? "guest";
   const { items, loading, error, refresh, markRead, markAllRead, enabled } = useNotificationStore();
@@ -44,13 +46,13 @@ export default function Notifications() {
       style={styles.wrapper}
       header={
         <PageHeader
-          title="Notifications"
+          title={t("notifications")}
           showBack
           onBack={() => router.back()}
           rightComponent={
             unreadCount > 0 ? (
-              <TouchableOpacity onPress={handleMarkAll} accessibilityRole="button" accessibilityLabel="Mark all notifications as read">
-                <Text style={[styles.markAll, { color: colors.primary }]}>Mark all read</Text>
+              <TouchableOpacity onPress={handleMarkAll} accessibilityRole="button" accessibilityLabel={t("markAllRead")}>
+                <Text style={[styles.markAll, { color: colors.primary }]}>{t("markAllRead")}</Text>
               </TouchableOpacity>
             ) : undefined
           }
@@ -63,20 +65,19 @@ export default function Notifications() {
             style={[styles.errorBanner, { backgroundColor: colors.error + "12" }]}
             onPress={refresh}
             accessibilityRole="button"
-            accessibilityLabel="Retry loading announcements"
+            accessibilityLabel={t("retryNotifications")}
           >
             <Text style={[styles.errorText, { color: colors.error }]}>
-              Couldn't load announcements. Tap to retry.
+              {t("notificationsLoadError")}
             </Text>
           </TouchableOpacity>
         ) : null}
         {items.length === 0 || !enabled ? (
           <EmptyState
-            title={enabled ? "No notifications yet" : "Notifications are paused"}
+            title={enabled ? t("noNotifications") : t("notificationsPaused")}
             description={
               enabled
-                ? "Contribution, loan, and announcement updates will appear here."
-                : "Turn notifications back on in Profile → Notifications."
+                ? t("notificationsEmpty") : t("notificationsPausedDescription")
             }
             icon={<BellOff size={32} color={colors.textSecondary} />}
           />
