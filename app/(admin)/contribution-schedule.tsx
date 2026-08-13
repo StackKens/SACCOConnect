@@ -14,6 +14,7 @@ import {
   isValidISODate,
 } from "@/utils/date";
 import { Calendar } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 function dateOnDay(day: number, monthsAhead: number): string {
   const d = new Date();
@@ -25,6 +26,7 @@ function dateOnDay(day: number, monthsAhead: number): string {
 
 export default function ContributionSchedule() {
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const sacco = useAuthStore((state) => state.sacco);
   const updateContributionDueDate = useAuthStore((state) => state.updateContributionDueDate);
 
@@ -36,41 +38,41 @@ export default function ContributionSchedule() {
   }, [sacco?.contributionDueDate]);
 
   const presets = [
-    { label: "5th — this month", value: dateOnDay(5, 0) },
-    { label: "5th — next month", value: dateOnDay(5, 1) },
-    { label: "15th — this month", value: dateOnDay(15, 0) },
-    { label: "End of month", value: dateOnDay(28, 0) },
+    { label: t("contributionSchedule.fifthThisMonth"), value: dateOnDay(5, 0) },
+    { label: t("contributionSchedule.fifthNextMonth"), value: dateOnDay(5, 1) },
+    { label: t("contributionSchedule.fifteenthThisMonth"), value: dateOnDay(15, 0) },
+    { label: t("contributionSchedule.endOfMonth"), value: dateOnDay(28, 0) },
   ];
 
   const handleSave = async () => {
     if (!isValidISODate(dueDate)) {
-      Alert.alert("Invalid date", "Use the format YYYY-MM-DD (e.g. 2025-07-05).");
+      Alert.alert(t("contributionSchedule.invalidDate"), t("contributionSchedule.invalidDateMsg"));
       return;
     }
 
     setSaving(true);
     try {
       await updateContributionDueDate(dueDate);
-      Alert.alert("Saved", "All members will see the updated contribution due date.", [
-        { text: "OK", onPress: () => router.back() },
+      Alert.alert(t("contributionSchedule.savedTitle"), t("contributionSchedule.savedMsg"), [
+        { text: t("ok"), onPress: () => router.back() },
       ]);
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "Could not save the date.";
-      Alert.alert("Error", message);
+      const message = e instanceof Error ? e.message : t("contributionSchedule.couldNotSave");
+      Alert.alert(t("contributionSchedule.error"), message);
     } finally {
       setSaving(false);
     }
   };
 
-  const previewLabel = isValidISODate(dueDate) ? dueDateLabel(dueDate) : "Enter a valid date";
+  const previewLabel = isValidISODate(dueDate) ? dueDateLabel(dueDate) : t("contributionSchedule.enterValidDate");
 
   return (
     <ScreenWrapper
       scroll
       header={
         <PageHeader
-          title="Contribution Due Date"
-          subtitle="Set when members must pay each month"
+          title={t("contributionSchedule.title")}
+          subtitle={t("contributionSchedule.subtitle")}
           showBack
           onBack={() => router.back()}
         />
@@ -79,15 +81,14 @@ export default function ContributionSchedule() {
       <Card style={styles.card}>
         <View style={styles.headerRow}>
           <Calendar size={20} color={colors.primary} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Current schedule</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("contributionSchedule.current")}</Text>
         </View>
         <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-          Members see this date on their home screen and savings tab. Changes apply to everyone in{" "}
-          {sacco?.name ?? "your SACCO"}.
+          {t("contributionSchedule.currentDesc", { saccoName: sacco?.name ?? t("contributionSchedule.yourSacco") })}
         </Text>
         {sacco?.contributionDueDate && (
           <View style={[styles.currentBox, { backgroundColor: colors.primary + "10", borderColor: colors.primary + "30" }]}>
-            <Text style={[styles.currentLabel, { color: colors.textSecondary }]}>Saved due date</Text>
+            <Text style={[styles.currentLabel, { color: colors.textSecondary }]}>{t("contributionSchedule.saved")}</Text>
             <Text style={[styles.currentDate, { color: colors.text }]}>
               {formatDateLong(sacco.contributionDueDate)}
             </Text>
@@ -96,18 +97,18 @@ export default function ContributionSchedule() {
       </Card>
 
       <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Set new due date</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("contributionSchedule.setNew")}</Text>
         <Input
-          label="Due date (YYYY-MM-DD)"
+          label={t("contributionSchedule.dateLabel")}
           value={dueDate}
           onChangeText={setDueDate}
-          placeholder="e.g. 2025-07-05"
+          placeholder={t("contributionSchedule.datePlaceholder")}
           keyboardType="numbers-and-punctuation"
           autoCapitalize="none"
         />
         <Text style={[styles.preview, { color: daysColor(dueDate, colors) }]}>{previewLabel}</Text>
 
-        <Text style={[styles.presetLabel, { color: colors.textSecondary }]}>Quick picks</Text>
+        <Text style={[styles.presetLabel, { color: colors.textSecondary }]}>{t("contributionSchedule.quickPicks")}</Text>
         <View style={styles.presets}>
           {presets.map((preset) => (
             <TouchableOpacity
@@ -127,7 +128,7 @@ export default function ContributionSchedule() {
         </View>
       </Card>
 
-      <Button title="Save Due Date" onPress={handleSave} loading={saving} style={styles.saveBtn} />
+      <Button title={t("contributionSchedule.saveDueDate")} onPress={handleSave} loading={saving} style={styles.saveBtn} />
     </ScreenWrapper>
   );
 }

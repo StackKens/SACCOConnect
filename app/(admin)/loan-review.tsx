@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { formatCurrency } from "@/utils/currency";
 import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
+import { useTranslation } from "react-i18next";
 
 interface LoanDetail {
   id: string;
@@ -35,6 +36,7 @@ export default function LoanReview() {
   const { id } = useLocalSearchParams<{ id: string | string[] }>();
   const loanId = Array.isArray(id) ? id[0] : id;
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const [loan, setLoan] = useState<LoanDetail | null>(null);
   const { loading, error, refresh } = useApiFetch(async () => {
     if (!loanId) return;
@@ -48,12 +50,11 @@ export default function LoanReview() {
   const handleApprove = () => {
     if (!loan) return;
     Alert.alert(
-      "Approve Loan",
-      `Approve ${formatCurrency(loan.amountRequested)} for ${loan.member.fullName}?`,
+      t("loanReview.approveTitle"), t("loanReview.approvePrompt", { amount: formatCurrency(loan.amountRequested), memberName: loan.member.fullName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("common:cancel"), style: "cancel" },
         {
-          text: "Approve",
+          text: t("approve"),
           onPress: async () => {
             setActionLoading(true);
             try {
@@ -62,20 +63,19 @@ export default function LoanReview() {
                 repaymentMonths: loan.repaymentMonths,
               });
               Alert.alert(
-                "Loan Approved",
+                t("loanReview.approvedTitle"),
                 res.data.message ??
-                  `Loan for ${loan.member.fullName} has been approved.`,
+                  t("loanReview.approvedMsg", { memberName: loan.member.fullName }),
                 [
                   {
-                    text: "OK",
+                    text: t("ok"),
                     onPress: () => router.push("/(admin)/loan-queue"),
                   },
                 ],
               );
             } catch (e: any) {
               Alert.alert(
-                "Error",
-                e?.response?.data?.message || "Could not approve loan.",
+                t("loanReview.error"), e?.response?.data?.message || t("loanReview.couldNotApprove"),
               );
             } finally {
               setActionLoading(false);
@@ -88,17 +88,16 @@ export default function LoanReview() {
 
   const handleReject = () => {
     if (!rejectNote.trim()) {
-      Alert.alert("Note required", "Please provide a reason for rejection.");
+      Alert.alert(t("loanReview.noteRequired"), t("loanReview.reasonRequired"));
       return;
     }
     if (!loan) return;
     Alert.alert(
-      "Reject Loan",
-      `Reject this application from ${loan.member.fullName}?`,
+      t("loanReview.rejectTitle"), t("loanReview.rejectPrompt", { memberName: loan.member.fullName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("common:cancel"), style: "cancel" },
         {
-          text: "Reject",
+          text: t("reject"),
           style: "destructive",
           onPress: async () => {
             setActionLoading(true);
@@ -106,16 +105,15 @@ export default function LoanReview() {
               await api.post(`/api/loans/${loanId}/reject`, {
                 reason: rejectNote.trim(),
               });
-              Alert.alert("Rejected", "Loan application has been rejected.", [
+              Alert.alert(t("loanReview.rejectedTitle"), t("loanReview.rejectedMsg"), [
                 {
-                  text: "OK",
+                  text: t("ok"),
                   onPress: () => router.push("/(admin)/loan-queue"),
                 },
               ]);
             } catch (e: any) {
               Alert.alert(
-                "Error",
-                e?.response?.data?.message || "Could not reject loan.",
+                t("loanReview.error"), e?.response?.data?.message || t("loanReview.couldNotReject"),
               );
             } finally {
               setActionLoading(false);
@@ -131,7 +129,7 @@ export default function LoanReview() {
       <ScreenWrapper
         header={
           <PageHeader
-            title="Loan Review"
+            title={t("loanReview.title")}
             showBack
             onBack={() => router.push("/(admin)/loan-queue")}
           />
@@ -144,7 +142,7 @@ export default function LoanReview() {
             marginTop: 40,
           }}
         >
-          Loading...
+          {t("common:loading")}
         </Text>
       </ScreenWrapper>
     );
@@ -155,7 +153,7 @@ export default function LoanReview() {
       <ScreenWrapper
         header={
           <PageHeader
-            title="Loan Review"
+            title={t("loanReview.title")}
             showBack
             onBack={() => router.push("/(admin)/loan-queue")}
           />
@@ -171,7 +169,7 @@ export default function LoanReview() {
       <ScreenWrapper
         header={
           <PageHeader
-            title="Loan Review"
+            title={t("loanReview.title")}
             showBack
             onBack={() => router.push("/(admin)/loan-queue")}
           />
@@ -184,7 +182,7 @@ export default function LoanReview() {
             marginTop: 40,
           }}
         >
-          Loan not found.
+          {t("loanReview.notFound")}
         </Text>
       </ScreenWrapper>
     );
@@ -207,7 +205,7 @@ export default function LoanReview() {
       scroll
       header={
         <PageHeader
-          title="Loan Review"
+          title={t("loanReview.title")}
           showBack
           onBack={() => router.push("/(admin)/loan-queue")}
           rightComponent={
@@ -221,16 +219,16 @@ export default function LoanReview() {
     >
       <Card style={styles.card}>
         {[
-          { label: "Applicant", value: loan.member.fullName },
+          { label: t("loanReview.applicant"), value: loan.member.fullName },
           {
-            label: "Amount Requested",
+            label: t("loanReview.amountRequested"),
             value: formatCurrency(loan.amountRequested),
           },
-          { label: "Term", value: `${loan.repaymentMonths} months` },
-          { label: "Interest Rate", value: `${loan.interestRate}% p.a.` },
-          { label: "Purpose", value: loan.purpose },
+          { label: t("loanReview.term"), value: t("loanReview.months", { months: loan.repaymentMonths }) },
+          { label: t("loanReview.interestRate"), value: `${loan.interestRate}% p.a.` },
+          { label: t("loanReview.purpose"), value: loan.purpose },
           {
-            label: "Total Savings",
+            label: t("totalSavings"),
             value: formatCurrency(loan.member.currentBalance),
             highlight: true,
           },
@@ -257,7 +255,7 @@ export default function LoanReview() {
             <Divider style={styles.divider} />
             <View style={styles.row}>
               <Text style={[styles.label, { color: colors.textSecondary }]}>
-                Rejection Reason
+                {t("loanReview.rejectionReason")}
               </Text>
               <Text style={[styles.value, { color: colors.error }]}>
                 {loan.rejectionReason}
@@ -272,7 +270,7 @@ export default function LoanReview() {
           {showRejectInput && (
             <Card style={styles.rejectCard}>
               <Text style={[styles.rejectLabel, { color: colors.text }]}>
-                Reason for rejection
+                {t("loanReview.reasonLabel")}
               </Text>
               <TextInput
                 style={[
@@ -285,7 +283,7 @@ export default function LoanReview() {
                 ]}
                 value={rejectNote}
                 onChangeText={setRejectNote}
-                placeholder="e.g. Insufficient savings history..."
+                placeholder={t("loanReview.reasonPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 multiline
                 numberOfLines={3}
@@ -294,14 +292,14 @@ export default function LoanReview() {
           )}
           <View style={styles.actions}>
             <Button
-              title="Approve"
+              title={t("approve")}
               onPress={handleApprove}
               variant="primary"
               style={styles.button}
               loading={actionLoading}
             />
             <Button
-              title={showRejectInput ? "Confirm Reject" : "Reject"}
+              title={showRejectInput ? t("loanReview.confirmReject") : t("reject")}
               onPress={
                 showRejectInput ? handleReject : () => setShowRejectInput(true)
               }

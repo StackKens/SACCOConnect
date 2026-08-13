@@ -13,17 +13,18 @@ import { useState } from "react";
 import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonTreasury } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 const SCREEN_W = Dimensions.get("window").width;
 const CHART_W = SCREEN_W - 40 - 32; // screen padding + card padding
 const CHART_H = 140;
 const PADDING = { top: 12, bottom: 28, left: 40, right: 12 };
 
-function LineChart({ colors, monthlyData }: { colors: any; monthlyData: { month: string; collections: number; disbursed: number }[] }) {
+function LineChart({ colors, monthlyData, emptyLabel }: { colors: any; monthlyData: { month: string; collections: number; disbursed: number }[]; emptyLabel: string }) {
   if (monthlyData.length === 0) {
     return (
       <Text style={{ color: colors.textSecondary, textAlign: "center", paddingVertical: 24 }}>
-        Not enough data for a chart yet.
+        {emptyLabel}
       </Text>
     );
   }
@@ -137,6 +138,7 @@ const EMPTY: TreasuryData = {
 
 export default function Treasury() {
   const { colors } = useTheme();
+  const { t, i18n } = useTranslation("admin");
   const { country } = useCountry();
   const [data, setData] = useState<TreasuryData>(EMPTY);
   const { loading, error, refresh } = useApiFetch(async () => {
@@ -147,29 +149,29 @@ export default function Treasury() {
   const { totalSavings, totalDisbursed, totalRepaid, outstanding, collectionRate, monthlyData, recentTransactions } = data;
 
   const chartMonthlyData = monthlyData.map((d) => ({
-    month: new Date(`${d.month}-01`).toLocaleDateString(country.locale, { month: "short" }),
+    month: new Date(`${d.month}-01`).toLocaleDateString(i18n.language === "sw" ? "sw" : country.locale, { month: "short" }),
     collections: d.collections,
     disbursed: d.disbursed,
   }));
 
   return (
-    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title="Treasury" subtitle="Financial summary and collections" />}>
+    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title={t("treasury")} subtitle={t("treasury.subtitle")} />}>
 
       {error ? <ErrorState message={error} onRetry={refresh} /> : loading ? <SkeletonTreasury /> : (
         <>
       <View style={styles.statsGrid}>
-        <StatCard title="Total Savings" value={formatCurrency(totalSavings)} icon={<Wallet size={22} color={colors.secondary} />} />
-        <StatCard title="Disbursed" value={formatCurrency(totalDisbursed)} icon={<Banknote size={22} color={colors.warning} />} />
-        <StatCard title="Repayments" value={formatCurrency(totalRepaid)} icon={<RefreshCw size={22} color={colors.success} />} />
-        <StatCard title="Outstanding" value={formatCurrency(outstanding)} icon={<AlertCircle size={22} color={colors.error} />} />
+        <StatCard title={t("totalSavings")} value={formatCurrency(totalSavings)} icon={<Wallet size={22} color={colors.secondary} />} />
+        <StatCard title={t("treasury.disbursed")} value={formatCurrency(totalDisbursed)} icon={<Banknote size={22} color={colors.warning} />} />
+        <StatCard title={t("treasury.repayments")} value={formatCurrency(totalRepaid)} icon={<RefreshCw size={22} color={colors.success} />} />
+        <StatCard title={t("outstanding")} value={formatCurrency(outstanding)} icon={<AlertCircle size={22} color={colors.error} />} />
       </View>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Portfolio Health</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("treasury.portfolioHealth")}</Text>
         <View style={styles.healthRow}>
           <View style={styles.healthItem}>
             <Text style={[styles.healthValue, { color: colors.success }]}>{collectionRate}%</Text>
-            <Text style={[styles.healthLabel, { color: colors.textSecondary }]}>Collection Rate</Text>
+            <Text style={[styles.healthLabel, { color: colors.textSecondary }]}>{t("collectionRate")}</Text>
             <View style={[styles.healthBar, { backgroundColor: colors.border }]}>
               <View style={[styles.healthFill, { width: `${collectionRate}%` as any, backgroundColor: colors.success }]} />
             </View>
@@ -180,7 +182,7 @@ export default function Treasury() {
               <Text style={[styles.healthValue, { color: colors.primary }]}>{data.monthlyData.length}</Text>
               <TrendingUp size={16} color={colors.success} />
             </View>
-            <Text style={[styles.healthLabel, { color: colors.textSecondary }]}>Active Months</Text>
+            <Text style={[styles.healthLabel, { color: colors.textSecondary }]}>{t("treasury.activeMonths")}</Text>
             <View style={[styles.healthBar, { backgroundColor: colors.border }]}>
               <View style={[styles.healthFill, { width: `${Math.min(data.monthlyData.length * 16, 100)}%` as any, backgroundColor: colors.primary }]} />
             </View>
@@ -189,24 +191,24 @@ export default function Treasury() {
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Monthly Overview</Text>
-        <LineChart colors={colors} monthlyData={chartMonthlyData} />
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("treasury.monthlyOverview")}</Text>
+        <LineChart colors={colors} monthlyData={chartMonthlyData} emptyLabel={t("treasury.notEnoughData")} />
         <View style={styles.legend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
-            <Text style={[styles.legendLabel, { color: colors.textSecondary }]}>Collections</Text>
+            <Text style={[styles.legendLabel, { color: colors.textSecondary }]}>{t("treasury.collections")}</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDash, { borderColor: colors.warning }]} />
-            <Text style={[styles.legendLabel, { color: colors.textSecondary }]}>Disbursed</Text>
+            <Text style={[styles.legendLabel, { color: colors.textSecondary }]}>{t("treasury.disbursed")}</Text>
           </View>
         </View>
       </Card>
 
       <View style={[styles.txSection, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("recentTransactions")}</Text>
         {recentTransactions.length === 0 ? (
-          <Text style={{ color: colors.textSecondary }}>No transactions yet</Text>
+          <Text style={{ color: colors.textSecondary }}>{t("treasury.noTransactions")}</Text>
         ) : (
           recentTransactions.map((tx, i) => (
           <View key={tx.id}>
