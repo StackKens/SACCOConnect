@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/Input";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
-import { CountryLanguageSettings } from "@/components/preferences/CountryLanguageSettings";
 
 export default function Login() {
   const [phone, setPhone] = useState("");
@@ -49,10 +48,6 @@ export default function Login() {
           </Text>
         </View>
 
-        <View style={styles.pickerArea}>
-          <CountryLanguageSettings />
-        </View>
-
         <Input
           label={t("common:phone")}
           value={phone}
@@ -88,7 +83,6 @@ const styles = StyleSheet.create({
   header: { marginBottom: 32 },
   title: { fontSize: 28, fontWeight: "800", marginBottom: 6, letterSpacing: -0.5 },
   subtitle: { fontSize: 15 },
-  pickerArea: { marginBottom: 24 },
   btn: { marginTop: 8, marginBottom: 20 },
   link: { textAlign: "center", fontSize: 14, marginTop: 8 },
 });
