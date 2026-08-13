@@ -13,8 +13,10 @@ import { useState } from "react";
 import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonDashboard } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 export default function AdminDashboard() {
+  const { t } = useTranslation("admin");
   const { colors } = useTheme();
   const [stats, setStats] = useState({
     totalMembers: 0,
@@ -41,14 +43,14 @@ export default function AdminDashboard() {
       scroll
       header={
         <PageHeader
-          title="Admin Dashboard"
-          subtitle="Overview of SACCO operations"
+          title={t("dashboard.title")}
+          subtitle={t("dashboard.subtitle")}
           rightComponent={
             <Pressable
               onPress={() => router.push("/(admin)/settings")}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Open settings"
+              accessibilityLabel={t("dashboard.openSettings")}
               style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.5 }]}
             >
               <Settings size={22} color={colors.text} strokeWidth={2} />
@@ -65,22 +67,22 @@ export default function AdminDashboard() {
         ) : (
           <>
             <StatCard
-              title="Members"
+              title={t("totalMembers")}
               value={stats.totalMembers.toString()}
               icon={<Users size={24} color={colors.primary} />}
             />
             <StatCard
-              title="Total Savings"
+              title={t("totalSavings")}
               value={formatCurrency(stats.totalSavings)}
               icon={<Wallet size={24} color={colors.secondary} />}
             />
             <StatCard
-              title="Active Loans"
+              title={t("activeLoans")}
               value={formatCurrency(stats.activeLoans)}
               icon={<Banknote size={24} color={colors.warning} />}
             />
             <StatCard
-              title="Pending Applications"
+              title={t("dashboard.pendingApplications")}
               value={stats.pendingApplications.toString()}
               icon={<Clock size={24} color={colors.error} />}
             />
@@ -90,29 +92,29 @@ export default function AdminDashboard() {
 
       <Card style={styles.quickActions}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Quick Actions
+          {t("dashboard.quickActions")}
         </Text>
         <View style={styles.actionButtons}>
           <Button
-            title="Review Loans"
+            title={t("dashboard.reviewLoans")}
             onPress={() => router.push("/(admin)/loan-queue")}
             variant="primary"
             style={styles.actionBtn}
           />
           <Button
-            title="Manage Members"
+            title={t("dashboard.manageMembers")}
             onPress={() => router.push("/(admin)/members")}
             variant="secondary"
             style={styles.actionBtn}
           />
           <Button
-            title="View Treasury"
+            title={t("dashboard.viewTreasury")}
             onPress={() => router.push("/(admin)/treasury")}
             variant="outline"
             style={styles.actionBtn}
           />
           <Button
-            title="Post Announcement"
+            title={t("dashboard.postAnnouncement")}
             onPress={() => router.push("/(admin)/announcements")}
             variant="outline"
             style={styles.actionBtn}
@@ -122,18 +124,18 @@ export default function AdminDashboard() {
 
       <Card>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Quick data
+          {t("dashboard.quickData")}
         </Text>
         <View style={styles.actionButtons}>
           <Button
-            title="All Contributions"
+            title={t("dashboard.allContributions")}
             onPress={() => router.push("/(admin)/contributions")}
             variant="outline"
             style={styles.actionBtn}
           />
 
           <Button
-            title="Active Loans"
+            title={t("activeLoans")}
             onPress={() => router.push("/(admin)/active-loans")}
             variant="outline"
             style={styles.actionBtn}

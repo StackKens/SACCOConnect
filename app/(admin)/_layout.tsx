@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
   Users,
@@ -11,6 +12,7 @@ import {
 
 export default function AdminLayout() {
   const { colors } = useTheme();
+  const { t } = useTranslation("admin");
   const insets = useSafeAreaInsets();
   const tabBarHeight = 60 + insets.bottom;
 
@@ -36,7 +38,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Dashboard",
+          title: t("dashboard"),
           tabBarIcon: ({ color }) => (
             <LayoutDashboard size={22} color={color} />
           ),
@@ -45,28 +47,28 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="members"
         options={{
-          title: "Members",
+          title: t("members"),
           tabBarIcon: ({ color }) => <Users size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="loan-queue"
         options={{
-          title: "Loans",
+          title: t("loans"),
           tabBarIcon: ({ color }) => <ClipboardList size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="treasury"
         options={{
-          title: "Treasury",
+          title: t("treasury"),
           tabBarIcon: ({ color }) => <Landmark size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
-          title: "Account",
+          title: t("account"),
           tabBarIcon: ({ color }) => <User size={22} color={color} />,
         }}
       />

@@ -17,6 +17,7 @@ import { api } from "@/services/api";
 import { useState } from "react";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonMemberDetail } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 interface MemberDetailData {
   id: string;
@@ -31,6 +32,7 @@ interface MemberDetailData {
 }
 
 export default function MemberDetail() {
+  const { t } = useTranslation("admin");
   const { id } = useLocalSearchParams<{ id: string | string[] }>();
   const memberId = Array.isArray(id) ? id[0] : id;
   const { colors } = useTheme();
@@ -45,7 +47,7 @@ export default function MemberDetail() {
 
   if (loading || (member && member.id !== memberId)) {
     return (
-      <ScreenWrapper scroll header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
+      <ScreenWrapper scroll header={<PageHeader title={t("member")} showBack onBack={() => router.push("/(admin)/members")} />}>
         <SkeletonMemberDetail />
       </ScreenWrapper>
     );
@@ -53,7 +55,7 @@ export default function MemberDetail() {
 
   if (error) {
     return (
-      <ScreenWrapper header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
+      <ScreenWrapper header={<PageHeader title={t("member")} showBack onBack={() => router.push("/(admin)/members")} />}>
         <ErrorState message={error} onRetry={refresh} />
       </ScreenWrapper>
     );
@@ -61,8 +63,8 @@ export default function MemberDetail() {
 
   if (!member) {
     return (
-      <ScreenWrapper header={<PageHeader title="Member" showBack onBack={() => router.push("/(admin)/members")} />}>
-        <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>Member not found.</Text>
+      <ScreenWrapper header={<PageHeader title={t("member")} showBack onBack={() => router.push("/(admin)/members")} />}>
+        <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>{t("memberDetail.notFound")}</Text>
       </ScreenWrapper>
     );
   }
@@ -83,7 +85,7 @@ export default function MemberDetail() {
       header={
         <PageHeader
           title={member.fullName}
-          subtitle="Member profile"
+          subtitle={t("memberDetail.profileSubtitle")}
           showBack
           onBack={() => router.push("/(admin)/members")}
           rightComponent={<Badge label={member.status.toLowerCase()} variant={member.status === "ACTIVE" ? "success" : "error"} />}
@@ -99,36 +101,36 @@ export default function MemberDetail() {
           </View>
           {member.nationalId && (
             <View style={styles.infoRow}>
-              <Text style={[styles.infoText, { color: colors.textSecondary }]}>ID: {member.nationalId}</Text>
+              <Text style={[styles.infoText, { color: colors.textSecondary }]}>{t("memberDetail.nationalId", { id: member.nationalId })}</Text>
             </View>
           )}
           <View style={styles.infoRow}>
             <Calendar size={14} color={colors.textSecondary} />
-            <Text style={[styles.infoText, { color: colors.textSecondary }]}>Joined {formatDate(member.joinDate)}</Text>
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>{t("memberDetail.joined", { date: formatDate(member.joinDate) })}</Text>
           </View>
         </View>
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Financial Summary</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("memberDetail.financialSummary")}</Text>
         <View style={styles.financialRow}>
           <View style={[styles.financialItem, { backgroundColor: colors.success + "12", borderColor: colors.success + "30" }]}>
             <Wallet size={20} color={colors.success} />
-            <Text style={[styles.financialLabel, { color: colors.textSecondary }]}>Total Savings</Text>
+            <Text style={[styles.financialLabel, { color: colors.textSecondary }]}>{t("totalSavings")}</Text>
             <Text style={[styles.financialValue, { color: colors.text }]}>{formatCurrency(member.currentBalance)}</Text>
           </View>
           <View style={[styles.financialItem, { backgroundColor: colors.warning + "12", borderColor: colors.warning + "30" }]}>
             <Banknote size={20} color={colors.warning} />
-            <Text style={[styles.financialLabel, { color: colors.textSecondary }]}>Active Loan</Text>
+            <Text style={[styles.financialLabel, { color: colors.textSecondary }]}>{t("memberDetail.activeLoan")}</Text>
             <Text style={[styles.financialValue, { color: colors.text }]}>{formatCurrency(activeLoanBalance)}</Text>
           </View>
         </View>
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Contributions</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("memberDetail.recentContributions")}</Text>
         {recentContributions.length === 0 ? (
-          <EmptyState title="No contributions yet" />
+          <EmptyState title={t("memberDetail.noContributions")} />
         ) : (
           recentContributions.map((c, i) => (
             <View key={c.id}>
@@ -143,9 +145,9 @@ export default function MemberDetail() {
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Loan History</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("memberDetail.loanHistory")}</Text>
         {loanHistory.length === 0 ? (
-          <EmptyState title="No loans yet" />
+          <EmptyState title={t("memberDetail.noLoans")} />
         ) : (
           loanHistory.map((loan) => (
             <View key={loan.id} style={styles.loanRow}>
@@ -163,25 +165,25 @@ export default function MemberDetail() {
       </Card>
 
       <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Manage Member</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("memberDetail.manageMember")}</Text>
         {isYou ? (
           <View style={[styles.selfNote, { backgroundColor: colors.primary + "12" }]}>
             <Text style={[styles.selfNoteText, { color: colors.primary }]}>
-              This is your own member record. Deactivate and Delete are disabled for your account.
+              {t("memberDetail.selfNote")}
             </Text>
           </View>
         ) : (
           <>
             <Button
-              title={member.status === "ACTIVE" ? "Deactivate Member" : "Activate Member"}
+              title={member.status === "ACTIVE" ? t("memberDetail.deactivateMember") : t("memberDetail.activateMember")}
               variant={member.status === "ACTIVE" ? "outline" : "primary"}
               loading={actionLoading}
               style={{ marginBottom: 10 }}
               onPress={() => {
                 const next = member.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-                const label = next === "INACTIVE" ? "Deactivate" : "Activate";
-                Alert.alert(`${label} Member`, `Are you sure you want to ${label.toLowerCase()} ${member.fullName}?`, [
-                  { text: "Cancel", style: "cancel" },
+                const label = next === "INACTIVE" ? t("memberDetail.deactivate") : t("memberDetail.activate");
+                Alert.alert(`${label} ${t("member")}`, t("memberDetail.deactivatePrompt", { memberName: member.fullName }), [
+                  { text: t("common.cancel"), style: "cancel" },
                   {
                     text: label,
                     onPress: async () => {
@@ -190,7 +192,7 @@ export default function MemberDetail() {
                         await api.patch(`/api/members/${memberId}/status`, { status: next });
                         setMember((m) => m ? { ...m, status: next } : m);
                       } catch {
-                        Alert.alert("Error", "Could not update member status.");
+                        Alert.alert(t("memberDetail.error"), t("memberDetail.couldNotUpdateStatus"));
                       } finally {
                         setActionLoading(false);
                       }
@@ -200,14 +202,14 @@ export default function MemberDetail() {
               }}
             />
             <Button
-              title="Delete Member"
+              title={t("memberDetail.deleteMember")}
               variant="danger"
               loading={actionLoading}
               onPress={() => {
-                Alert.alert("Delete Member", `This will permanently delete ${member.fullName} and all their data. This cannot be undone.`, [
-                  { text: "Cancel", style: "cancel" },
+                Alert.alert(t("memberDetail.deleteMember"), t("memberDetail.deletePrompt", { memberName: member.fullName }), [
+                  { text: t("common.cancel"), style: "cancel" },
                   {
-                    text: "Delete",
+                    text: t("delete"),
                     style: "destructive",
                     onPress: async () => {
                       setActionLoading(true);
@@ -215,7 +217,7 @@ export default function MemberDetail() {
                         await api.delete(`/api/members/${memberId}`);
                         router.replace("/(admin)/members");
                       } catch {
-                        Alert.alert("Error", "Could not delete member.");
+                        Alert.alert(t("memberDetail.error"), t("memberDetail.couldNotDelete"));
                       } finally {
                         setActionLoading(false);
                       }
@@ -229,9 +231,9 @@ export default function MemberDetail() {
       </Card>
 
       <View style={styles.actions}>
-        <Button title="View Contributions" onPress={() => router.push("/(admin)/contributions")} variant="outline" style={styles.actionBtn} />
+        <Button title={t("memberDetail.viewContributions")} onPress={() => router.push("/(admin)/contributions")} variant="outline" style={styles.actionBtn} />
         <Button
-          title={pendingLoan ? "Review Loan" : "Loan Queue"}
+          title={pendingLoan ? t("memberDetail.reviewLoan") : t("loanQueue")}
           onPress={() => pendingLoan ? router.push(`/(admin)/loan-review?id=${pendingLoan.id}`) : router.push("/(admin)/loan-queue")}
           variant="primary"
           style={styles.actionBtn}

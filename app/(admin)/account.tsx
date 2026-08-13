@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
 import { TransactionRow } from "@/components/features/TransactionRow";
+import { useTranslation } from "react-i18next";
 
 interface Contribution {
   id: string;
@@ -29,6 +30,7 @@ interface MemberProfile {
 }
 
 export default function AdminAccount() {
+  const { t } = useTranslation("admin");
   const { colors, spacing, radius, typography } = useTheme();
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
@@ -48,7 +50,7 @@ export default function AdminAccount() {
     .reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title="Account" subtitle="Your profile & savings" />}>
+    <ScreenWrapper scroll refreshing={loading} onRefresh={refresh} header={<PageHeader title={t("account")} subtitle={t("account.subtitle")} />}>
       <View style={[styles.profileCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
         <View style={[styles.avatar, { backgroundColor: sacco?.logoColor ?? colors.primary }]}>
           <User size={32} color="#FFFFFF" />
@@ -56,7 +58,7 @@ export default function AdminAccount() {
         <View style={styles.profileInfo}>
           <Text style={[styles.adminName, { color: colors.text }]}>{user?.name}</Text>
           <Text style={[styles.adminPhone, { color: colors.textSecondary }]}>{user?.phone}</Text>
-          <Text style={[styles.adminBadge, { color: colors.secondary }]}>ADMINISTRATOR</Text>
+          <Text style={[styles.adminBadge, { color: colors.secondary }]}>{t("administrator")}</Text>
         </View>
       </View>
 
@@ -76,26 +78,26 @@ export default function AdminAccount() {
         <View>
           <View style={{ marginTop: spacing.xl }}>
             <BalanceCard
-              label="Total Savings"
+              label={t("totalSavings")}
               amount={currentBalance}
-              hint={confirmedTotal > 0 ? `${formatCurrency(confirmedTotal)} in confirmed contributions` : undefined}
+              hint={confirmedTotal > 0 ? t("account.confirmedHint", { amount: formatCurrency(confirmedTotal) }) : undefined}
               icon={<Wallet size={18} color={colors.secondary} />}
             />
           </View>
 
           <Button
-            title="Make Contribution"
+            title={t("account.makeContribution")}
             onPress={() => router.push("/(admin)/contribute")}
             style={{ marginTop: spacing.xl }}
           />
 
-          <SectionHeader title="Contribution History" subtitle="Your own contributions" />
+          <SectionHeader title={t("account.historyTitle")} subtitle={t("account.historySubtitle")} />
 
           {contributions.length === 0 ? (
             <EmptyState
               icon={<Wallet size={30} color={colors.primary} />}
-              title="No contributions yet"
-              description="Your contributions will appear here once you make your first one."
+              title={t("account.noContributions")}
+              description={t("account.noContributionsDesc")}
             />
           ) : (
             <View style={[styles.contribList, { backgroundColor: colors.surface }]}>

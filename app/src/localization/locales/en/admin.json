@@ -314,5 +314,6 @@
   "contributionSchedule.savedMsg": "All members will see the updated contribution due date.",
   "contributionSchedule.couldNotSave": "Could not save the date.",
   "contributionSchedule.error": "Error",
-  "contributionSchedule.saveDueDate": "Save Due Date"
+  "contributionSchedule.saveDueDate": "Save Due Date",
+  "delete": "Delete"
 }

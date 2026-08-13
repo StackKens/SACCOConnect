@@ -25,6 +25,7 @@ import { api } from "@/services/api";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useAuthStore } from "@/store/auth.store";
 import { SkeletonMemberList } from "@/components/ui/Skeleton";
+import { useTranslation } from "react-i18next";
 
 interface MemberRow {
   id: string;
@@ -35,6 +36,7 @@ interface MemberRow {
 }
 
 export default function Members() {
+  const { t } = useTranslation("admin");
   const { colors } = useTheme();
   const sacco = useAuthStore((state) => state.sacco);
   const me = useAuthStore((state) => state.user);
@@ -58,7 +60,7 @@ export default function Members() {
   const handleInvite = async () => {
     const normalizedPhone = normalizeUgandaPhone(invitePhone);
     if (normalizedPhone.length < 10) {
-      Alert.alert("Required", "Enter a valid phone number.");
+      Alert.alert(t("members.required"), t("members.invalidPhone"));
       return;
     }
     setInviteLoading(true);
@@ -66,7 +68,7 @@ export default function Members() {
       const res = await api.post("/api/members/invite/send", { phoneNumber: normalizedPhone });
       setInviteCode(res.data.data.inviteCode);
     } catch (e: any) {
-      Alert.alert("Error", e?.response?.data?.message || "Could not send invite SMS.");
+      Alert.alert(t("members.error"), e?.response?.data?.message || t("members.couldNotSendInvite"));
     } finally {
       setInviteLoading(false);
     }
@@ -81,16 +83,16 @@ export default function Members() {
   return (
     <ScreenWrapper scroll={false} header={
       <PageHeader
-        title="Members"
+        title={t("members")}
         rightComponent={
           <TouchableOpacity
             style={[styles.inviteBtn, { backgroundColor: colors.secondary }]}
             onPress={() => setShowModal(true)}
             accessibilityRole="button"
-            accessibilityLabel="Invite member"
+            accessibilityLabel={t("members.inviteMember")}
           >
             <UserPlus size={16} color="#fff" />
-            <Text style={styles.inviteBtnText}>Invite</Text>
+            <Text style={styles.inviteBtnText}>{t("members.invite")}</Text>
           </TouchableOpacity>
         }
       />
@@ -100,7 +102,7 @@ export default function Members() {
         <Search size={16} color={colors.textSecondary} />
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search by name or phone..."
+          placeholder={t("members.searchPlaceholder")}
           placeholderTextColor={colors.textSecondary}
           value={query}
           onChangeText={setQuery}
@@ -134,11 +136,11 @@ export default function Members() {
             <ErrorState message={error} onRetry={refresh} />
           ) : (
             <EmptyState
-              title={members.length === 0 ? "No members yet" : "No results found"}
+              title={members.length === 0 ? t("members.noMembers") : t("members.noResults")}
               description={
                 members.length === 0
-                  ? "Invite someone to get started."
-                  : "Try a different name or phone number."
+                  ? t("members.noMembersDesc")
+                  : t("members.noResultsDesc")
               }
               icon={<UserPlus size={32} color={colors.textSecondary} />}
             />
@@ -151,38 +153,38 @@ export default function Members() {
           <Card style={[styles.modalCard, { backgroundColor: colors.card }]}>
             {!inviteCode ? (
               <>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>Invite Member</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>{t("members.inviteModalTitle")}</Text>
                 <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-                  Enter their phone number. An invite code will be generated — share it with them via SMS or WhatsApp.
+                  {t("members.inviteModalSubtitle")}
                 </Text>
                 <Divider style={{ marginVertical: 16 }} />
                 <Input
-                  label="Phone Number"
+                  label={t("members.phoneLabel")}
                   value={invitePhone}
                   onChangeText={setInvitePhone}
-                  placeholder="e.g. 0712345678"
+                  placeholder={t("members.phonePlaceholder")}
                   keyboardType="phone-pad"
                 />
                 <View style={styles.modalActions}>
-                  <Button title="Cancel" onPress={closeModal} variant="outline" style={styles.modalBtn} />
-                  <Button title="Send Invite" onPress={handleInvite} loading={inviteLoading} style={styles.modalBtn} />
+                  <Button title={t("common.cancel")} onPress={closeModal} variant="outline" style={styles.modalBtn} />
+                  <Button title={t("members.sendInvite")} onPress={handleInvite} loading={inviteLoading} style={styles.modalBtn} />
                 </View>
               </>
             ) : (
               <>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>Invite Code Ready</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>{t("members.inviteCodeReady")}</Text>
                 <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-                  Share this code with the member. They'll enter it in the app to join{" "}
-                  <Text style={{ fontWeight: "700" }}>{sacco?.name ?? "your SACCO"}</Text>.
+                  {t("members.shareCode")}{" "}
+                  <Text style={{ fontWeight: "700" }}>{sacco?.name ?? t("members.yourSacco")}</Text>.
                 </Text>
                 <Divider style={{ marginVertical: 16 }} />
                 <View style={[styles.codeBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <Text style={[styles.codeText, { color: colors.primary }]}>{inviteCode}</Text>
                 </View>
                 <Text style={[styles.codeNote, { color: colors.textSecondary }]}>
-                  SMS: "Join {sacco?.name ?? "our SACCO"}. Code: {inviteCode}. Download SACCOConnect to get started."
+                  {t("members.smsNote", { saccoName: sacco?.name ?? t("members.yourSacco"), code: inviteCode })}
                 </Text>
-                <Button title="Done" onPress={closeModal} style={{ marginTop: 16 }} />
+                <Button title={t("done")} onPress={closeModal} style={{ marginTop: 16 }} />
               </>
             )}
           </Card>

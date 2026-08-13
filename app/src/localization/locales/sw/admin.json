@@ -314,5 +314,6 @@
   "contributionSchedule.savedMsg": "Wanachama wote wataona tarehe iliyosasishwa ya mchango.",
   "contributionSchedule.couldNotSave": "Imeshindikana kuhifadhi tarehe.",
   "contributionSchedule.error": "Hitilafu",
-  "contributionSchedule.saveDueDate": "Hifadhi Tarehe ya Malipo"
+  "contributionSchedule.saveDueDate": "Hifadhi Tarehe ya Malipo",
+  "delete": "Futa"
 }
