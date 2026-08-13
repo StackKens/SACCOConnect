@@ -22,5 +22,16 @@
   "statementExportFailed": "Hatukuweza kutengeneza taarifa. Tafadhali jaribu tena.",
   "exportStatement": "Hamisha taarifa kama CSV",
   "preparing": "Inaandaa...",
-  "export": "Hamisha"
+  "export": "Hamisha",
+  "membershipDetails": "Maelezo ya Uanachama",
+  "membershipSubtitle": "Taarifa zako za uanachama",
+  "member": "Mwanachama",
+  "active": "Hai",
+  "pending": "Inasubiri",
+  "suspended": "Imesimamishwa",
+  "membershipId": "Kitambulisho cha Uanachama",
+  "joined": "Alijiunga",
+  "nationalId": "Kitambulisho cha Taifa",
+  "phoneNumber": "Nambari ya Simu",
+  "notProvided": "Haijatolewa"
 }

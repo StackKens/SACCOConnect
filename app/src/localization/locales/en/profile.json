@@ -22,5 +22,16 @@
   "statementExportFailed": "Could not generate the statement. Please try again.",
   "exportStatement": "Export statement as CSV",
   "preparing": "Preparing...",
-  "export": "Export"
+  "export": "Export",
+  "membershipDetails": "Membership Details",
+  "membershipSubtitle": "Your membership information",
+  "member": "Member",
+  "active": "Active",
+  "pending": "Pending",
+  "suspended": "Suspended",
+  "membershipId": "Membership ID",
+  "joined": "Joined",
+  "nationalId": "National ID",
+  "phoneNumber": "Phone Number",
+  "notProvided": "Not provided"
 }

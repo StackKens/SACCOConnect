@@ -9,6 +9,7 @@ import { api } from "@/services/api";
 import { formatDate } from "@/utils/date";
 import { formatCurrency } from "@/utils/currency";
 import { BadgeCheck, Users, Wallet } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 interface MemberProfile {
   id: string;
@@ -30,14 +31,14 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function statusLabel(status: string) {
+function statusLabel(status: string, t: (key: string) => string) {
   switch (status) {
     case "ACTIVE":
-      return "Active";
+      return t("active");
     case "PENDING":
-      return "Pending";
+      return t("pending");
     case "SUSPENDED":
-      return "Suspended";
+      return t("suspended");
     default:
       return status;
   }
@@ -45,6 +46,7 @@ function statusLabel(status: string) {
 
 export default function MembershipDetails() {
   const { colors } = useTheme();
+  const { t } = useTranslation("profile");
   const user = useAuthStore((state) => state.user);
   const sacco = useAuthStore((state) => state.sacco);
   const [member, setMember] = useState<MemberProfile | null>(null);
@@ -74,7 +76,7 @@ export default function MembershipDetails() {
 
   if (loading) {
     return (
-      <ScreenWrapper header={<PageHeader title="Membership Details" showBack />}>
+      <ScreenWrapper header={<PageHeader title={t("membershipDetails")} showBack />}>
         <LoadingSpinner />
       </ScreenWrapper>
     );
@@ -82,27 +84,27 @@ export default function MembershipDetails() {
 
   return (
     <ScreenWrapper
-      header={<PageHeader title="Membership Details" subtitle="Your membership information" showBack />}
+      header={<PageHeader title={t("membershipDetails")} subtitle={t("membershipSubtitle")} showBack />}
     >
       <Card style={styles.card}>
         <View style={styles.headerRow}>
           <BadgeCheck size={24} color={colors.primary} />
           <View style={styles.headerText}>
             <Text style={[styles.name, { color: colors.text }]}>
-              {member?.fullName ?? user?.name ?? "Member"}
+              {member?.fullName ?? user?.name ?? t("member")}
             </Text>
             <Text style={[styles.badge, { color: colors.secondary }]}>
-              {statusLabel(member?.status ?? "ACTIVE")} MEMBER
+              {statusLabel(member?.status ?? "ACTIVE", t)} {t("member").toUpperCase()}
             </Text>
           </View>
         </View>
 
         <View style={styles.divider} />
 
-        <DetailRow label="Membership ID" value={member?.id ?? "—"} />
-        <DetailRow label="Joined" value={member?.joinDate ? formatDate(member.joinDate) : "—"} />
-        <DetailRow label="National ID" value={member?.nationalId || "Not provided"} />
-        <DetailRow label="Phone Number" value={user?.phone ?? "—"} />
+        <DetailRow label={t("membershipId")} value={member?.id ?? "—"} />
+        <DetailRow label={t("joined")} value={member?.joinDate ? formatDate(member.joinDate) : "—"} />
+        <DetailRow label={t("nationalId")} value={member?.nationalId || t("notProvided")} />
+        <DetailRow label={t("phoneNumber")} value={user?.phone ?? "—"} />
 
         <View style={styles.divider} />
 
@@ -112,7 +114,7 @@ export default function MembershipDetails() {
             <Text style={[styles.statValue, { color: colors.text }]}>
               {formatCurrency(member?.currentBalance ?? 0)}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Balance</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t("balance")}</Text>
           </View>
           <View style={[styles.stat, { backgroundColor: colors.secondary + "14" }]}>
             <Users size={18} color={colors.secondary} />
