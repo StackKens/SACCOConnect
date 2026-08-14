@@ -4,6 +4,7 @@ CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'MEMBER', 'LOAN_OFFICER');
 CREATE TYPE "MemberStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED');
 CREATE TYPE "ContributionStatus" AS ENUM ('PENDING', 'CONFIRMED');
 CREATE TYPE "PaymentMethod" AS ENUM ('MOBILE_MONEY', 'CASH', 'BANK_TRANSFER');
+CREATE TYPE "AccountType" AS ENUM ('BANK', 'MOBILE_MONEY');
 CREATE TYPE "LoanStatus" AS ENUM (
   'PENDING',
   'AWAITING_GUARANTORS',
@@ -25,6 +26,10 @@ CREATE TABLE "Sacco" (
   "meetingDay" TEXT,
   "rulesText" TEXT,
   "inviteCode" TEXT NOT NULL,
+  "countryCode" TEXT NOT NULL DEFAULT 'UG',
+  "termsAccepted" BOOLEAN NOT NULL DEFAULT false,
+  "termsVersion" TEXT NOT NULL DEFAULT '1',
+  "termsAcceptedAt" TIMESTAMP(3),
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -158,7 +163,24 @@ CREATE TABLE "LoanRepayment" (
   CONSTRAINT "LoanRepayment_loanId_fkey" FOREIGN KEY ("loanId") REFERENCES "Loan"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE "PaymentAccount" (
+  "id" TEXT NOT NULL,
+  "saccoId" TEXT NOT NULL,
+  "type" "AccountType" NOT NULL,
+  "accountNumber" TEXT NOT NULL,
+  "accountName" TEXT NOT NULL,
+  "provider" TEXT,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "isMemberVisible" BOOLEAN NOT NULL DEFAULT false,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL,
+
+  CONSTRAINT "PaymentAccount_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "PaymentAccount_saccoId_fkey" FOREIGN KEY ("saccoId") REFERENCES "Sacco"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 CREATE UNIQUE INDEX "Sacco_inviteCode_key" ON "Sacco"("inviteCode");
+CREATE INDEX "PaymentAccount_saccoId_idx" ON "PaymentAccount"("saccoId");
 CREATE UNIQUE INDEX "User_phoneNumber_key" ON "User"("phoneNumber");
 CREATE UNIQUE INDEX "Member_userId_key" ON "Member"("userId");
 CREATE UNIQUE INDEX "RefreshToken_token_key" ON "RefreshToken"("token");
