@@ -29,6 +29,11 @@ enum PaymentMethod {
   BANK_TRANSFER
 }
 
+enum AccountType {
+  BANK
+  MOBILE_MONEY
+}
+
 enum LoanStatus {
   PENDING
   AWAITING_GUARANTORS
@@ -61,21 +66,26 @@ model User {
 }
 
 model Sacco {
-  id                 String   @id @default(cuid())
+  id                 String           @id @default(cuid())
   name               String
   registrationNo     String?
   contributionAmount Float
-  maxLoanMultiplier  Float    @default(3)
+  maxLoanMultiplier  Float            @default(3)
   interestRate       Float
-  loanTermMonths     Int      @default(12)
+  loanTermMonths     Int              @default(12)
   meetingDay         String?
   rulesText          String?
-  inviteCode         String   @unique
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  inviteCode         String           @unique
+  countryCode        String           @default("UG")
+  termsAccepted      Boolean          @default(false)
+  termsVersion       String           @default("1")
+  termsAcceptedAt    DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
   users              User[]
   members            Member[]
   announcements      Announcement[]
+  paymentAccounts    PaymentAccount[]
 }
 
 model Member {
@@ -96,6 +106,22 @@ model Member {
   contributions   Contribution[]
   loans           Loan[]
   guarantorFor    Guarantor[]    @relation("GuarantorMember")
+}
+
+model PaymentAccount {
+  id              String      @id @default(cuid())
+  saccoId         String
+  type            AccountType
+  accountNumber   String
+  accountName     String
+  provider        String?
+  isActive        Boolean     @default(true)
+  isMemberVisible Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  sacco           Sacco       @relation(fields: [saccoId], references: [id], onDelete: Cascade)
+
+  @@index([saccoId])
 }
 
 model OtpCode {
