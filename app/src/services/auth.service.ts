@@ -34,7 +34,29 @@ export interface AuthSessionResponse {
     inviteCode?: string;
     maxLoanMultiplier?: number;
     registrationNo?: string | null;
+    countryCode?: string;
+    termsAccepted?: boolean;
+    termsVersion?: string;
+    paymentAccounts?: PaymentAccount[];
   };
+}
+
+export interface PaymentAccount {
+  id: string;
+  type: "BANK" | "MOBILE_MONEY";
+  accountNumber: string;
+  accountName: string;
+  provider?: string | null;
+  isActive: boolean;
+  isMemberVisible: boolean;
+  createdAt?: string;
+}
+
+export interface PaymentAccountInput {
+  type: "BANK" | "MOBILE_MONEY";
+  accountNumber: string;
+  accountName: string;
+  provider?: string;
 }
 
 export interface InvitePreviewResponse {
@@ -96,6 +118,10 @@ export const authApi = {
     loanTermMonths: number;
     meetingDay?: string;
     rulesText?: string;
+    countryCode: string;
+    termsAccepted: boolean;
+    termsVersion: string;
+    paymentAccount: PaymentAccountInput;
   }) =>
     api.post<{ success: boolean; data: AuthSessionResponse }>(
       "/api/auth/register/admin",
@@ -129,4 +155,29 @@ export const authApi = {
     api.post<{ success: boolean; message: string }>("/api/auth/logout", {
       token: refreshToken,
     }),
+};
+
+export const saccoApi = {
+  getMySacco: () =>
+    api.get<{ success: boolean; data: { paymentAccounts: PaymentAccount[] } & Record<string, unknown> }>(
+      "/api/saccos/me",
+    ),
+
+  addPaymentAccount: (payload: PaymentAccountInput) =>
+    api.post<{ success: boolean; data: PaymentAccount }>(
+      "/api/saccos/payment-accounts",
+      payload,
+    ),
+
+  updatePaymentAccount: (
+    id: string,
+    payload: Partial<PaymentAccountInput> & {
+      isActive?: boolean;
+      isMemberVisible?: boolean;
+    },
+  ) =>
+    api.patch<{ success: boolean; data: PaymentAccount }>(
+      `/api/saccos/payment-accounts/${encodeURIComponent(id)}`,
+      payload,
+    ),
 };

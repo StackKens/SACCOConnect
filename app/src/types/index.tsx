@@ -20,6 +20,23 @@ export interface SACCO {
   adminId: string;
   logoColor: string;
   inviteCode?: string;
+  countryCode?: string;
+  termsAccepted?: boolean;
+  termsVersion?: string;
+  paymentAccounts?: PaymentAccount[];
+}
+
+export type AccountType = "BANK" | "MOBILE_MONEY";
+
+export interface PaymentAccount {
+  id: string;
+  type: AccountType;
+  accountNumber: string;
+  accountName: string;
+  provider?: string | null;
+  isActive: boolean;
+  isMemberVisible: boolean;
+  createdAt?: string;
 }
 
 export interface InviteCode {
