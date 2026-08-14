@@ -9,14 +9,14 @@ import { PaymentMethodRow } from "@/components/ui/PaymentMethodRow";
 import { SuccessState } from "@/components/ui/SuccessState";
 import { useTheme } from "@/hooks/useTheme";
 import { useCountry } from "@/hooks/useCountry";
-import { useAuthStore } from "@/store/auth.store";
-import { syncMemberData } from "@/store/auth.store";
+import { useAuthStore, syncMemberData } from "@/store/auth.store";
 import { dueDateLabel, formatDate } from "@/utils/date";
 import { api } from "@/services/api";
 import { getApiErrorMessage } from "@/services/auth.service";
 import { enqueue } from "@/services/offlineQueue";
 import { formatCurrency } from "@/utils/currency";
 import { formatPhoneNumber } from "@/shared/formatters/phone";
+import { checkMobileMoneyNumber, isValidBankAccount } from "@/shared/formatters/mobileMoney";
 import { Smartphone, Landmark } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
@@ -39,7 +39,7 @@ export default function AdminContribute() {
   const [step, setStep] = useState<Step>("details");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("MTN");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(() => useAuthStore.getState().user?.phone ?? "");
   const [accountNumber, setAccountNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [reference, setReference] = useState("");
@@ -53,17 +53,31 @@ export default function AdminContribute() {
   const selectedMethod = METHODS.find((m) => m.key === method)!;
   const numAmount = parseFloat(amount);
   const validAmount = !isNaN(numAmount) && numAmount > 0;
+  const mobileCheck = isMobile ? checkMobileMoneyNumber(phone, country, method) : null;
+  const bankValid = method !== "Bank" || isValidBankAccount(accountNumber);
+  const mobileError =
+    isMobile && phone.trim().length > 0 && mobileCheck && !mobileCheck.valid
+      ? mobileCheck.reason === "wrong_provider"
+        ? t("contribute.invalidProvider", { provider: method })
+        : t("contribute.enterValidNumber")
+      : undefined;
+  const bankError = method === "Bank" && accountNumber.trim().length > 0 && !bankValid ? t("contribute.enterValidAccount") : undefined;
 
   const handleContinue = () => {
     if (!validAmount) {
       Alert.alert(t("contribute.invalidAmount"), t("contribute.enterValidAmount"));
       return;
     }
-    if (isMobile && phone.trim().length < 9) {
-      Alert.alert(t("contribute.invalidNumber"), t("contribute.enterValidNumber"));
+    if (isMobile && mobileCheck && !mobileCheck.valid) {
+      Alert.alert(
+        t("contribute.invalidNumber"),
+        mobileCheck.reason === "wrong_provider"
+          ? t("contribute.invalidProvider", { provider: method })
+          : t("contribute.enterValidNumber"),
+      );
       return;
     }
-    if (method === "Bank" && accountNumber.trim().length < 6) {
+    if (method === "Bank" && !bankValid) {
       Alert.alert(t("contribute.invalidAccount"), t("contribute.enterValidAccount"));
       return;
     }
@@ -187,7 +201,8 @@ export default function AdminContribute() {
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
-                 placeholder={formatPhoneNumber("000000000", country).replace(country.phoneCode + " ", "")}
+                placeholder={formatPhoneNumber("000000000", country).replace(country.phoneCode + " ", "")}
+                error={mobileError}
               />
               <Text style={[typography.caption, { color: colors.textSecondary, marginTop: -10 }]}>
                 {t("contribute.paymentPromptNote")}
@@ -204,6 +219,7 @@ export default function AdminContribute() {
                 onChangeText={setAccountNumber}
                 keyboardType="numeric"
                 placeholder={t("contribute.accountPlaceholder")}
+                error={bankError}
               />
               <Text style={[typography.caption, { color: colors.textSecondary, marginTop: -10 }]}>
                 {t("contribute.bankNote")}
