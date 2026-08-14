@@ -9,6 +9,7 @@ import contributionRoutes from "./routes/contribution.routes";
 import memberRoutes from "./routes/member.routes";
 import guarantorRoutes from "./routes/guarantor.routes";
 import announcementRoutes from "./routes/announcement.routes";
+import saccoRoutes from "./routes/sacco.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 export function createApp() {
@@ -37,6 +38,7 @@ export function createApp() {
   app.use("/api/members", memberRoutes);
   app.use("/api/guarantors", guarantorRoutes);
   app.use("/api/announcements", announcementRoutes);
+  app.use("/api/saccos", saccoRoutes);
 
   app.use(errorHandler);
 
