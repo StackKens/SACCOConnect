@@ -62,6 +62,7 @@ export async function createSaccoWithAdmin(input: SaccoAdminInput) {
           },
         },
       },
+      include: { paymentAccounts: true },
     });
 
     const user = await tx.user.create({
