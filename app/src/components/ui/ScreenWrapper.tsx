@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, ViewStyle, View, Text, Pressable, RefreshContro
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 import { StatusBar } from "expo-status-bar";
-import { router } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import { PendingSyncBanner } from "./PendingSyncBanner";
 
@@ -76,7 +76,28 @@ export const PageHeader: React.FC<{
   onBack?: () => void;
 }> = ({ title, subtitle, rightComponent, showBack = false, onBack, style }) => {
   const { colors } = useTheme();
-  const handleBack = onBack ?? (() => router.back());
+  const router = useRouter();
+  const segments = useSegments();
+
+  const handleBack =
+    onBack ??
+    (() => {
+      if (router.canGoBack()) {
+        router.back();
+        return;
+      }
+      // No history to pop (e.g. deep-linked or restored directly to this
+      // screen) — fall back to the group's home instead of the root.
+      const group = segments[0];
+      const home =
+        group === "(admin)"
+          ? "/(admin)"
+          : group === "(member)"
+            ? "/(member)"
+            : "/(auth)/entry";
+      router.replace(home);
+    });
+
   return (
     <>
       <View style={[styles.pageHeaderWrapper, style]}>
