@@ -331,5 +331,6 @@
   "payment.required": "Missing details",
   "payment.requiredName": "Enter the account name.",
   "payment.addFailed": "Could not add account",
-  "payment.updateFailed": "Could not update account"
+  "payment.updateFailed": "Could not update account",
+  "contribute.invalidProvider": "That doesn't look like a {{provider}} number."
 }

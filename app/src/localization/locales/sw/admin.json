@@ -331,5 +331,6 @@
   "payment.required": "Maelezo hayapo",
   "payment.requiredName": "Weka jina la akaunti.",
   "payment.addFailed": "Imeshindwa kuongeza akaunti",
-  "payment.updateFailed": "Imeshindwa kusasisha akaunti"
+  "payment.updateFailed": "Imeshindwa kusasisha akaunti",
+  "contribute.invalidProvider": "Nambari hiyo haionekani kama ya {{provider}}."
 }

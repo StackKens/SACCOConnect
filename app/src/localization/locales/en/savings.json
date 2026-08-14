@@ -55,5 +55,6 @@
   "contribute.mobilePromptNote": "You will receive a payment prompt on this number to approve.",
   "contribute.bankAccountLabel": "Bank Account Number",
   "contribute.bankAccountPlaceholder": "e.g. 1234567890",
-  "contribute.bankNote": "Use your member ID as the transfer reference. Your contribution will be confirmed within 24 hours."
+  "contribute.bankNote": "Use your member ID as the transfer reference. Your contribution will be confirmed within 24 hours.",
+  "contribute.invalidProvider": "That doesn't look like a {{provider}} number."
 }
