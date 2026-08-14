@@ -64,6 +64,31 @@ export const MOCK_SACCO = {
   loanTermMonths: 12,
   meetingDay: "Saturday",
   inviteCode: "UNITY6",
+  countryCode: "UG",
+  termsAccepted: true,
+  termsVersion: "1",
+  paymentAccounts: [
+    {
+      id: "payment_mock_001",
+      type: "MOBILE_MONEY",
+      accountNumber: "0772000123",
+      accountName: "Kampala Unity SACCO",
+      provider: "MTN",
+      isActive: true,
+      isMemberVisible: true,
+      createdAt: "2021-03-01T00:00:00.000Z",
+    },
+    {
+      id: "payment_mock_002",
+      type: "BANK",
+      accountNumber: "1001234567890",
+      accountName: "Kampala Unity SACCO",
+      provider: "Stanbic Bank",
+      isActive: true,
+      isMemberVisible: false,
+      createdAt: "2021-03-01T00:00:00.000Z",
+    },
+  ],
 };
 
 export const MOCK_MEMBERS: MockMember[] = [

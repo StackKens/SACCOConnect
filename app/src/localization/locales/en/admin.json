@@ -316,5 +316,20 @@
   "contributionSchedule.couldNotSave": "Could not save the date.",
   "contributionSchedule.error": "Error",
   "contributionSchedule.saveDueDate": "Save Due Date",
-  "delete": "Delete"
+  "delete": "Delete",
+  "payment.title": "Payment Accounts",
+  "payment.subtitle": "Manage the accounts members pay into",
+  "payment.note": "Contributions are sent to the SACCO's payment account, not to individuals. Only administrators can view or change these accounts. Members only see accounts you mark as visible.",
+  "payment.emptyTitle": "No payment accounts yet",
+  "payment.emptyMsg": "Add the account members will use to send their contributions. You can add a mobile money number or a bank account.",
+  "payment.add": "Add Payment Account",
+  "payment.save": "Save Account",
+  "payment.accountName": "Account Name",
+  "payment.active": "Accepting payments",
+  "payment.visible": "Show to members",
+  "payment.provider": "Provider",
+  "payment.required": "Missing details",
+  "payment.requiredName": "Enter the account name.",
+  "payment.addFailed": "Could not add account",
+  "payment.updateFailed": "Could not update account"
 }

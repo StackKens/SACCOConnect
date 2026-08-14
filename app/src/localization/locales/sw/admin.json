@@ -316,5 +316,20 @@
   "contributionSchedule.couldNotSave": "Imeshindikana kuhifadhi tarehe.",
   "contributionSchedule.error": "Hitilafu",
   "contributionSchedule.saveDueDate": "Hifadhi Tarehe ya Malipo",
-  "delete": "Futa"
+  "delete": "Futa",
+  "payment.title": "Akaunti za Malipo",
+  "payment.subtitle": "Dhibiti akaunti ambazo wanachama hulipa",
+  "payment.note": "Michango hutumwa kwa akaunti ya malipo ya SACCO, si kwa watu binafsi. Wasimamizi pekee wanaweza kuona au kubadilisha akaunti hizi. Wanachama huona akaunti pekee unazozionyesha kwao.",
+  "payment.emptyTitle": "Hakuna akaunti za malipo bado",
+  "payment.emptyMsg": "Ongeza akaunti ambayo wanachama watatumia kutuma michango yao. Unaweza kuongeza namba ya simu ya fedha au akaunti ya benki.",
+  "payment.add": "Ongeza Akaunti ya Malipo",
+  "payment.save": "Hifadhi Akaunti",
+  "payment.accountName": "Jina la Akaunti",
+  "payment.active": "Inapokea malipo",
+  "payment.visible": "Onyesha kwa wanachama",
+  "payment.provider": "Mtoa huduma",
+  "payment.required": "Maelezo hayapo",
+  "payment.requiredName": "Weka jina la akaunti.",
+  "payment.addFailed": "Imeshindwa kuongeza akaunti",
+  "payment.updateFailed": "Imeshindwa kusasisha akaunti"
 }

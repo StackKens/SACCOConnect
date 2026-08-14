@@ -80,6 +80,11 @@ export default function AdminSettings() {
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
         <Divider style={styles.divider} />
+        <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/payment-config")} accessibilityRole="button" accessibilityLabel="Manage payment accounts">
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t("payment.title")}</Text>
+          <ChevronRight size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <Divider style={styles.divider} />
         <TouchableOpacity style={styles.supportRow} onPress={() => router.push("/(admin)/contribution-schedule")} accessibilityRole="button" accessibilityLabel="Set contribution due date">
           <Text style={[styles.settingLabel, { color: colors.text }]}>{t("settings.contributionDueDate")}</Text>
           <ChevronRight size={18} color={colors.textSecondary} />

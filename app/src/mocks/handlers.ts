@@ -110,7 +110,28 @@ export function handleMockRequest(req: MockRequest): MockResponse {
       loanTermMonths?: number;
       meetingDay?: string;
       nationalId?: string;
+      countryCode?: string;
+      paymentAccount?: {
+        type?: string;
+        accountNumber?: string;
+        accountName?: string;
+        provider?: string;
+      };
     };
+    const paymentAccounts = body.paymentAccount
+      ? [
+          {
+            id: `payment_new_${Date.now()}`,
+            type: body.paymentAccount.type === "BANK" ? "BANK" : "MOBILE_MONEY",
+            accountNumber: body.paymentAccount.accountNumber ?? "",
+            accountName: body.paymentAccount.accountName ?? "",
+            provider: body.paymentAccount.provider ?? "",
+            isActive: true,
+            isMemberVisible: false,
+            createdAt: new Date().toISOString(),
+          },
+        ]
+      : [];
     return created({
       accessToken: "mock_token_new_admin",
       refreshToken: "mock_refresh_new_admin",
@@ -133,6 +154,10 @@ export function handleMockRequest(req: MockRequest): MockResponse {
         loanTermMonths: body.loanTermMonths ?? MOCK_SACCO.loanTermMonths,
         meetingDay: body.meetingDay ?? MOCK_SACCO.meetingDay,
         inviteCode: MOCK_SACCO.inviteCode,
+        countryCode: body.countryCode ?? "UG",
+        termsAccepted: true,
+        termsVersion: "1",
+        paymentAccounts,
       },
     });
   }
@@ -401,6 +426,56 @@ export function handleMockRequest(req: MockRequest): MockResponse {
       inviteCode: MOCK_SACCO.inviteCode,
       saccoName: MOCK_SACCO.name,
     });
+  }
+
+  // ---- sacco payment accounts ----
+  if (req.path === "/api/saccos/me" && method === "GET") {
+    const isAdmin = member.role === "ADMIN";
+    const paymentAccounts = isAdmin
+      ? MOCK_SACCO.paymentAccounts
+      : MOCK_SACCO.paymentAccounts.filter((a) => a.isActive && a.isMemberVisible);
+    return ok({ ...MOCK_SACCO, paymentAccounts });
+  }
+
+  if (req.path === "/api/saccos/payment-accounts" && method === "POST") {
+    const body = (req.body ?? {}) as {
+      type?: string;
+      accountNumber?: string;
+      accountName?: string;
+      provider?: string;
+    };
+    const account = {
+      id: `payment_mock_${Date.now()}`,
+      type: body.type === "BANK" ? "BANK" : "MOBILE_MONEY",
+      accountNumber: body.accountNumber ?? "",
+      accountName: body.accountName ?? "",
+      provider: body.provider ?? "",
+      isActive: true,
+      isMemberVisible: false,
+      createdAt: new Date().toISOString(),
+    };
+    MOCK_SACCO.paymentAccounts.unshift(account);
+    return created(account);
+  }
+
+  const paymentAccountMatch = req.path.match(
+    /^\/api\/saccos\/payment-accounts\/([^/]+)$/,
+  );
+  if (paymentAccountMatch && method === "PATCH") {
+    const account = MOCK_SACCO.paymentAccounts.find(
+      (a) => a.id === paymentAccountMatch[1],
+    );
+    if (!account) {
+      return { status: 404, data: { success: false, message: "Payment account not found" } };
+    }
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    if (typeof body.type === "string") account.type = body.type;
+    if (typeof body.accountNumber === "string") account.accountNumber = body.accountNumber;
+    if (typeof body.accountName === "string") account.accountName = body.accountName;
+    if (typeof body.provider === "string") account.provider = body.provider;
+    if (typeof body.isActive === "boolean") account.isActive = body.isActive;
+    if (typeof body.isMemberVisible === "boolean") account.isMemberVisible = body.isMemberVisible;
+    return ok(account);
   }
 
   // ---- member status / delete ----
