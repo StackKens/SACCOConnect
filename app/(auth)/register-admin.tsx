@@ -13,8 +13,17 @@ import { useAuthStore } from "@/store/auth.store";
 import { formatCurrency } from "@/utils/currency";
 import { formatPhoneNumber, normalizePhoneNumberWithCountry } from "@/shared/formatters/phone";
 import { PRESET_RULES } from "@/constants/rules";
+import { PaymentAccountForm, PaymentAccountDraft } from "@/features/sacco/PaymentAccountForm";
+import { TermsStep } from "@/features/sacco/TermsStep";
 
-type Step = "phone" | "otp" | "personal" | "sacco" | "review";
+type Step = "phone" | "otp" | "personal" | "sacco" | "payment" | "terms" | "review";
+
+const initialPaymentAccount: PaymentAccountDraft = {
+  type: "MOBILE_MONEY",
+  accountNumber: "",
+  accountName: "",
+  provider: "",
+};
 
 export default function RegisterAdmin() {
   const { colors } = useTheme();
@@ -35,6 +44,8 @@ export default function RegisterAdmin() {
   const [loanTermMonths, setLoanTermMonths] = useState("12");
   const [meetingDay, setMeetingDay] = useState("");
   const [rulesText, setRulesText] = useState(PRESET_RULES.join("\n"));
+  const [paymentAccount, setPaymentAccount] = useState<PaymentAccountDraft>(initialPaymentAccount);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handlePersonalNext = () => {
@@ -52,7 +63,21 @@ export default function RegisterAdmin() {
     if (!interestRate || Number.isNaN(Number(interestRate))) {
       return Alert.alert("Required", "Enter a valid interest rate.");
     }
-    setStep("review");
+    setStep("payment");
+  };
+
+  const handlePaymentNext = () => {
+    if (!paymentAccount.accountName.trim()) {
+      return Alert.alert("Required", "Enter the payment account name.");
+    }
+    const digits = paymentAccount.accountNumber.replace(/\D/g, "");
+    if (paymentAccount.type === "MOBILE_MONEY" && digits.length < 9) {
+      return Alert.alert("Invalid number", "Enter a valid mobile money number.");
+    }
+    if (paymentAccount.type === "BANK" && paymentAccount.accountNumber.trim().length < 5) {
+      return Alert.alert("Invalid number", "Enter a valid bank account number.");
+    }
+    setStep("terms");
   };
 
   const handleCreate = async () => {
@@ -71,6 +96,15 @@ export default function RegisterAdmin() {
         loanTermMonths: Number(loanTermMonths) || 12,
         meetingDay: meetingDay.trim() || undefined,
         rulesText: rulesText.trim() || undefined,
+        countryCode: country.code,
+        termsAccepted,
+        termsVersion: "1",
+        paymentAccount: {
+          type: paymentAccount.type,
+          accountNumber: paymentAccount.accountNumber.trim(),
+          accountName: paymentAccount.accountName.trim(),
+          provider: paymentAccount.provider.trim() || undefined,
+        },
       });
       router.replace("/(admin)");
     } catch (e: any) {
@@ -157,7 +191,31 @@ export default function RegisterAdmin() {
           <Input label="Max Loan Term (months)" value={loanTermMonths} onChangeText={setLoanTermMonths} keyboardType="numeric" />
           <Input label="Meeting Day" value={meetingDay} onChangeText={setMeetingDay} placeholder="e.g. Every last Saturday" />
           <TextArea label="Group Rules" value={rulesText} onChangeText={setRulesText} />
-          <Button title="Review" onPress={handleSaccoNext} style={{ marginTop: 8 }} />
+          <Button title="Continue" onPress={handleSaccoNext} style={{ marginTop: 8 }} />
+        </View>
+      )}
+
+      {step === "payment" && (
+        <View style={styles.step}>
+          <Text style={[styles.title, { color: colors.text }]}>Payment account</Text>
+          <Text style={[styles.sub, { color: colors.textSecondary }]}>
+            This is where members will send their contributions. It belongs to the
+            SACCO and only administrators can manage it.
+          </Text>
+          <PaymentAccountForm value={paymentAccount} onChange={setPaymentAccount} />
+          <Button title="Continue" onPress={handlePaymentNext} style={{ marginTop: 8 }} />
+        </View>
+      )}
+
+      {step === "terms" && (
+        <View style={styles.step}>
+          <TermsStep accepted={termsAccepted} onToggle={setTermsAccepted} />
+          <Button
+            title="Continue"
+            onPress={() => setStep("review")}
+            disabled={!termsAccepted}
+            style={{ marginTop: 16 }}
+          />
         </View>
       )}
 
@@ -174,6 +232,9 @@ export default function RegisterAdmin() {
             {meetingDay ? (
               <Text style={[styles.row, { color: colors.textSecondary }]}>Meeting: {meetingDay}</Text>
             ) : null}
+            <Text style={[styles.row, { color: colors.textSecondary }]}>
+              Payments to: {paymentAccount.accountName} ({paymentAccount.accountNumber})
+            </Text>
           </Card>
           <Button title="Create SACCO" onPress={handleCreate} loading={loading} style={{ marginTop: 16 }} />
         </View>
