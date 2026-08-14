@@ -8,6 +8,8 @@ import { normalizePhoneNumber } from "../shared/formatters/phone";
 import {
   authApi,
   AuthSessionResponse,
+  PaymentAccount,
+  PaymentAccountInput,
   clearAccessToken,
   getApiErrorMessage,
   getRefreshToken,
@@ -38,6 +40,10 @@ function mapSacco(raw: AuthSessionResponse["sacco"]): SACCO | null {
     adminId: "",
     logoColor: "#3B82F6",
     inviteCode: raw.inviteCode,
+    countryCode: raw.countryCode,
+    termsAccepted: raw.termsAccepted,
+    termsVersion: raw.termsVersion,
+    paymentAccounts: raw.paymentAccounts,
   };
 }
 
@@ -157,6 +163,10 @@ interface AuthState {
     loanTermMonths: number;
     meetingDay?: string;
     rulesText?: string;
+    countryCode: string;
+    termsAccepted: boolean;
+    termsVersion: string;
+    paymentAccount: PaymentAccountInput;
   }) => Promise<void>;
   joinSACCO: (params: {
     code: string;
@@ -165,14 +175,7 @@ interface AuthState {
     phone: string;
     pin: string;
   }) => Promise<void>;
-  createSACCO: (params: {
-    name: string;
-    contributionAmount: number;
-    interestRate: number;
-    rules: string[];
-    customRule: string;
-    logoColor: string;
-  }) => Promise<void>;
+  setPaymentAccounts: (paymentAccounts: PaymentAccount[]) => void;
   acceptRules: () => void;
   updateProfile: (patch: { name?: string; nationalId?: string }) => void;
   updateSACCORules: (rules: string[]) => Promise<void>;
@@ -263,6 +266,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         loanTermMonths: params.loanTermMonths,
         meetingDay: params.meetingDay?.trim() || undefined,
         rulesText: params.rulesText?.trim() || undefined,
+        countryCode: params.countryCode,
+        termsAccepted: params.termsAccepted,
+        termsVersion: params.termsVersion,
+        paymentAccount: params.paymentAccount,
       });
       const { user, sacco } = persistSession(res.data.data);
       useMemberDataStore.getState().resetSession();
@@ -289,24 +296,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  createSACCO: async ({ name, contributionAmount, interestRate, rules, customRule, logoColor }) => {
-    const { user } = get();
-    if (!user) throw new Error("Not logged in.");
-    const allRules = customRule.trim() ? [...rules, customRule.trim()] : rules;
-    const sacco: SACCO = {
-      id: user.saccoId ?? `sacco_${Date.now()}`,
-      name,
-      contributionAmount,
-      interestRate,
-      contributionDueDate: defaultContributionDueDate(5),
-      rules: allRules,
-      adminId: user.id,
-      logoColor,
-    };
-    storage.set("sacco", JSON.stringify(sacco));
-    const updatedUser = { ...user, saccoId: sacco.id, saccoName: sacco.name };
-    storage.set("user", JSON.stringify(updatedUser));
-    set({ user: updatedUser, sacco, rulesAccepted: true });
+  setPaymentAccounts: (paymentAccounts) => {
+    const { sacco } = get();
+    if (!sacco) return;
+    const updated: SACCO = { ...sacco, paymentAccounts };
+    storage.set("sacco", JSON.stringify(updated));
+    set({ sacco: updated });
   },
 
   updateSACCORules: async (rules) => {
