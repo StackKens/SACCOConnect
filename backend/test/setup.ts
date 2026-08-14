@@ -9,6 +9,7 @@ process.env.JWT_REFRESH_SECRET = "test-refresh-secret-at-least-32-chars";
 import { prisma } from "../config/database";
 
 export async function clearDatabase() {
+  await prisma.paymentAccount.deleteMany();
   await prisma.loanRepayment.deleteMany();
   await prisma.guarantor.deleteMany();
   await prisma.loan.deleteMany();
