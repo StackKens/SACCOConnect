@@ -130,7 +130,7 @@ export default function RegisterAdmin() {
         <View style={styles.step}>
           <Text style={[styles.title, { color: colors.text }]}>Phone verification</Text>
           <Text style={[styles.sub, { color: colors.textSecondary }]}>
-            We'll send a 6-digit code to verify your number.
+            We&apos;ll send a 6-digit code to verify your number.
           </Text>
           <Input
             label="Phone Number"
