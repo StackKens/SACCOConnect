@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  isSupportedCountryCode,
+  isValidCountryPhone,
+  normalizeCountryPhone,
+} from "./phone";
 
 // Normalizes any Uganda phone format to 07XXXXXXXX
 function normalizeUgandaPhone(phone: string): string {
@@ -22,20 +27,101 @@ export const changePinSchema = z.object({
   newPin: z.string().length(4),
 });
 
-export const registerAdminSchema = z.object({
-  phoneNumber: phoneSchema,
-  fullName: z.string().min(2).max(100),
-  nationalId: z.string().optional(),
-  pin: z.string().length(4),
-  saccoName: z.string().min(2).max(100),
-  registrationNo: z.string().optional(),
-  contributionAmount: z.number().min(1000),
-  maxLoanMultiplier: z.number().min(1).max(10),
-  interestRate: z.number().min(1).max(100),
-  loanTermMonths: z.number().min(1).max(60),
-  meetingDay: z.string().optional(),
-  rulesText: z.string().optional(),
-});
+export const accountTypeSchema = z.enum(["BANK", "MOBILE_MONEY"]);
+
+export const paymentAccountSchema = z
+  .object({
+    type: accountTypeSchema,
+    accountNumber: z.string().trim().min(1, "Account number is required"),
+    accountName: z.string().trim().min(2, "Account name is required"),
+    provider: z.string().trim().optional(),
+  })
+  .superRefine((acc, ctx) => {
+    if (
+      acc.type === "MOBILE_MONEY" &&
+      acc.accountNumber.replace(/\D/g, "").length < 9
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["accountNumber"],
+        message: "Enter a valid mobile money number",
+      });
+    }
+    if (acc.type === "BANK" && acc.accountNumber.length < 5) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["accountNumber"],
+        message: "Enter a valid bank account number",
+      });
+    }
+  });
+
+export const paymentAccountUpdateSchema = z
+  .object({
+    type: accountTypeSchema.optional(),
+    accountNumber: z.string().trim().min(1).optional(),
+    accountName: z.string().trim().min(2).optional(),
+    provider: z.string().trim().nullable().optional(),
+    isActive: z.boolean().optional(),
+    isMemberVisible: z.boolean().optional(),
+  })
+  .superRefine((acc, ctx) => {
+    if (
+      acc.type === "MOBILE_MONEY" &&
+      acc.accountNumber &&
+      acc.accountNumber.replace(/\D/g, "").length < 9
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["accountNumber"],
+        message: "Enter a valid mobile money number",
+      });
+    }
+    if (acc.type === "BANK" && acc.accountNumber && acc.accountNumber.length < 5) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["accountNumber"],
+        message: "Enter a valid bank account number",
+      });
+    }
+  });
+
+export const registerAdminSchema = z
+  .object({
+    countryCode: z
+      .string()
+      .refine(isSupportedCountryCode, "Unsupported country code"),
+    phoneNumber: z.string().min(9, "Enter a valid phone number"),
+    fullName: z.string().min(2).max(100),
+    nationalId: z.string().optional(),
+    pin: z.string().length(4),
+    saccoName: z.string().min(2).max(100),
+    registrationNo: z.string().optional(),
+    contributionAmount: z.number().min(1000),
+    maxLoanMultiplier: z.number().min(1).max(10),
+    interestRate: z.number().min(1).max(100),
+    loanTermMonths: z.number().min(1).max(60),
+    meetingDay: z.string().optional(),
+    rulesText: z.string().optional(),
+    termsAccepted: z.boolean().refine((v) => v === true, {
+      message: "Terms and conditions must be accepted",
+    }),
+    termsVersion: z.string().min(1),
+    paymentAccount: paymentAccountSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (!isValidCountryPhone(data.phoneNumber, data.countryCode)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phoneNumber"],
+        message: "Enter a valid phone number for the selected country",
+      });
+    }
+  })
+  .transform((data) => ({
+    ...data,
+    phoneNumber: normalizeCountryPhone(data.phoneNumber, data.countryCode),
+  }));
 
 export const registerMemberSchema = z.object({
   phoneNumber: phoneSchema,
