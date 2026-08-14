@@ -42,6 +42,27 @@ async function main() {
       rulesText:
         "1. Monthly contribution of UGX 50,000 due by the 5th\n2. Members must have 3 months of contributions to qualify for a loan\n3. Maximum loan is 3x your savings balance\n4. Late payments attract a 5% penalty\n5. Two guarantors required for any loan above UGX 100,000",
       inviteCode: "UNITY6",
+      countryCode: "UG",
+      termsAccepted: true,
+      termsVersion: "1",
+      termsAcceptedAt: new Date("2021-03-01"),
+      paymentAccounts: {
+        create: [
+          {
+            type: "MOBILE_MONEY",
+            accountNumber: "0772000123",
+            accountName: "Kampala Unity SACCO",
+            provider: "MTN",
+            isMemberVisible: true,
+          },
+          {
+            type: "BANK",
+            accountNumber: "1001234567890",
+            accountName: "Kampala Unity SACCO",
+            provider: "Stanbic Bank",
+          },
+        ],
+      },
     },
   });
 
