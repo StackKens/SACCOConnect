@@ -35,7 +35,7 @@ interface TransactionRowProps {
   last?: boolean;
 }
 
-export const TransactionRow: React.FC<TransactionRowProps> = React.memo(({ item, last }) => {
+function TransactionRowComponent({ item, last }: TransactionRowProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const { label, Icon, tone } = typeMeta(item.type);
   const status = statusMeta(item.status);
@@ -79,4 +79,6 @@ export const TransactionRow: React.FC<TransactionRowProps> = React.memo(({ item,
       </Text>
     </View>
   );
-});
+}
+
+export const TransactionRow = React.memo(TransactionRowComponent);
