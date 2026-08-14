@@ -7,7 +7,7 @@ import {
   verifyRefreshToken,
 } from "../config/jwt";
 import { generateOTP, sendOTP } from "../services/sms.service";
-import { generateInviteCode, paramString } from "../utils/helpers";
+import { paramString } from "../utils/helpers";
 import { AppError } from "../middleware/error.middleware";
 import { AuthRequest } from "../middleware/auth.middleware";
 import {
@@ -24,6 +24,7 @@ import {
   recordRiskDecision,
   sendEvent,
 } from "../services/security-intelligence.service";
+import { createSaccoWithAdmin } from "../services/sacco.service";
 
 function eventContext(req: Request) {
   const deviceId = req.headers["x-device-id"];
@@ -104,47 +105,23 @@ export async function registerAdmin(req: Request, res: Response) {
   });
   if (!otpUsed) throw new AppError("Phone number not verified", 400);
 
-  const pinHash = await bcrypt.hash(data.pin, 12);
-  const inviteCode = generateInviteCode();
-
-  const result = await prisma.$transaction(async (tx) => {
-    const sacco = await tx.sacco.create({
-      data: {
-        name: data.saccoName,
-        registrationNo: data.registrationNo,
-        contributionAmount: data.contributionAmount,
-        maxLoanMultiplier: data.maxLoanMultiplier,
-        interestRate: data.interestRate,
-        loanTermMonths: data.loanTermMonths,
-        meetingDay: data.meetingDay,
-        rulesText: data.rulesText,
-        inviteCode,
-      },
-    });
-
-    const user = await tx.user.create({
-      data: {
-        phoneNumber: data.phoneNumber,
-        pinHash,
-        role: "ADMIN",
-        saccoId: sacco.id,
-      },
-    });
-
-    const member = await tx.member.create({
-      data: {
-        userId: user.id,
-        saccoId: sacco.id,
-        fullName: data.fullName,
-        nationalId: data.nationalId,
-      },
-    });
-
-    await tx.streak.create({
-      data: { memberId: member.id, monthlyRecord: "{}" },
-    });
-
-    return { user, sacco, member };
+  const result = await createSaccoWithAdmin({
+    phoneNumber: data.phoneNumber,
+    pin: data.pin,
+    fullName: data.fullName,
+    nationalId: data.nationalId,
+    saccoName: data.saccoName,
+    registrationNo: data.registrationNo,
+    contributionAmount: data.contributionAmount,
+    maxLoanMultiplier: data.maxLoanMultiplier,
+    interestRate: data.interestRate,
+    loanTermMonths: data.loanTermMonths,
+    meetingDay: data.meetingDay,
+    rulesText: data.rulesText,
+    countryCode: data.countryCode,
+    termsAccepted: data.termsAccepted,
+    termsVersion: data.termsVersion,
+    paymentAccount: data.paymentAccount,
   });
 
   const accessToken = generateAccessToken({
