@@ -53,6 +53,7 @@ export default function AdminContribute() {
   const selectedMethod = METHODS.find((m) => m.key === method)!;
   const numAmount = parseFloat(amount);
   const validAmount = !isNaN(numAmount) && numAmount > 0;
+  const bankRef = user?.id ?? "";
   const mobileCheck = isMobile ? checkMobileMoneyNumber(phone, country, method) : null;
   const bankValid = method !== "Bank" || isValidBankAccount(accountNumber);
   const mobileError =
@@ -89,7 +90,8 @@ export default function AdminContribute() {
     const body = {
       amount: numAmount,
       method: selectedMethod.apiValue,
-      transactionRef: isMobile ? phone.trim() : accountNumber.trim() || undefined,
+      transactionRef: isMobile ? phone.trim() : bankRef || undefined,
+      ...(method === "Bank" && accountNumber.trim() ? { notes: accountNumber.trim() } : {}),
     };
     const year = new Date().getFullYear();
 
@@ -222,7 +224,7 @@ export default function AdminContribute() {
                 error={bankError}
               />
               <Text style={[typography.caption, { color: colors.textSecondary, marginTop: -10 }]}>
-                {t("contribute.bankNote")}
+                {t("contribute.bankNote", { ref: bankRef })}
               </Text>
             </>
           )}
@@ -240,7 +242,12 @@ export default function AdminContribute() {
             <View style={{ gap: spacing.lg }}>
               <ConfirmRow label={t("contribute.paymentMethod")} value={selectedMethod.label} />
               {isMobile && <ConfirmRow label={t("contribute.phoneLabel")} value={mask(phone.trim())} />}
-              {method === "Bank" && <ConfirmRow label={t("contribute.accountLabel")} value={mask(accountNumber.trim())} />}
+              {method === "Bank" && (
+                <>
+                  <ConfirmRow label={t("contribute.accountLabel")} value={mask(accountNumber.trim())} />
+                  <ConfirmRow label={t("contribute.referenceLabel")} value={bankRef} />
+                </>
+              )}
               {sacco && <ConfirmRow label={t("admin.member")} value={sacco.name} />}
             </View>
           </View>

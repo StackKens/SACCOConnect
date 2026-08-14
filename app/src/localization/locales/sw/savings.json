@@ -55,6 +55,7 @@
   "contribute.mobilePromptNote": "Utapokea kidokezo cha malipo kwenye nambari hii kukithibitisha.",
   "contribute.bankAccountLabel": "Nambari ya Akaunti ya Benki",
   "contribute.bankAccountPlaceholder": "mf. 1234567890",
-  "contribute.bankNote": "Tumia nambari yako ya mwanachama kama rejea ya uhamisho. Mchango wako utathibitishwa ndani ya saa 24.",
-  "contribute.invalidProvider": "Nambari hiyo haionekani kama ya {{provider}}."
+  "contribute.bankNote": "Tumia {{ref}} kama rejea ya uhamisho wako. Mchango wako utathibitishwa ndani ya saa 24.",
+  "contribute.invalidProvider": "Nambari hiyo haionekani kama ya {{provider}}.",
+  "contribute.referenceLabel": "Rejea"
 }

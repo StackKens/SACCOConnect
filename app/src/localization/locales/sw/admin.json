@@ -260,7 +260,7 @@
   "contribute.paymentPromptNote": "Utapokea kidokezo cha malipo kwenye nambari hii kukithibitisha.",
   "contribute.bankAccountNumber": "Nambari ya Akaunti ya Benki",
   "contribute.accountPlaceholder": "mf. 1234567890",
-  "contribute.bankNote": "Tumia nambari yako ya mwanachama kama rejea ya uhamisho. Mchango wako utathibitishwa ndani ya saa 24.",
+  "contribute.bankNote": "Tumia {{ref}} kama rejea ya uhamisho wako. Mchango wako utathibitishwa ndani ya saa 24.",
   "contribute.youAreContributing": "Unachangia",
   "contribute.phoneLabel": "Simu",
   "contribute.accountLabel": "Akaunti",
@@ -332,5 +332,6 @@
   "payment.requiredName": "Weka jina la akaunti.",
   "payment.addFailed": "Imeshindwa kuongeza akaunti",
   "payment.updateFailed": "Imeshindwa kusasisha akaunti",
-  "contribute.invalidProvider": "Nambari hiyo haionekani kama ya {{provider}}."
+  "contribute.invalidProvider": "Nambari hiyo haionekani kama ya {{provider}}.",
+  "contribute.referenceLabel": "Rejea"
 }

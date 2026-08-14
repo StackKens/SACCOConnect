@@ -260,7 +260,7 @@
   "contribute.paymentPromptNote": "You will receive a payment prompt on this number to approve.",
   "contribute.bankAccountNumber": "Bank Account Number",
   "contribute.accountPlaceholder": "e.g. 1234567890",
-  "contribute.bankNote": "Use your member ID as the transfer reference. Your contribution will be confirmed within 24 hours.",
+  "contribute.bankNote": "Use {{ref}} as your transfer reference. Your contribution will be confirmed within 24 hours.",
   "contribute.youAreContributing": "You are contributing",
   "contribute.phoneLabel": "Phone",
   "contribute.accountLabel": "Account",
@@ -332,5 +332,6 @@
   "payment.requiredName": "Enter the account name.",
   "payment.addFailed": "Could not add account",
   "payment.updateFailed": "Could not update account",
-  "contribute.invalidProvider": "That doesn't look like a {{provider}} number."
+  "contribute.invalidProvider": "That doesn't look like a {{provider}} number.",
+  "contribute.referenceLabel": "Reference"
 }
